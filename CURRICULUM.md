@@ -11,7 +11,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 ## Module 0 — Orientation
 | # | Title | Status |
 |---|-------|--------|
-| 001 | What game architects and optimizers actually do (and why AI makes them more valuable) | ✅ |
+| 001 | What architects and optimizers actually do: the zombie horde problem | ✅ |
 | 002 | Anatomy of a frame: budgets, CPU-bound vs GPU-bound | ⬜ |
 | 003 | The measurement mindset: how to read a profiler | ⬜ |
 
