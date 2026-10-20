@@ -9,6 +9,8 @@
 - An **optimizer** measures, finds the one slow thing, and fixes it.
 - An **architect** changes the structure so that kind of slowness can't come back.
 
+> 🎮 **Play with it: [Zombie Horde Lab](https://yimo691.github.io/GameArchitect/demos/001-zombie-horde/)** — drag from 500 to 5,000 zombies and watch the frame rate fall, then switch on the spatial grid. It measures the real code on your phone. Tap **Set up** on each "Try this" step.
+
 ```mermaid
 flowchart LR
     A["😱 Game drops<br/>to 22 fps"] --> B["📏 Measure<br/>(profiler)"]
@@ -297,6 +299,8 @@ Only `16.67 − 16.1 = 0.57 ms` of headroom. Any spike (explosion, garbage colle
 ---
 
 ## 11. Back at the desk (≈45 min) — build it yourself
+
+> No desk today? The lab's **Scaling test** runs steps 1–4 below on your phone in about 10 seconds: [open the Zombie Horde Lab](https://yimo691.github.io/GameArchitect/demos/001-zombie-horde/). Building it yourself in your engine is still the best way to learn it.
 
 This is the best exercise in the whole module. You will *see* O(n²) with your own eyes.
 

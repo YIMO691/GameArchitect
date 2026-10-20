@@ -9,6 +9,8 @@
 - Speeding up the faster side changes **nothing** on screen. You must find the slow side first.
 - Two quick checks tell you which side is slow: **read the "wait" markers** in the profiler and do the **resolution test**.
 
+> 🎮 **Play with it: [Frame Pipeline Lab](https://yimo691.github.io/GameArchitect/demos/002-frame-pipeline/)** — replay this lesson's story step by step: the CPU week that changed nothing, the resolution test, the fog fix and the VSync trap. Watch the main thread wait for the GPU on a live timeline.
+
 ```mermaid
 flowchart LR
     A["😱 Night level<br/>runs at 40 fps"] --> B["🧠 CPU team cuts<br/>6 ms... still 40 fps"]
@@ -339,6 +341,8 @@ The screen only shows a new picture every 16.67 ms. A 17 ms frame just misses on
 ---
 
 ## 10. Back at the desk (≈40 min) — make a GPU-bound and a CPU-bound scene
+
+> Warm up first in the [Frame Pipeline Lab](https://yimo691.github.io/GameArchitect/demos/002-frame-pipeline/): move the CPU slider and render scale until you can predict which side is slow before you look. Then build the real thing below.
 
 You will build both pictures from Step 2 yourself and see the waits with your own eyes.
 

@@ -1,0 +1,107 @@
+<title>GameArchitect Labs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a single column index. Live labs as large cards, planned labs as a compact table. */
+:root {
+  --bg: #eef1f5; --panel: #ffffff; --field: #f6f8fb; --ink: #132030; --muted: #586579; --line: #d5dce5;
+  --accent: #a35f00; --good: #137a43; --link: #2a78d6;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441; --accent: #f0a43a; --good: #3cbf78; --link: #5aa0f0; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441; --accent: #f0a43a; --good: #3cbf78; --link: #5aa0f0; color-scheme: dark; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px;
+}
+.wrap { max-width: 920px; margin: 0 auto; display: grid; gap: 22px; }
+a { color: var(--link); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(30px, 7vw, 44px); line-height: 1.1; margin: 0; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; margin: 0; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 20px; margin: 0; }
+header { display: grid; gap: 8px; }
+.lede { margin: 0; max-width: 62ch; color: var(--muted); }
+.cards { display: grid; gap: 16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 700px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 10px; align-content: start; text-decoration: none; color: inherit; }
+.card:hover { border-color: var(--accent); }
+.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.card .meta { display: flex; flex-wrap: wrap; gap: 6px 12px; font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+.card ul { margin: 0; padding-left: 18px; font-size: 14px; display: grid; gap: 2px; }
+.card .go { font-weight: 600; color: var(--link); }
+.tag { font-family: var(--f-mono); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; border: 1px solid currentColor; }
+.tag.live { color: var(--good); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 12px; }
+.table-box { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+td.mono { font-family: var(--f-mono); white-space: nowrap; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+@media (max-width: 600px) {
+  table, tbody, tr, td { display: block; width: 100%; }
+  thead { display: none; }
+  tr { padding: 10px 0; border-bottom: 1px solid var(--line); display: grid; gap: 2px; }
+  td { border: 0; padding: 0; }
+  td:first-child { font-weight: 600; }
+  td.mono { font-size: 12px; color: var(--accent); }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">GameArchitect · interactive labs</div>
+    <h1>GameArchitect Labs</h1>
+    <p class="lede">Each lab turns one lesson into something you can poke at. Every lab has a <strong>Try this</strong> list: tap <strong>Set up</strong> on a step and watch what changes. They run in a phone browser, no install.</p>
+    <p class="fine"><a href="https://github.com/YIMO691/GameArchitect">Course on GitHub ↗</a></p>
+  </header>
+
+  <section class="cards" aria-label="Labs you can open now">
+    <a class="card" href="001-zombie-horde/index.html">
+      <div class="meta"><span class="tag live">live</span><span>Lesson 001</span><span>measured on your device</span></div>
+      <h3>Zombie Horde Lab</h3>
+      <p>Drag from 500 to 8,000 zombies and watch "check everyone" collapse the frame rate. Then switch on the spatial grid.</p>
+      <ul><li>O(n²): ×4 work per doubling</li><li>Frame budget of 16.67 ms</li><li>A real scaling test on your phone</li></ul>
+      <span class="go">Open lab →</span>
+    </a>
+    <a class="card" href="002-frame-pipeline/index.html">
+      <div class="meta"><span class="tag live">live</span><span>Lesson 002</span><span>simulation</span></div>
+      <h3>Frame Pipeline Lab</h3>
+      <p>Replay the night-city story: a week of CPU work that changed nothing, the resolution test, and the fixes that reach 60 fps.</p>
+      <ul><li>CPU-bound or GPU-bound?</li><li>Wait markers in the profiler</li><li>The VSync trap</li></ul>
+      <span class="go">Open lab →</span>
+    </a>
+  </section>
+
+  <section class="panel" aria-labelledby="planH">
+    <h2 id="planH">How labs grow with the course</h2>
+    <p class="fine">Not every lesson needs a new lab. When a later lesson goes deeper into the same idea, it adds a new mode and new steps to an existing lab. That keeps the labs small and lets you compare old and new ideas side by side.</p>
+    <div class="table-box">
+      <table>
+        <thead><tr><th>Lab</th><th>Lessons</th><th>What you will see</th></tr></thead>
+        <tbody>
+          <tr><td>Zombie Horde</td><td class="mono">001 · 037 · 053</td><td>Today: grid vs check everyone. Later: quadtrees, and AI that updates less often far from the camera.</td></tr>
+          <tr><td>Frame Pipeline</td><td class="mono">002 · 059 · 060</td><td>Today: CPU vs GPU. Later: frame pacing and shader-compile stutter.</td></tr>
+          <tr><td>Profiler Detective</td><td class="mono">003 · 035</td><td>Find the one bad frame in a recording. Why averages hide spikes.</td></tr>
+          <tr><td>Cache Lab</td><td class="mono">004 · 005 · 006</td><td>The same loop over scattered objects and packed arrays, measured.</td></tr>
+          <tr><td>Memory &amp; GC Lab</td><td class="mono">007 · 040 · 041 · 042</td><td>Allocate every frame and watch garbage-collection spikes; fix them with pools.</td></tr>
+          <tr><td>Jobs Lab</td><td class="mono">008 · 009</td><td>Split work across workers; see contention and false sharing.</td></tr>
+          <tr><td>Game Loop Lab</td><td class="mono">011</td><td>Fixed vs variable timestep: physics that explodes on a slow frame.</td></tr>
+          <tr><td>Draw Call &amp; Overdraw Lab</td><td class="mono">024 · 025 · 027</td><td>Batching, instancing, transparency and culling.</td></tr>
+          <tr><td>Netcode Lab</td><td class="mono">048 · 049</td><td>Lag, interpolation, prediction and rollback with a fake network.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

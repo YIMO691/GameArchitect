@@ -1,0 +1,394 @@
+<title>Frame Pipeline Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Timeline of three frames on the left, readouts and controls on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+.pill.cpu { color: var(--cpu); }
+.pill.gpu { color: var(--p1); }
+
+.timeline { overflow-x: auto; }
+.timeline svg { display: block; width: 100%; height: auto; }
+.timeline text { font-family: var(--f-mono); font-size: 13px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.coach { margin: 0; font-size: 14px; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-weight: 600; padding: 9px 6px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+.toggles { display: grid; gap: 8px; font-size: 14px; }
+.toggles label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.toggles input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; flex: none; }
+.toggles small { display: block; color: var(--muted); font-size: 12px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+
+.two { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.passes { display: grid; gap: 8px; }
+.pass { display: grid; grid-template-columns: 9.5em minmax(0, 1fr) 4.2em; gap: 10px; align-items: center; font-size: 14px; }
+.pass .track { height: 14px; background: var(--field); border: 1px solid var(--line); border-radius: 3px; position: relative; overflow: hidden; }
+.pass .fill { position: absolute; inset: 0 auto 0 0; border-radius: 0 3px 3px 0; transition: width 0.25s ease; }
+.pass .ms { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.pass .hot { display: block; font-family: var(--f-mono); font-size: 11px; line-height: 1.2; color: var(--bad); }
+.pass .is-hot { font-weight: 600; }
+.pass.total { border-top: 1px solid var(--line); padding-top: 8px; font-weight: 600; }
+.formula { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; overflow-x: auto; white-space: pre; line-height: 1.6; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+@media (prefers-reduced-motion: reduce) { .pass .fill { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/002-anatomy-of-a-frame.md">Read Lesson 002 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 002 · Lesson 002 · simulation using the lesson's numbers</div>
+    <h1>Frame Pipeline Lab</h1>
+    <p class="lede">The CPU and the GPU work at the same time, one frame apart. The slower one sets your frame rate. Change the work on each side and watch who ends up waiting.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Night city level.</strong> Goal: 60 fps on a 60 Hz screen at 100% render scale, with at least 1.5 ms of headroom.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Frame timeline and controls">
+    <div class="panel">
+      <h2>Three frames, side by side</h2>
+      <div class="timeline" id="timeline"></div>
+      <div class="legend" id="legend"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Frame rate</span><span class="v" id="sFps">0</span><span class="s" id="sFt">fps</span></div>
+        <div class="stat"><span class="k">Bound by</span><span class="v" id="sBound">GPU</span><span class="s" id="sHead">headroom</span></div>
+        <div class="stat"><span class="k">CPU work</span><span class="v" id="sCpu" style="color:var(--cpu)">0</span><span class="s">ms, main thread</span></div>
+        <div class="stat"><span class="k">GPU work</span><span class="v" id="sGpu" style="color:var(--p1)">0</span><span class="s">ms, all passes</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <label for="cpu"><span>CPU work (game code)</span><span class="mono" id="cpuLabel">18.0 ms</span></label>
+          <input type="range" id="cpu" min="4" max="30" step="0.5" value="18">
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Render scale</span><span class="mono" id="scaleLabel">100%</span></span>
+          <div class="seg-ctl" role="group" aria-label="Render scale">
+            <button type="button" id="sc50" aria-pressed="false">50%</button>
+            <button type="button" id="sc75" aria-pressed="false">75%</button>
+            <button type="button" id="sc100" aria-pressed="true">100%</button>
+          </div>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="fog"><span>Half-resolution fog<small>Fog on ¼ of the pixels, plus a 0.5 ms upsample</small></span></label>
+          <label><input type="checkbox" id="rain"><span>Fewer rain streaks<small>Less overdraw near the camera</small></span></label>
+          <label><input type="checkbox" id="vsync"><span>VSync on a 60 Hz screen<small>A finished frame waits for the next screen refresh</small></span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>What the profiler shows</h2>
+      <p class="fine">A Unity-style capture of one frame. The main thread's time includes waiting. The red line is the wait marker from the lesson.</p>
+      <pre class="capture" id="capture"></pre>
+    </div>
+    <div class="panel">
+      <h2>GPU passes</h2>
+      <div class="passes" id="passes"></div>
+      <h3>Resolution test</h3>
+      <pre class="formula" id="formula"></pre>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the timeline and the profiler capture. This replays the lesson's story.</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Frame = the slower side</h3><p>Frame time is max(CPU, GPU). Saving time on the faster side turns into waiting, not into frames.</p></div>
+      <div class="note"><h3>Waiting looks like work</h3><p>The main thread's total includes the wait for the GPU. Read the wait marker before you believe "CPU 25 ms".</p></div>
+      <div class="note"><h3>The bottleneck moves</h3><p>After every big fix, check again which side is slower. The 50% test and undoing the CPU work both flip it.</p></div>
+    </div>
+    <p class="fine">This lab is a model, not a measurement. Pass costs come from Lesson 002: fixed GPU work 5 ms (shadows 3 ms, 2 ms of geometry) and per-pixel work 20 ms at 2560×1440. Per-pixel work scales with the number of pixels, so 50% render scale means ¼ of the cost. Real GPUs are less tidy, but the rules are the same.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const REFRESH = 1000 / 60;
+  const $ = (id) => document.getElementById(id);
+  const st = { cpu: 18, scale: 1, fog: false, rain: false, vsync: false };
+
+  const PASSES = [
+    { name: "Shadows", c: "--p1", f: (s, a) => 3 },
+    { name: "Opaque geometry", c: "--p2", f: (s, a) => 2 + 3 * a },
+    { name: "Volumetric fog", c: "--p3", f: (s, a) => (s.fog ? (12 * a) / 4 + 0.5 * a : 12 * a) },
+    { name: "Rain", c: "--p4", f: (s, a) => (s.rain ? 1 : 3) * a },
+    { name: "Post-processing", c: "--p5", f: (s, a) => 1.5 * a },
+    { name: "UI", c: "--p6", f: (s, a) => 0.5 * a },
+  ];
+  function model(s) {
+    const a = s.scale * s.scale;
+    const passes = PASSES.map((p) => ({ name: p.name, c: p.c, ms: p.f(s, a) }));
+    const gpu = passes.reduce((t, p) => t + p.ms, 0);
+    const work = Math.max(s.cpu, gpu);
+    const frame = s.vsync ? Math.max(1, Math.ceil(work / REFRESH - 1e-9)) * REFRESH : work;
+    const diff = s.cpu - gpu;
+    const bound = Math.abs(diff) < 0.25 ? "Both" : diff > 0 ? "CPU" : "GPU";
+    return { passes, gpu, work, frame, fps: 1000 / frame, bound, headroom: REFRESH - work };
+  }
+  const f1 = (v) => v.toFixed(1), f2 = (v) => v.toFixed(2);
+  const fmtFps = (v) => (v >= 100 ? v.toFixed(0) : v.toFixed(1)).replace(/\.0$/, "");
+
+  // ---------- timeline ----------
+  function timeline(m) {
+    const box = $("timeline").clientWidth || 660;
+    const W = Math.max(330, Math.min(660, Math.round(box))), narrow = W < 480;
+    const T = m.frame, cpu = st.cpu, H = 206, L = narrow ? 64 : 118, R = 14, top = 32;
+    const span = 3 * T, iw = W - L - R, X = (t) => L + (t / span) * iw;
+    const laneY = { cpu: top + 18, gpu: top + 98 }, lh = 34;
+    let g = `<defs><pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" style="fill:var(--field)"/><line x1="0" y1="0" x2="0" y2="7" style="stroke:var(--muted);stroke-width:1.6;opacity:.55"/></pattern></defs>`;
+    g += `<text x="0" y="${laneY.cpu + 15}" style="fill:var(--ink);font-weight:600">${narrow ? "Main" : "Main thread"}</text><text x="0" y="${laneY.cpu + 31}" style="fill:var(--muted)">CPU</text>`;
+    g += `<text x="0" y="${laneY.gpu + 15}" style="fill:var(--ink);font-weight:600">GPU</text><text x="0" y="${laneY.gpu + 31}" style="fill:var(--muted)">${narrow ? "" : "draws pixels"}</text>`;
+    // refresh lines
+    if (st.vsync) {
+      for (let t = 0; t <= span + 1e-6; t += REFRESH) g += `<line x1="${X(t)}" x2="${X(t)}" y1="${top - 6}" y2="${laneY.gpu + lh + 8}" style="stroke:var(--good);stroke-dasharray:4 4;stroke-width:1"/>`;
+      g += `<text x="${W - R}" y="${top - 12}" text-anchor="end" style="fill:var(--good)">${narrow ? "┊ refresh 16.67 ms" : "┊ screen refresh every 16.67 ms"}</text>`;
+    }
+    for (let k = 0; k < 3; k++) {
+      const t0 = k * T;
+      // CPU work + wait
+      g += `<rect x="${X(t0)}" y="${laneY.cpu}" width="${Math.max(1, X(t0 + cpu) - X(t0) - 1.5)}" height="${lh}" rx="3" style="fill:var(--cpu)"><title>Frame ${k + 2}: CPU work ${f1(cpu)} ms</title></rect>`;
+      if (T - cpu > 0.05) g += `<rect x="${X(t0 + cpu)}" y="${laneY.cpu}" width="${Math.max(1, X(t0 + T) - X(t0 + cpu) - 1.5)}" height="${lh}" rx="3" style="fill:url(#hatch);stroke:var(--line)"><title>Waiting ${f1(T - cpu)} ms</title></rect>`;
+      g += `<text x="${X(t0) + 4}" y="${laneY.cpu - 6}" style="fill:var(--ink)">${narrow ? "F" : "frame "}${k + 2}</text>`;
+      if (X(t0 + T) - X(t0 + cpu) > (narrow ? 34 : 64)) g += `<text x="${(X(t0 + cpu) + X(t0 + T)) / 2}" y="${laneY.cpu + lh / 2 + 4}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${narrow ? f1(T - cpu) : "wait " + f1(T - cpu)}</text>`;
+    }
+    // GPU: frame k is drawn after the CPU hands it over
+    for (let k = -1; k < 3; k++) {
+      let t = k * T + cpu;
+      const busyEnd = t + m.gpu;
+      if (busyEnd <= 0) continue;
+      for (const p of m.passes) {
+        const a = Math.max(0, t), b = Math.min(span, t + p.ms);
+        if (b > a + 1e-6) g += `<rect x="${X(a)}" y="${laneY.gpu}" width="${Math.max(0.8, X(b) - X(a) - 0.8)}" height="${lh}" style="fill:var(${p.c})"><title>Frame ${k + 2}: ${p.name} ${f1(p.ms)} ms</title></rect>`;
+        t += p.ms;
+      }
+      if (k * T + cpu >= 0 && k * T + cpu < span) g += `<text x="${X(k * T + cpu) + 4}" y="${laneY.gpu - 6}" style="fill:var(--ink)">${narrow ? "F" : "frame "}${k + 2}</text>`;
+      const idleA = Math.max(0, busyEnd), idleB = Math.min(span, (k + 1) * T + cpu);
+      if (idleB - idleA > 0.05) {
+        g += `<rect x="${X(idleA)}" y="${laneY.gpu}" width="${Math.max(1, X(idleB) - X(idleA) - 1.5)}" height="${lh}" rx="3" style="fill:url(#hatch);stroke:var(--line)"><title>GPU idle ${f1(idleB - idleA)} ms</title></rect>`;
+        if (X(idleB) - X(idleA) > (narrow ? 34 : 50)) g += `<text x="${(X(idleA) + X(idleB)) / 2}" y="${laneY.gpu + lh / 2 + 4}" text-anchor="middle" style="fill:var(--ink);font-weight:600">idle</text>`;
+      }
+    }
+    // hand-over arrows and axis
+    for (let k = 0; k < 3; k++) {
+      const x = X(k * T + cpu);
+      g += `<line x1="${x}" x2="${x}" y1="${laneY.cpu + lh + 2}" y2="${laneY.gpu - 18}" style="stroke:var(--muted);stroke-width:1.2" marker-end="url(#arr)"/>`;
+    }
+    g = g.replace("</defs>", `<marker id="arr" viewBox="0 0 8 8" refX="4" refY="7" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L8 0 L4 8 z" style="fill:var(--muted)"/></marker></defs>`);
+    const axY = laneY.gpu + lh + 24;
+    g += `<line x1="${L}" x2="${W - R}" y1="${axY - 12}" y2="${axY - 12}" style="stroke:var(--line)"/>`;
+    for (let k = 0; k <= 3; k++) {
+      const x = X(k * T);
+      g += `<line x1="${x}" x2="${x}" y1="${axY - 16}" y2="${axY - 8}" style="stroke:var(--muted)"/><text x="${x}" y="${axY + 4}" text-anchor="${k === 0 ? "start" : k === 3 ? "end" : "middle"}" style="fill:var(--muted)">${narrow ? (k === 3 ? Math.round(k * T) + " ms" : Math.round(k * T)) : f1(k * T) + " ms"}</text>`;
+    }
+    $("timeline").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Timeline of three frames: main thread work and waiting, GPU passes and idle time">${g}</svg>`;
+  }
+
+  // ---------- readouts ----------
+  function render() {
+    const m = model(st);
+    timeline(m);
+    $("legend").innerHTML = `<span><i style="background:var(--cpu)"></i>CPU work</span>` + m.passes.map((p) => `<span><i style="background:var(${p.c})"></i>${p.name}</span>`).join("") + `<span><i style="background:repeating-linear-gradient(45deg,var(--muted) 0 2px,var(--field) 2px 6px)"></i>waiting / idle</span>`;
+    $("sFps").textContent = fmtFps(m.fps);
+    $("sFps").className = "v " + (m.fps >= 59.9 ? "good" : "bad");
+    $("sFt").textContent = "fps · " + f2(m.frame) + " ms per frame";
+    $("sBound").textContent = m.bound === "Both" ? "Both" : m.bound;
+    $("sBound").style.color = m.bound === "CPU" ? "var(--cpu)" : m.bound === "GPU" ? "var(--p1)" : "var(--ink)";
+    $("sHead").textContent = m.headroom >= 0 ? `headroom ${f2(m.headroom)} ms under 16.67` : `${f2(-m.headroom)} ms over the 16.67 budget`;
+    $("sCpu").textContent = f1(st.cpu);
+    $("sGpu").textContent = f1(m.gpu);
+    $("cpuLabel").textContent = f1(st.cpu) + " ms";
+    $("scaleLabel").textContent = Math.round(st.scale * 100) + "%  (" + Math.round(2560 * st.scale) + "×" + Math.round(1440 * st.scale) + ")";
+    for (const [id, v] of [["sc50", 0.5], ["sc75", 0.75], ["sc100", 1]]) $(id).setAttribute("aria-pressed", st.scale === v);
+
+    const goal = st.scale === 1 && m.headroom >= 1.5 - 1e-9;
+    $("goalPill").className = "pill " + (goal ? "ok" : "over");
+    $("goalPill").textContent = goal ? "Goal met" : st.scale !== 1 ? "Not at 100% scale" : m.headroom >= 0 ? "Too little headroom" : "Not yet";
+
+    let coach;
+    if (m.bound === "GPU") coach = `<span class="pill gpu">GPU-bound</span> The GPU sets the pace (${f1(m.gpu)} ms). The main thread waits ${f1(m.frame - st.cpu)} ms every frame. CPU time you save right now only makes that wait longer.`;
+    else if (m.bound === "CPU") coach = `<span class="pill cpu">CPU-bound</span> The CPU sets the pace (${f1(st.cpu)} ms). The GPU sits idle ${f1(m.frame - m.gpu)} ms per frame. GPU savings won't show until the CPU work drops.`;
+    else coach = `<span class="pill ok">Balanced</span> Both sides take about the same time. Now any saving must come from both sides.`;
+    if (st.vsync && m.frame - m.work > 0.05) coach += ` VSync adds ${f1(m.frame - m.work)} ms of waiting for the next screen refresh.`;
+    $("coach").innerHTML = coach;
+
+    // profiler capture
+    const waitGpu = Math.max(0, m.work - st.cpu), waitVs = m.frame - m.work;
+    const row = (label, ms, extra = "") => label + " ".repeat(Math.max(1, 34 - label.replace(/<[^>]+>/g, "").length)) + pad(f1(ms)) + " ms" + extra + "\n";
+    let cap = `<span class="dim">Frame 4410</span>  CPU ${f1(m.frame)} ms  GPU ${f1(m.gpu)} ms\n`;
+    cap += row("Main Thread", m.frame);
+    cap += row("├─ PlayerLoop (game code)", st.cpu);
+    if (waitGpu > 0.05) cap += row(`${waitVs > 0.05 ? "├" : "└"}─ <span class="warn">Gfx.WaitForPresentOnGfxThread</span>`, waitGpu, `  <span class="warn">◀ GPU</span>`);
+    if (waitVs > 0.05) cap += row(`└─ <span class="dim">Wait for VSync</span>`, waitVs, `  <span class="dim">◀ screen</span>`);
+    if (waitGpu <= 0.05 && waitVs <= 0.05) cap += `   <span class="dim">(no wait marker: busy all frame)</span>\n`;
+    cap += "\n" + row("GPU (busy)", m.gpu);
+    if (m.frame - m.gpu > 0.05) cap += row("GPU (idle)", m.frame - m.gpu);
+    $("capture").innerHTML = cap;
+
+    // passes
+    const maxMs = 13;
+    const hot = m.passes.reduce((a, b) => (b.ms > a.ms ? b : a));
+    $("passes").innerHTML = m.passes.map((p) => `<div class="pass"><span class="${p === hot ? "is-hot" : ""}">${p.name}${p === hot ? '<span class="hot">◀ hot spot</span>' : ""}</span><span class="track"><span class="fill" style="width:${Math.min(100, (p.ms / maxMs) * 100)}%;background:var(${p.c})"></span></span><span class="ms">${f2(p.ms)}</span></div>`).join("")
+      + `<div class="pass total"><span>Total GPU</span><span></span><span class="ms">${f2(m.gpu)}</span></div>`;
+
+    // resolution test, for the current fixes
+    const g100 = model({ ...st, scale: 1 }).gpu, g50 = model({ ...st, scale: 0.5 }).gpu;
+    const P = ((g100 - g50) * 4) / 3, F = g100 - P;
+    $("formula").textContent =
+      `GPU at 100% scale:  F + P   = ${f2(g100)} ms\n` +
+      `GPU at  50% scale:  F + P/4 = ${f2(g50)} ms\n` +
+      `Subtract:           ¾ × P   = ${f2(g100 - g50)} ms\n` +
+      `Per-pixel work      P       = ${f2(P)} ms  (${Math.round((P / g100) * 100)}%)\n` +
+      `Fixed work          F       = ${f2(F)} ms`;
+  }
+  const pad = (s) => s.padStart(5, " ");
+
+  // ---------- controls ----------
+  $("cpu").addEventListener("input", (e) => { st.cpu = +e.target.value; render(); });
+  for (const [id, v] of [["sc50", 0.5], ["sc75", 0.75], ["sc100", 1]]) $(id).addEventListener("click", () => { st.scale = v; render(); });
+  for (const k of ["fog", "rain", "vsync"]) $(k).addEventListener("change", (e) => { st[k] = e.target.checked; render(); });
+  function apply(s) {
+    Object.assign(st, s);
+    $("cpu").value = st.cpu; $("fog").checked = st.fog; $("rain").checked = st.rain; $("vsync").checked = st.vsync;
+    render();
+  }
+
+  // ---------- guided steps ----------
+  const STEPS = [
+    { t: "The night level", d: "CPU 18 ms, GPU 25 ms. The frame takes 25 ms, so 40 fps. In the timeline the main thread waits 7 ms every frame for the GPU.", s: { cpu: 18, scale: 1, fog: false, rain: false, vsync: false } },
+    { t: "The CPU team's week", d: "CPU work drops from 18 to 12 ms. Frame rate: still 40. The wait grew to 13 ms. The capture still says \"Main Thread 25 ms\". This is the trap from the lesson.", s: { cpu: 12, scale: 1, fog: false, rain: false, vsync: false } },
+    { t: "The resolution test", d: "Render scale 50%: a quarter of the pixels. GPU falls from 25 to 10 ms, so 20 of its 25 ms is per-pixel work. Look: the game is now CPU-bound at 12 ms.", s: { cpu: 12, scale: 0.5, fog: false, rain: false, vsync: false } },
+    { t: "Half-resolution fog", d: "Back to 100%. Fog drops from 12 to 3.5 ms. GPU 16.5 ms, 60 fps, but only 0.17 ms of headroom. One more street light and it drops again.", s: { cpu: 12, scale: 1, fog: true, rain: false, vsync: false } },
+    { t: "Fewer rain streaks", d: "Rain drops from 3 to 1 ms. GPU 14.5 ms, headroom 2.17 ms. The goal at the top turns green.", s: { cpu: 12, scale: 1, fog: true, rain: true, vsync: false } },
+    { t: "Undo the CPU week", d: "Put CPU work back to 18 ms. Now the game is CPU-bound at 55.6 fps. The CPU team's work mattered after all. It was hidden behind the slow GPU.", s: { cpu: 18, scale: 1, fog: true, rain: true, vsync: false } },
+    { t: "The VSync trap", d: "CPU 17 ms with VSync on. The frame misses the 16.67 ms refresh by 0.33 ms, waits for the next one, and the game shows 30 fps. A tiny miss halves the frame rate.", s: { cpu: 17, scale: 1, fog: true, rain: true, vsync: true } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $("timeline").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("timeline").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; timeline(model(st)); } }).observe($("timeline"));
+})();
+</script>

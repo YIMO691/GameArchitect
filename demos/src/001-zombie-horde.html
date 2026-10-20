@@ -1,0 +1,571 @@
+<title>Zombie Horde Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Live simulation on the left, readouts and controls on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --naive: #eb6834;
+  --grid: #2a78d6;
+  --good: #137a43;
+  --bad: #c62f36;
+  --dot: #4a5868;
+  --cellhi: rgba(42, 120, 214, 0.13);
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4;
+    --line: #2a3441; --accent: #f0a43a; --naive: #d95926; --grid: #3987e5; --good: #3cbf78;
+    --bad: #ff6168; --dot: #8d9bad; --cellhi: rgba(57, 135, 229, 0.2); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4;
+  --line: #2a3441; --accent: #f0a43a; --naive: #d95926; --grid: #3987e5; --good: #3cbf78;
+  --bad: #ff6168; --dot: #8d9bad; --cellhi: rgba(57, 135, 229, 0.2); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--grid); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono, .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.stage { position: relative; width: 100%; aspect-ratio: 1 / 1; max-width: 100%; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; touch-action: manipulation; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 10px; top: 10px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); }
+.v.good { color: var(--good); }
+
+.bar-wrap { display: grid; gap: 6px; }
+.bar-head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; flex-wrap: wrap; }
+.bar { position: relative; height: 30px; border-radius: 6px; background: var(--field); border: 1px solid var(--line); overflow: hidden; }
+.bar .seg { position: absolute; top: 0; bottom: 0; left: 0; transition: width 0.15s linear; }
+.bar .rest { background: var(--line); }
+.bar .budget { position: absolute; top: -1px; bottom: -1px; width: 0; border-left: 2px dashed var(--good); }
+.bar-scale { position: relative; height: 16px; font-family: var(--f-mono); font-size: 11px; color: var(--muted); }
+.bar-scale span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.bar-scale span:first-child { transform: none; }
+.verdict { font-size: 14px; margin: 0; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-weight: 600; padding: 10px 8px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.field-row { display: grid; gap: 6px; }
+.field-row label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+.toggles { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; }
+.toggles label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.toggles input { width: 18px; height: 18px; accent-color: var(--accent); }
+
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--ink); background: var(--ink); color: var(--panel); cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn:disabled { opacity: 0.55; cursor: progress; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+
+.chart-box { overflow-x: auto; }
+.chart-box svg { display: block; width: 100%; max-width: 680px; min-width: 320px; height: auto; }
+.chart-box text { font-family: var(--f-mono); font-size: 12px; fill: var(--muted); }
+.chart-box .lbl { font-weight: 600; fill: var(--ink); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.table-box { overflow-x: auto; }
+th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+td { font-family: var(--f-mono); }
+.swatch { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+@media (prefers-reduced-motion: reduce) { .bar .seg { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/001-what-architects-and-optimizers-do.md">Read Lesson 001 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 001 · Lesson 001 · measured live on your device</div>
+    <h1>Zombie Horde Lab</h1>
+    <p class="lede">Every zombie must stay out of its neighbours' way. Watch how much work that takes when each zombie checks everyone, and how a spatial grid cuts the work to almost nothing.</p>
+  </header>
+
+  <section class="lab" aria-label="Live simulation">
+    <div class="panel">
+      <div class="stage" id="stage">
+        <canvas id="cv" aria-label="Zombies moving in a square arena. One red zombie shows the other zombies it checks."></canvas>
+        <div class="stage-tag" id="stageTag">Check everyone</div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--dot)"></i>zombie</span>
+        <span><i style="background:var(--bad)"></i>zombie #0, the one we watch</span>
+        <span><i id="lineSwatch" style="background:var(--naive)"></i>a distance check it makes this frame</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Zombies</span><span class="v" id="sN">0</span><span class="s" id="sR">radius</span></div>
+        <div class="stat"><span class="k">Checks per frame</span><span class="v" id="sC">0</span><span class="s" id="sCs">distance checks</span></div>
+        <div class="stat"><span class="k">Separation step</span><span class="v" id="sMs">0</span><span class="s">ms, measured</span></div>
+        <div class="stat"><span class="k">Frame rate</span><span class="v" id="sFps">0</span><span class="s" id="sFt">fps</span></div>
+      </div>
+
+      <div class="bar-wrap">
+        <div class="bar-head"><strong>One frame on your device</strong><span id="barTotal" class="mono">0 ms</span></div>
+        <div class="bar" id="bar">
+          <div class="seg rest" id="segRest"></div>
+          <div class="seg" id="segSep"></div>
+          <div class="budget" id="budget"></div>
+        </div>
+        <div class="bar-scale" id="barScale"></div>
+        <p class="verdict" id="verdict"></p>
+      </div>
+
+      <div class="controls">
+        <div class="seg-ctl" role="group" aria-label="Algorithm">
+          <button type="button" id="mNaive" aria-pressed="true">Check everyone</button>
+          <button type="button" id="mGrid" aria-pressed="false">Spatial grid</button>
+        </div>
+        <div class="field-row">
+          <label for="nSlider"><span>Number of zombies</span><span class="mono" id="nLabel">2,000</span></label>
+          <input type="range" id="nSlider" min="0" max="9" step="1" value="4">
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="tLines" checked>Show zombie #0's checks</label>
+          <label><input type="checkbox" id="tGrid" checked>Show grid cells</label>
+          <label><input type="checkbox" id="tPause">Pause</label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step, then watch the numbers above. Each step takes about 20 seconds.</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="benchH">
+    <div style="display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between">
+      <h2 id="benchH">Scaling test</h2>
+      <button type="button" class="btn" id="runBench">Run scaling test</button>
+    </div>
+    <p class="fine">This is the "Back at the desk" exercise from the lesson, done for you. It times both versions at 500, 1,000, 2,000 and 4,000 zombies on this device. It takes about 10 seconds; the live view pauses while it runs.</p>
+    <p class="fine" id="benchStatus" aria-live="polite">Not run yet.</p>
+    <div class="legend" id="benchLegend" hidden>
+      <span><span class="swatch" style="background:var(--naive)"></span>Check everyone</span>
+      <span><span class="swatch" style="background:var(--grid)"></span>Spatial grid</span>
+    </div>
+    <div class="chart-box" id="chart"></div>
+    <div class="table-box">
+      <table id="benchTable" hidden>
+        <thead><tr><th>Zombies</th><th>Check everyone</th><th>× previous</th><th>Spatial grid</th><th>× previous</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>O(n²) hides in small tests</h3><p>With 500 zombies, checking everyone looks free. Each time you double the crowd, the work goes up four times, so the cost shows up suddenly.</p></div>
+      <div class="note"><h3>Measure, then fix</h3><p>The frame bar is the profiler in miniature. The separation step is the one thing to fix; the rest of the frame barely changes.</p></div>
+      <div class="note"><h3>The architect's rule</h3><p>Any "who is near me?" question goes through one shared spatial grid. Then bullets, explosions and AI senses get the same speed-up for free.</p></div>
+    </div>
+    <p class="fine">Times are measured in JavaScript in your browser. A C# or C++ build will give different absolute numbers, but the same shape: about ×4 per doubling for "check everyone" and about ×2 for the grid. The frame rate cannot go above your screen's refresh rate (often 60 or 120 Hz).</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const WORLD = 1000;
+  const COUNTS = [100, 250, 500, 1000, 2000, 3000, 4000, 5000, 6000, 8000];
+  const BUDGET = 1000 / 60;
+
+  // ---------- separation algorithms (the code from the lesson) ----------
+  function radiusFor(n) { return (2 * WORLD) / Math.sqrt(n); } // about 4 zombies per grid cell
+
+  function sepNaive(n, x, y, ox, oy, R) {
+    const R2 = R * R;
+    for (let i = 0; i < n; i++) {
+      const xi = x[i], yi = y[i];
+      let ax = 0, ay = 0;
+      for (let j = 0; j < n; j++) {
+        if (j === i) continue;
+        const dx = xi - x[j], dy = yi - y[j];
+        const d2 = dx * dx + dy * dy;
+        if (d2 < R2 && d2 > 1e-9) { const d = Math.sqrt(d2); const s = (1 - d / R) / d; ax += dx * s; ay += dy * s; }
+      }
+      ox[i] = ax; oy[i] = ay;
+    }
+    return n * (n - 1);
+  }
+
+  function makeGrid() { return { cap: 0, cells: 0, count: new Int32Array(0), start: new Int32Array(0), cursor: new Int32Array(0), sorted: new Int32Array(0), cellOf: new Int32Array(0), cols: 1 }; }
+
+  function buildGrid(n, x, y, R, G) {
+    const cols = Math.max(1, Math.ceil(WORLD / R));
+    const nc = cols * cols;
+    if (G.cells < nc) { G.count = new Int32Array(nc); G.start = new Int32Array(nc); G.cursor = new Int32Array(nc); G.cells = nc; }
+    if (G.cap < n) { G.sorted = new Int32Array(n); G.cellOf = new Int32Array(n); G.cap = n; }
+    G.cols = cols;
+    const count = G.count, start = G.start, cursor = G.cursor, cellOf = G.cellOf, sorted = G.sorted;
+    count.fill(0, 0, nc);
+    for (let i = 0; i < n; i++) {
+      let cx = (x[i] / R) | 0, cy = (y[i] / R) | 0;
+      if (cx >= cols) cx = cols - 1; if (cy >= cols) cy = cols - 1; if (cx < 0) cx = 0; if (cy < 0) cy = 0;
+      const c = cy * cols + cx; cellOf[i] = c; count[c]++;
+    }
+    let s = 0;
+    for (let c = 0; c < nc; c++) { start[c] = s; cursor[c] = s; s += count[c]; }
+    for (let i = 0; i < n; i++) sorted[cursor[cellOf[i]]++] = i;
+  }
+
+  function sepGrid(n, x, y, ox, oy, R, G) {
+    buildGrid(n, x, y, R, G);
+    const R2 = R * R, cols = G.cols, count = G.count, start = G.start, sorted = G.sorted, cellOf = G.cellOf;
+    let checks = 0;
+    for (let i = 0; i < n; i++) {
+      const c = cellOf[i], cx = c % cols, cy = (c / cols) | 0, xi = x[i], yi = y[i];
+      let ax = 0, ay = 0;
+      for (let gy = cy - 1; gy <= cy + 1; gy++) {
+        if (gy < 0 || gy >= cols) continue;
+        for (let gx = cx - 1; gx <= cx + 1; gx++) {
+          if (gx < 0 || gx >= cols) continue;
+          const cc = gy * cols + gx, end = start[cc] + count[cc];
+          for (let k = start[cc]; k < end; k++) {
+            const j = sorted[k];
+            if (j === i) continue;
+            checks++;
+            const dx = xi - x[j], dy = yi - y[j];
+            const d2 = dx * dx + dy * dy;
+            if (d2 < R2 && d2 > 1e-9) { const d = Math.sqrt(d2); const s = (1 - d / R) / d; ax += dx * s; ay += dy * s; }
+          }
+        }
+      }
+      ox[i] = ax; oy[i] = ay;
+    }
+    return checks;
+  }
+
+  // ---------- state ----------
+  const st = { n: 2000, mode: "naive", lines: true, grid: true, paused: false, R: 0, checks: 0, sepMs: 0, frameMs: BUDGET, last: 0, benchRunning: false };
+  let px, py, vx, vy, fx, fy;
+  const G = makeGrid();
+
+  function spawn(n) {
+    st.n = n; st.R = radiusFor(n);
+    px = new Float32Array(n); py = new Float32Array(n); vx = new Float32Array(n); vy = new Float32Array(n);
+    fx = new Float32Array(n); fy = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      px[i] = Math.random() * WORLD; py[i] = Math.random() * WORLD;
+      const a = Math.random() * Math.PI * 2; vx[i] = Math.cos(a) * 20; vy[i] = Math.sin(a) * 20;
+    }
+    st.sepMs = 0;
+  }
+
+  function step(dt) {
+    const t0 = performance.now();
+    st.checks = st.mode === "naive" ? sepNaive(st.n, px, py, fx, fy, st.R) : sepGrid(st.n, px, py, fx, fy, st.R, G);
+    const ms = performance.now() - t0;
+    st.sepMs = st.sepMs === 0 ? ms : st.sepMs * 0.85 + ms * 0.15;
+    // pass 2: move everyone
+    const push = st.R * 2.2, maxV = 40;
+    for (let i = 0; i < st.n; i++) {
+      vx[i] += (Math.random() - 0.5) * 30 * dt + fx[i] * push * dt;
+      vy[i] += (Math.random() - 0.5) * 30 * dt + fy[i] * push * dt;
+      const sp = Math.hypot(vx[i], vy[i]);
+      if (sp > maxV) { vx[i] *= maxV / sp; vy[i] *= maxV / sp; }
+      px[i] += vx[i] * dt; py[i] += vy[i] * dt;
+      if (px[i] < 0) { px[i] = 0; vx[i] = Math.abs(vx[i]); } else if (px[i] >= WORLD) { px[i] = WORLD - 0.01; vx[i] = -Math.abs(vx[i]); }
+      if (py[i] < 0) { py[i] = 0; vy[i] = Math.abs(vy[i]); } else if (py[i] >= WORLD) { py[i] = WORLD - 0.01; vy[i] = -Math.abs(vy[i]); }
+    }
+  }
+
+  // ---------- theme colours for the canvas ----------
+  let col = {};
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement);
+    for (const k of ["field", "dot", "bad", "naive", "grid", "line", "cellhi"]) col[k] = cs.getPropertyValue("--" + k).trim();
+  }
+  readColors();
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColors); } catch (e) {}
+  new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
+
+  // ---------- drawing ----------
+  const cv = document.getElementById("cv"), ctx = cv.getContext("2d"), stage = document.getElementById("stage");
+  let scale = 1, dpr = 1;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = stage.clientWidth;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(w * dpr);
+    scale = (w * dpr) / WORLD;
+  }
+  new ResizeObserver(resize).observe(stage);
+
+  function draw() {
+    const s = scale, R = st.R, n = st.n;
+    ctx.fillStyle = col.field; ctx.fillRect(0, 0, cv.width, cv.height);
+    const gridMode = st.mode === "grid";
+    if (gridMode && (st.paused || st.benchRunning || G.cap < n || G.cols !== Math.max(1, Math.ceil(WORLD / R)))) buildGrid(n, px, py, R, G);
+    if (gridMode && st.grid) {
+      const cols = Math.ceil(WORLD / R);
+      if (st.lines) {
+        const cx = Math.min(cols - 1, (px[0] / R) | 0), cy = Math.min(cols - 1, (py[0] / R) | 0);
+        const x0 = Math.max(0, cx - 1) * R, y0 = Math.max(0, cy - 1) * R;
+        const x1 = Math.min(cols, cx + 2) * R, y1 = Math.min(cols, cy + 2) * R;
+        ctx.fillStyle = col.cellhi; ctx.fillRect(x0 * s, y0 * s, (Math.min(x1, WORLD) - x0) * s, (Math.min(y1, WORLD) - y0) * s);
+      }
+      ctx.strokeStyle = col.line; ctx.lineWidth = 1; ctx.beginPath();
+      for (let i = 1; i < cols; i++) { const p = Math.round(i * R * s) + 0.5; ctx.moveTo(p, 0); ctx.lineTo(p, cv.height); ctx.moveTo(0, p); ctx.lineTo(cv.width, p); }
+      ctx.stroke();
+    }
+    if (st.lines && n > 1) {
+      ctx.strokeStyle = gridMode ? col.grid : col.naive;
+      ctx.globalAlpha = gridMode ? 0.9 : Math.max(0.12, Math.min(0.6, 60 / n));
+      ctx.lineWidth = Math.max(1, dpr * 0.75);
+      ctx.beginPath();
+      const x0 = px[0] * s, y0 = py[0] * s;
+      if (gridMode) {
+        const cols = G.cols, c = G.cellOf[0], cx = c % cols, cy = (c / cols) | 0;
+        for (let gy = cy - 1; gy <= cy + 1; gy++) {
+          if (gy < 0 || gy >= cols) continue;
+          for (let gx = cx - 1; gx <= cx + 1; gx++) {
+            if (gx < 0 || gx >= cols) continue;
+            const cc = gy * cols + gx, end = G.start[cc] + G.count[cc];
+            for (let k = G.start[cc]; k < end; k++) { const j = G.sorted[k]; if (j === 0) continue; ctx.moveTo(x0, y0); ctx.lineTo(px[j] * s, py[j] * s); }
+          }
+        }
+      } else {
+        for (let j = 1; j < n; j++) { ctx.moveTo(x0, y0); ctx.lineTo(px[j] * s, py[j] * s); }
+      }
+      ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    const r = Math.max(1.4 * dpr, Math.min(5 * dpr, R * 0.22 * s));
+    ctx.fillStyle = col.dot; ctx.beginPath();
+    for (let i = 1; i < n; i++) ctx.rect(px[i] * s - r / 2, py[i] * s - r / 2, r, r);
+    ctx.fill();
+    ctx.fillStyle = col.bad; ctx.beginPath(); ctx.arc(px[0] * s, py[0] * s, Math.max(r, 4.5 * dpr), 0, Math.PI * 2); ctx.fill();
+  }
+
+  // ---------- readouts ----------
+  const $ = (id) => document.getElementById(id);
+  const fmtInt = (v) => Math.round(v).toLocaleString("en-US");
+  function fmtBig(v) { if (v >= 1e6) return (v / 1e6).toFixed(v >= 1e7 ? 1 : 2) + " M"; if (v >= 1e3) return (v / 1e3).toFixed(v >= 1e5 ? 0 : 1) + " K"; return String(Math.round(v)); }
+  function fmtMs(v) { return v >= 10 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v.toFixed(3); }
+
+  let uiTick = 0;
+  function updateReadouts() {
+    const frame = Math.max(st.frameMs, st.sepMs);
+    $("sN").textContent = fmtInt(st.n);
+    $("sR").textContent = "grid cell = radius = " + st.R.toFixed(0) + " units";
+    $("sC").textContent = fmtBig(st.checks);
+    $("sCs").textContent = st.mode === "naive" ? "n × (n − 1), every frame" : "about " + Math.round(st.checks / st.n) + " per zombie";
+    $("sMs").textContent = fmtMs(st.sepMs);
+    $("sMs").className = "v " + (st.sepMs > BUDGET ? "bad" : st.sepMs <= 2.5 ? "good" : "");
+    const fps = 1000 / frame;
+    $("sFps").textContent = st.paused ? "—" : fps.toFixed(0);
+    $("sFps").className = "v " + (st.paused ? "" : fps < 55 ? "bad" : "good");
+    $("sFt").textContent = st.paused ? "paused" : "fps · " + fmtMs(frame) + " ms per frame";
+
+    const maxMs = Math.max(50, Math.ceil(frame / 10) * 10);
+    const sepW = Math.min(100, (st.sepMs / maxMs) * 100);
+    const restW = Math.min(100, (frame / maxMs) * 100);
+    $("segSep").style.width = sepW + "%";
+    $("segSep").style.background = st.mode === "naive" ? "var(--naive)" : "var(--grid)";
+    $("segRest").style.width = restW + "%";
+    $("budget").style.left = (BUDGET / maxMs) * 100 + "%";
+    $("barTotal").textContent = fmtMs(frame) + " ms";
+    if (uiTick % 30 === 0) {
+      const ticks = [0, BUDGET, maxMs];
+      $("barScale").innerHTML = ticks.map((t, i) => `<span style="left:${(t / maxMs) * 100}%;${i === 2 ? "transform:translateX(-100%)" : ""}">${i === 1 ? "16.67 ms budget" : Math.round(t) + " ms"}</span>`).join("");
+    }
+    const over = st.sepMs > BUDGET;
+    const share = frame > 0 ? Math.round((st.sepMs / frame) * 100) : 0;
+    $("verdict").innerHTML = st.paused ? "Paused." :
+      (over ? `<span class="pill over">Over budget</span> Separation alone takes ${fmtMs(st.sepMs)} ms, more than the whole 16.67 ms frame.`
+            : `<span class="pill ok">Fits</span> Separation uses ${share}% of this frame. The lesson's AI budget is 2.5 ms.`)
+      + ` <span style="color:var(--muted)">Coloured part = separation, grey = everything else (moving, drawing, the browser).</span>`;
+  }
+
+  // ---------- main loop ----------
+  function loop(ts) {
+    if (!st.last) st.last = ts;
+    const dtMs = ts - st.last; st.last = ts;
+    if (dtMs > 0 && dtMs < 1000) st.frameMs = st.frameMs * 0.85 + dtMs * 0.15;
+    if (!st.paused && !st.benchRunning) step(Math.min(dtMs, 50) / 1000);
+    draw();
+    if (uiTick++ % 6 === 0) updateReadouts();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- controls ----------
+  function setMode(m) {
+    st.mode = m; st.sepMs = 0;
+    $("mNaive").setAttribute("aria-pressed", m === "naive");
+    $("mGrid").setAttribute("aria-pressed", m === "grid");
+    $("stageTag").textContent = m === "naive" ? "Check everyone" : "Spatial grid";
+    $("lineSwatch").style.background = m === "naive" ? "var(--naive)" : "var(--grid)";
+  }
+  function setCountIndex(i) {
+    $("nSlider").value = i; $("nLabel").textContent = fmtInt(COUNTS[i]); spawn(COUNTS[i]);
+  }
+  $("mNaive").addEventListener("click", () => setMode("naive"));
+  $("mGrid").addEventListener("click", () => setMode("grid"));
+  $("nSlider").addEventListener("input", (e) => setCountIndex(+e.target.value));
+  $("tLines").addEventListener("change", (e) => { st.lines = e.target.checked; });
+  $("tGrid").addEventListener("change", (e) => { st.grid = e.target.checked; });
+  $("tPause").addEventListener("change", (e) => { st.paused = e.target.checked; });
+
+  // ---------- guided steps ----------
+  const STEPS = [
+    { t: "The test scene", d: "500 zombies, everyone checks everyone. About 250 K checks. The separation step is tiny and the frame rate is smooth. Everything looks fine.", mode: "naive", i: 2 },
+    { t: "Double the crowd", d: "1,000 zombies. Twice the zombies, but about 4× the checks (1 M) and about 4× the time. Compare the separation number with step 1.", mode: "naive", i: 3 },
+    { t: "Double again", d: "2,000 zombies: 4 M checks, about 4× again. On a fast computer it may still fit. On a phone it often doesn't.", mode: "naive", i: 4 },
+    { t: "The horde", d: "5,000 zombies: 25 M checks. On most devices the coloured bar crosses the 16.67 ms line and the frame rate falls. This is the lesson's 22 fps moment.", mode: "naive", i: 7 },
+    { t: "Switch to the grid", d: "Same 5,000 zombies, under 200 K checks instead of 25 M. Zombie #0 now only checks the 9 shaded cells around it. The separation step takes 10× to 20× less time.", mode: "grid", i: 7 },
+    { t: "Push it further", d: "8,000 zombies with the grid. The separation step still fits in a few milliseconds. Now doubling the crowd only doubles the work, so you can plan a budget for it. (On a slow phone, drawing 8,000 dots may now be the slowest part.)", mode: "grid", i: 9 },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn ghost" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      $("tPause").checked = false; st.paused = false;
+      $("tLines").checked = true; st.lines = true;
+      setMode(s.mode); setCountIndex(s.i);
+      $("stage").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  // ---------- scaling test ----------
+  const sleep = () => new Promise((r) => setTimeout(r, 0));
+  async function timeIt(fn) {
+    const runs = []; const tStart = performance.now();
+    while (runs.length < 3 || (performance.now() - tStart < 200 && runs.length < 40)) {
+      const t0 = performance.now(); fn(); runs.push(performance.now() - t0); await sleep();
+    }
+    runs.sort((a, b) => a - b); return runs[runs.length >> 1];
+  }
+  async function runBench() {
+    const btn = $("runBench"); btn.disabled = true; st.benchRunning = true;
+    const NS = [500, 1000, 2000, 4000], res = [];
+    const GB = makeGrid();
+    try {
+      for (const n of NS) {
+        $("benchStatus").textContent = `Timing ${fmtInt(n)} zombies…`;
+        const x = new Float32Array(n), y = new Float32Array(n), ox = new Float32Array(n), oy = new Float32Array(n);
+        for (let i = 0; i < n; i++) { x[i] = Math.random() * WORLD; y[i] = Math.random() * WORLD; }
+        const R = radiusFor(n);
+        await sleep();
+        const naive = await timeIt(() => sepNaive(n, x, y, ox, oy, R));
+        const grid = await timeIt(() => sepGrid(n, x, y, ox, oy, R, GB));
+        res.push({ n, naive, grid });
+      }
+      renderBench(res);
+      const last = res[res.length - 1];
+      $("benchStatus").textContent = `Done. At 4,000 zombies the grid was ${Math.round(last.naive / Math.max(last.grid, 0.001))}× faster on this device.`;
+    } catch (e) {
+      $("benchStatus").textContent = "The test stopped early: " + e.message;
+    } finally { btn.disabled = false; st.benchRunning = false; st.last = 0; }
+  }
+  $("runBench").addEventListener("click", runBench);
+
+  function renderBench(res) {
+    const tb = $("benchTable"); tb.hidden = false; $("benchLegend").hidden = false;
+    tb.querySelector("tbody").innerHTML = res.map((r, i) => {
+      const p = res[i - 1];
+      const rn = p ? "×" + (r.naive / p.naive).toFixed(1) : "—";
+      const rg = p ? "×" + (r.grid / p.grid).toFixed(1) : "—";
+      return `<tr><td>${fmtInt(r.n)}</td><td>${fmtMs(r.naive)} ms</td><td>${rn}</td><td>${fmtMs(r.grid)} ms</td><td>${rg}</td></tr>`;
+    }).join("");
+    // line chart: one x axis (zombies), one y axis (ms)
+    const W = 640, H = 300, m = { l: 56, r: 120, t: 16, b: 40 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const maxY = Math.max(...res.map((r) => r.naive), BUDGET) * 1.08;
+    const niceStep = (v) => { const p = Math.pow(10, Math.floor(Math.log10(v))); const f = v / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; };
+    const yStep = niceStep(maxY / 4);
+    const yMax = Math.ceil(maxY / yStep) * yStep;
+    const X = (n) => m.l + (n / 4000) * iw, Y = (v) => m.t + ih - (v / yMax) * ih;
+    let g = "";
+    for (let v = 0; v <= yMax + 1e-9; v += yStep) g += `<line x1="${m.l}" x2="${m.l + iw}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--line);stroke-width:1"/><text x="${m.l - 8}" y="${Y(v) + 4}" text-anchor="end">${+v.toFixed(2)}</text>`;
+    for (const n of [0, 1000, 2000, 3000, 4000]) g += `<text x="${X(n)}" y="${m.t + ih + 22}" text-anchor="middle">${n === 0 ? "0" : n / 1000 + "K"}</text>`;
+    g += `<text x="${m.l + iw / 2}" y="${H - 4}" text-anchor="middle">zombies</text>`;
+    g += `<text x="12" y="${m.t + ih / 2}" text-anchor="middle" transform="rotate(-90 12 ${m.t + ih / 2})">ms per frame</text>`;
+    g += `<line x1="${m.l}" x2="${m.l + iw}" y1="${Y(BUDGET)}" y2="${Y(BUDGET)}" style="stroke:var(--good);stroke-width:1.5;stroke-dasharray:6 4"/><text x="${m.l + iw + 8}" y="${Y(BUDGET) + 4}" style="fill:var(--good)">16.67 ms budget</text>`;
+    const series = [["naive", "var(--naive)", "Check everyone"], ["grid", "var(--grid)", "Spatial grid"]];
+    for (const [k, c, name] of series) {
+      g += `<polyline style="fill:none;stroke:${c};stroke-width:2;stroke-linejoin:round" points="${res.map((r) => X(r.n) + "," + Y(r[k])).join(" ")}"/>`;
+      for (const r of res) g += `<circle cx="${X(r.n)}" cy="${Y(r[k])}" r="5" style="fill:${c};stroke:var(--panel);stroke-width:2"><title>${name}: ${fmtInt(r.n)} zombies, ${fmtMs(r[k])} ms</title></circle>`;
+      const e = res[res.length - 1];
+      g += `<text class="lbl" x="${X(e.n) + 10}" y="${Y(e[k]) + (k === "grid" ? -6 : 4)}">${name.split(" ")[0] === "Check" ? "Check everyone" : "Grid"}</text>`;
+    }
+    $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Separation time in milliseconds against number of zombies, for both versions">${g}</svg>`;
+  }
+
+  // ---------- start ----------
+  setMode("naive"); setCountIndex(4); resize(); updateReadouts();
+  requestAnimationFrame(loop);
+})();
+</script>
