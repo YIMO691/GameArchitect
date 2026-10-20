@@ -20,3 +20,4 @@ AI tools write plausible code quickly. What they can't do on their own is make d
 | # | Lesson | Date |
 |---|--------|------|
 | 001 | [What architects and optimizers actually do: the zombie horde problem](lessons/001-what-architects-and-optimizers-do.md) | 2026-10-19 |
+| 002 | [Anatomy of a Frame: The Week of CPU Work That Changed Nothing](lessons/002-anatomy-of-a-frame.md) | 2026-10-19 |

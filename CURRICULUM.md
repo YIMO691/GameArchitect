@@ -12,7 +12,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | # | Title | Status |
 |---|-------|--------|
 | 001 | What architects and optimizers actually do: the zombie horde problem | ✅ |
-| 002 | Anatomy of a frame: budgets, CPU-bound vs GPU-bound | ⬜ |
+| 002 | Anatomy of a frame: the week of CPU work that changed nothing | ✅ |
 | 003 | The measurement mindset: how to read a profiler | ⬜ |
 
 ## Module 1 — Hardware reality
