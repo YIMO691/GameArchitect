@@ -23,3 +23,4 @@ AI tools write plausible code quickly. What they can't do on their own is make d
 |---|--------|-----|------|
 | 001 | [What architects and optimizers actually do: the zombie horde problem](lessons/001-what-architects-and-optimizers-do.md) | [Zombie Horde](https://yimo691.github.io/GameArchitect/demos/001-zombie-horde/) | 2026-10-19 |
 | 002 | [Anatomy of a Frame: The Week of CPU Work That Changed Nothing](lessons/002-anatomy-of-a-frame.md) | [Frame Pipeline](https://yimo691.github.io/GameArchitect/demos/002-frame-pipeline/) | 2026-10-19 |
+| 003 | [The Measurement Mindset: The 65 fps Game That Players Called Choppy](lessons/003-the-measurement-mindset.md) | [Profiler Detective](https://yimo691.github.io/GameArchitect/demos/003-profiler-detective/) | 2026-10-20 |

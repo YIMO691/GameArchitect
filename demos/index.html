@@ -87,6 +87,13 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <ul><li>CPU-bound or GPU-bound?</li><li>Wait markers in the profiler</li><li>The VSync trap</li></ul>
       <span class="go">Open lab →</span>
     </a>
+    <a class="card" href="003-profiler-detective/index.html">
+      <div class="meta"><span class="tag live">live</span><span>Lesson 003</span><span>simulation</span></div>
+      <h3>Profiler Detective Lab</h3>
+      <p>The FPS counter says 65, players say it's choppy. Find the one bad frame in 300, read its capture, and prove the fix.</p>
+      <ul><li>Average vs P99 vs worst frame</li><li>Total time, self time and calls</li><li>Editor vs target build</li></ul>
+      <span class="go">Open lab →</span>
+    </a>
   </section>
 
   <section class="panel" aria-labelledby="planH">
@@ -98,7 +105,7 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
         <tbody>
           <tr><td>Zombie Horde</td><td class="mono">001 · 037 · 053</td><td>Today: grid vs check everyone. Later: quadtrees, and AI that updates less often far from the camera.</td></tr>
           <tr><td>Frame Pipeline</td><td class="mono">002 · 059 · 060</td><td>Today: CPU vs GPU. Later: frame pacing and shader-compile stutter.</td></tr>
-          <tr><td>Profiler Detective</td><td class="mono">003 · 035</td><td>Find the one bad frame in a recording. Why averages hide spikes.</td></tr>
+          <tr><td>Profiler Detective</td><td class="mono">003 · 035</td><td>Today: find the spike the average hides, read self time and calls. Later: hypothesis-driven profiling.</td></tr>
           <tr><td>Cache Lab</td><td class="mono">004 · 005 · 006</td><td>The same loop over scattered objects and packed arrays, measured.</td></tr>
           <tr><td>Memory &amp; GC Lab</td><td class="mono">007 · 040 · 041 · 042</td><td>Allocate every frame and watch garbage-collection spikes; fix them with pools.</td></tr>
           <tr><td>Jobs Lab</td><td class="mono">008 · 009</td><td>Split work across workers; see contention and false sharing.</td></tr>

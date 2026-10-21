@@ -13,7 +13,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 |---|-------|--------|
 | 001 | What architects and optimizers actually do: the zombie horde problem | ✅ |
 | 002 | Anatomy of a frame: the week of CPU work that changed nothing | ✅ |
-| 003 | The measurement mindset: how to read a profiler | ⬜ |
+| 003 | The measurement mindset: the 65 fps game that players called choppy | ✅ |
 
 ## Module 1 — Hardware reality
 | # | Title | Status |
