@@ -1,0 +1,594 @@
+<title>Cache Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Memory map on the left, readouts and controls on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --order: #2a78d6;
+  --jump: #eb6834;
+  --cell: #e3e8ef;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --order: #3987e5; --jump: #d95926; --cell: #1f2833; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --order: #3987e5; --jump: #d95926; --cell: #1f2833; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--order); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.mapbar { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; justify-content: space-between; }
+.tag { font-family: var(--f-mono); font-size: 12px; font-weight: 600; color: var(--muted); }
+.stage { position: relative; width: 100%; aspect-ratio: 2 / 1; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: var(--field); }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.ends { display: flex; justify-content: space-between; gap: 10px; font-family: var(--f-mono); font-size: 12px; color: var(--muted); margin-top: -8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.reads { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.coach { margin: 0; font-size: 14px; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; align-content: start; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.bar-wrap { display: grid; gap: 6px; }
+.bar-head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; flex-wrap: wrap; }
+.bar { position: relative; height: 26px; border-radius: 6px; background: var(--field); border: 1px solid var(--line); overflow: hidden; }
+.bar .seg { position: absolute; top: 0; bottom: 0; left: 0; transition: width 0.15s linear; }
+.bar .budget { position: absolute; top: -1px; bottom: -1px; width: 0; border-left: 2px dashed var(--good); }
+.bar-scale { position: relative; height: 16px; font-family: var(--f-mono); font-size: 11px; color: var(--muted); }
+.bar-scale span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.bar-scale span:first-child { transform: none; }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 4px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg-ctl button + button { border-left: 1px solid var(--line); }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.field-row { display: grid; gap: 6px; }
+.field-row > .lbl { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; font-weight: 500; }
+.field-row small { color: var(--muted); font-size: 12px; }
+.row-btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.clock { font-family: var(--f-mono); font-size: 14px; margin-left: auto; }
+
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; min-height: 36px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+.btn.primary { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-h { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.group-h .tag { font-weight: 500; }
+
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.table-box { overflow-x: auto; }
+th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+td { font-family: var(--f-mono); }
+td.hot { color: var(--bad); font-weight: 600; }
+td.cool { color: var(--good); font-weight: 600; }
+
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+@media (prefers-reduced-motion: reduce) { .bar .seg { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/004-cpu-caches-and-the-memory-hierarchy.md">Read Lesson 004 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 004 · Lesson 004 · measured live on your device</div>
+    <h1>Cache Lab</h1>
+    <p class="lede">A real particle pool: 32 bytes per particle, updated every frame. Same particles, same code. Only the order of the reads changes. Watch what that does to the time.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Rain and blood particles, night city level.</strong> Goal: 500,000 particles, at least 10 seconds played, and the loop still reads memory in order.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Memory map, readouts and controls">
+    <div class="panel">
+      <div class="mapbar">
+        <h2>Where the loop reads</h2>
+        <span class="tag" id="mapTag">in order</span>
+      </div>
+      <div class="stage" id="stage"><canvas id="cv" aria-label="Memory map. Each square is one piece of the particle array. The bright trail shows where the update loop is reading."></canvas></div>
+      <div class="ends"><span>slot 0 (start)</span><span id="endLbl">end of 16 MB</span></div>
+      <div class="legend">
+        <span><i style="background:var(--order)"></i>reads in order</span>
+        <span><i style="background:var(--jump)"></i>reads that jump</span>
+        <span><i style="background:var(--cell)"></i>particle memory, left to right, top to bottom</span>
+      </div>
+      <pre class="reads" id="reads"></pre>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Particle update</span><span class="v" id="sMs">0</span><span class="s">ms per frame, measured</span></div>
+        <div class="stat"><span class="k">Per particle</span><span class="v" id="sNs">0</span><span class="s">ns, measured</span></div>
+        <div class="stat"><span class="k">Next-door reads</span><span class="v" id="sNd">100%</span><span class="s" id="sJump">same or next cache line</span></div>
+        <div class="stat"><span class="k">Particle data</span><span class="v" id="sMb">16 MB</span><span class="s" id="sMbS">500,000 × 32 bytes</span></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-head"><span>Particle update vs the whole frame budget</span><span class="mono" id="barTotal">0 ms</span></div>
+        <div class="bar"><div class="seg" id="seg"></div><div class="budget" id="budget"></div></div>
+        <div class="bar-scale" id="barScale"></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <span class="lbl"><span>Particles</span><span class="mono" id="nLabel">500,000</span></span>
+          <div class="seg-ctl" role="group" aria-label="Number of particles">
+            <button type="button" id="n0" aria-pressed="false">20K</button>
+            <button type="button" id="n1" aria-pressed="false">100K</button>
+            <button type="button" id="n2" aria-pressed="true">500K</button>
+            <button type="button" id="n3" aria-pressed="false">1M</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Pool type</span></span>
+          <div class="seg-ctl" role="group" aria-label="Pool type">
+            <button type="button" id="pFree" aria-pressed="true">Free list</button>
+            <button type="button" id="pDense" aria-pressed="false">Swap-and-pop</button>
+          </div>
+          <small id="poolNote"></small>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Play time</span></span>
+          <div class="row-btns">
+            <button type="button" class="btn primary" id="play">▶ Let time run</button>
+            <button type="button" class="btn" id="skip">⏩ Skip 10 s</button>
+            <button type="button" class="btn" id="reload">↺ Reload level</button>
+            <span class="clock" id="clock">played 0.0 s</span>
+          </div>
+          <small>When time is frozen, the loop still runs every frame, but particles don't age, so none die and the order stays as it is.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. The times are measured on your device, so your numbers will differ from the lesson's laptop. The pattern will not.</p>
+    <div class="group-h"><h3>Lesson 004 · access order</h3><span class="tag">the particle update that got slower after 3 seconds</span></div>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="benchH">
+    <div style="display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between">
+      <h2 id="benchH">Order test</h2>
+      <button type="button" class="btn" id="runBench">Run order test</button>
+    </div>
+    <p class="fine">The same update loop, time frozen, at four sizes. Each size runs twice: reads in slot order, and reads in a fully shuffled order. It takes about 10 seconds; the live view pauses while it runs. Watch the last column jump once the data no longer fits in your CPU's caches.</p>
+    <p class="fine" id="benchStatus" aria-live="polite">Not run yet.</p>
+    <div class="table-box">
+      <table id="benchTable" hidden>
+        <thead><tr><th>Particles</th><th>Data</th><th>In order</th><th>Shuffled</th><th>Shuffled ÷ in order</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Order is a cost</h3><p>The same 500,000 updates take several times longer when each read jumps somewhere new. Nothing in the code got slower. The memory did.</p></div>
+      <div class="note"><h3>Size decides how much</h3><p>When the data fits in the caches (20K particles is 640 KB), a shuffled order costs little. When it doesn't fit, every jump is a trip to RAM.</p></div>
+      <div class="note"><h3>Containers decide order</h3><p>A free list scrambles the order on its own within seconds. Swap-and-pop keeps the live particles packed, so the loop always reads front to back.</p></div>
+    </div>
+    <p class="fine">Measured live with <code>performance.now()</code>: this is the real loop, in JavaScript, on your device. A particle is 8 floats (32 bytes) in one big <code>Float32Array</code>. The "Skip 10 s" button fast-forwards the deaths and births of particles without timing them; it scrambles the free list the same way as letting time run. A C++ or Burst build would be faster overall, and your CPU's cache sizes decide where the jump happens, but the ratio is the lesson.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const S = 8;                       // floats per particle: px py pz vx vy vz life color = 32 bytes
+  const BYTES = S * 4;
+  const DT = 1 / 60;
+  const BUDGET = 1000 / 60;
+  const SIZES = [20000, 100000, 500000, 1000000];
+  const $ = (id) => document.getElementById(id);
+
+  // ---------- a small fast random generator ----------
+  let seed = 12345;
+  const rnd = () => { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return (seed >>> 0) / 4294967296; };
+
+  // ---------- the particle pool (the code from the lesson) ----------
+  function makePool(n, mode) {
+    const P = { n, mode, d: new Float32Array(n * S), alive: new Int32Array(n), free: new Int32Array(n), freeTop: 0, count: n };
+    for (let i = 0; i < n; i++) { spawn(P.d, i * S); P.alive[i] = i; }
+    return P;
+  }
+  function spawn(d, b) {
+    d[b] = rnd() * 100; d[b + 1] = 50 + rnd() * 50; d[b + 2] = rnd() * 100;
+    d[b + 3] = rnd() - 0.5; d[b + 4] = -10 - rnd() * 10; d[b + 5] = rnd() - 0.5;
+    d[b + 6] = 1 + 2 * rnd(); d[b + 7] = rnd();       // life: 1 to 3 seconds
+  }
+  // Free list: the loop follows the alive list, wherever it points.
+  function updateFree(P, dt) {
+    const d = P.d, alive = P.alive, free = P.free, n = P.n;
+    let c = P.count, top = P.freeTop;
+    for (let k = 0; k < c; k++) {
+      const i = alive[k], b = i * S;
+      d[b] += d[b + 3] * dt; d[b + 1] += d[b + 4] * dt; d[b + 2] += d[b + 5] * dt;
+      d[b + 4] -= 9.8 * dt;
+      const life = d[b + 6] - dt; d[b + 6] = life;
+      if (life <= 0) { free[top++] = i; alive[k] = alive[--c]; k--; }   // give the slot back, fill the hole
+    }
+    while (c < n) { const i = free[--top]; spawn(d, i * S); alive[c++] = i; }   // emitter refills the pool
+    P.count = c; P.freeTop = top;
+  }
+  // Swap-and-pop: live particles always sit in slots 0..count-1.
+  function updateDense(P, dt) {
+    const d = P.d, n = P.n;
+    let c = P.count;
+    for (let k = 0; k < c; k++) {
+      const b = k * S;
+      d[b] += d[b + 3] * dt; d[b + 1] += d[b + 4] * dt; d[b + 2] += d[b + 5] * dt;
+      d[b + 4] -= 9.8 * dt;
+      const life = d[b + 6] - dt; d[b + 6] = life;
+      if (life <= 0) {
+        c--;
+        if (k < c) { const s = c * S; for (let f = 0; f < S; f++) d[b + f] = d[s + f]; }   // move the last one into the hole
+        k--;
+      }
+    }
+    while (c < n) { spawn(d, c * S); c++; }
+    P.count = c;
+  }
+  const update = (P, dt) => (P.mode === "dense" ? updateDense(P, dt) : updateFree(P, dt));
+
+  // Fast-forward many frames of deaths and births without running the full update.
+  // Free list: each death does exactly what updateFree does to the alive list and the free list.
+  function skipFrames(P, frames) {
+    const n = P.n, d = P.d;
+    if (P.mode === "dense") {
+      for (let k = 0; k < n; k++) d[k * S + 6] = Math.max(0.02, rnd() * (1 + 2 * rnd()));
+      return;
+    }
+    const alive = P.alive, free = P.free, R = 200;
+    const pos = new Int32Array(n), death = new Int32Array(n), next = new Int32Array(n), head = new Int32Array(R).fill(-1);
+    for (let k = 0; k < P.count; k++) pos[alive[k]] = k;
+    const push = (i, f) => { death[i] = f; const h = f % R; next[i] = head[h]; head[h] = i; };
+    for (let k = 0; k < P.count; k++) { const i = alive[k]; push(i, Math.max(1, Math.ceil(d[i * S + 6] / DT - 1e-6))); }
+    let c = P.count, top = P.freeTop;
+    for (let f = 1; f <= frames; f++) {
+      const h = f % R; let i = head[h]; head[h] = -1;
+      while (i !== -1) {
+        const nx = next[i];
+        const k = pos[i], last = alive[c - 1];
+        alive[k] = last; pos[last] = k; c--;
+        free[top++] = i;
+        i = nx;
+      }
+      while (c < n) {
+        const j = free[--top];
+        alive[c] = j; pos[j] = c; c++;
+        spawn(d, j * S);
+        push(j, f + Math.max(1, Math.ceil(d[j * S + 6] / DT - 1e-6)));
+      }
+    }
+    for (let i = 0; i < n; i++) d[i * S + 6] = Math.max(DT * 0.5, (death[i] - frames) * DT);
+    P.count = c; P.freeTop = top;
+  }
+
+  // Which slot does the loop read k-th?
+  const slotAt = (P, k) => (P.mode === "dense" ? k : P.alive[k]);
+  function orderStats(P) {
+    let near = 0, jump = 0;
+    const c = P.count;
+    let prev = slotAt(P, 0);
+    for (let k = 1; k < c; k++) {
+      const s = slotAt(P, k), dl = (s >> 1) - (prev >> 1);   // 2 particles per 64-byte line
+      if (dl === 0 || dl === 1) near++;
+      jump += Math.abs(s - prev);
+      prev = s;
+    }
+    return { near: near / (c - 1), jump: (jump / (c - 1)) * BYTES };
+  }
+
+  // ---------- state ----------
+  const st = { ni: 2, mode: "free", running: false, frames: 0, samples: [], ms: 0, benchRunning: false, stats: { near: 1, jump: 32 }, phase: 0 };
+  let P = null;
+  function reload() {
+    seed = 12345 + st.ni * 7 + (st.mode === "dense" ? 1 : 0);
+    P = null;
+    P = makePool(SIZES[st.ni], st.mode);
+    st.frames = 0; st.samples = []; st.ms = 0; st.phase = 0;
+    st.stats = orderStats(P);
+  }
+  function skip(seconds) {
+    const f = Math.round(seconds * 60);
+    skipFrames(P, f); st.frames += f; st.samples = [];
+    st.stats = orderStats(P);
+  }
+
+  // ---------- theme colours for the canvas ----------
+  const col = {};
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement);
+    for (const k of ["field", "cell", "order", "jump", "ink", "muted"]) col[k] = cs.getPropertyValue("--" + k).trim();
+  }
+  readColors();
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColors); } catch (e) {}
+  new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+
+  // ---------- memory map ----------
+  const COLS = 32, ROWS = 16, CELLS = COLS * ROWS, TRAIL = 28;
+  const cv = $("cv"), ctx = cv.getContext("2d"), stage = $("stage");
+  let dpr = 1;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(stage.clientWidth * dpr); cv.height = Math.round(stage.clientHeight * dpr);
+  }
+  new ResizeObserver(resize).observe(stage);
+  function cellXY(slot) {
+    const c = Math.min(CELLS - 1, Math.floor((slot * CELLS) / P.n));
+    const cw = cv.width / COLS, ch = cv.height / ROWS;
+    return [(c % COLS) * cw + cw / 2, Math.floor(c / COLS) * ch + ch / 2, c];
+  }
+  function drawMap() {
+    const W = cv.width, H = cv.height, cw = W / COLS, ch = H / ROWS, gap = Math.max(1, dpr);
+    ctx.fillStyle = col.field; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = col.cell;
+    for (let c = 0; c < CELLS; c++) ctx.fillRect((c % COLS) * cw + gap, Math.floor(c / COLS) * ch + gap, cw - 2 * gap, ch - 2 * gap);
+    // the trail: where the loop reads, one dot every n/512 reads
+    const step = Math.max(1, Math.floor(P.count / CELLS));
+    const inOrder = st.stats.near >= 0.5;
+    const pts = [];
+    for (let j = 0; j < TRAIL; j++) {
+      const k = (Math.floor(st.phase) + j * step) % P.count;
+      pts.push(cellXY(slotAt(P, k)));
+    }
+    const color = inOrder ? col.order : col.jump;
+    ctx.lineWidth = 2 * dpr; ctx.lineJoin = "round"; ctx.strokeStyle = color;
+    for (let j = 1; j < pts.length; j++) {
+      const dc = pts[j][2] - pts[j - 1][2];
+      if (dc === 0 || dc === 1) continue;   // next-door step: no line needed
+      ctx.globalAlpha = 0.15 + 0.6 * (j / pts.length);
+      ctx.beginPath(); ctx.moveTo(pts[j - 1][0], pts[j - 1][1]); ctx.lineTo(pts[j][0], pts[j][1]); ctx.stroke();
+    }
+    for (let j = 0; j < pts.length; j++) {
+      ctx.globalAlpha = 0.3 + 0.7 * (j / pts.length);
+      ctx.fillStyle = color;
+      ctx.fillRect(pts[j][2] % COLS * cw + gap, Math.floor(pts[j][2] / COLS) * ch + gap, cw - 2 * gap, ch - 2 * gap);
+    }
+    ctx.globalAlpha = 1;
+    const hd = pts[pts.length - 1];
+    ctx.fillStyle = col.ink; ctx.beginPath(); ctx.arc(hd[0], hd[1], Math.max(3, Math.min(cw, ch) * 0.28), 0, Math.PI * 2); ctx.fill();
+  }
+
+  // ---------- readouts ----------
+  const fmtInt = (v) => Math.round(v).toLocaleString("en-US");
+  const fmtMs = (v) => (v >= 10 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v.toFixed(3));
+  const fmtBytes = (b) => (b >= 1e6 ? (b / 1e6).toFixed(b >= 1e7 ? 0 : 1) + " MB" : b >= 1e3 ? Math.round(b / 1e3) + " KB" : Math.round(b) + " B");
+  function median(a) { if (!a.length) return 0; const s = a.slice().sort((x, y) => x - y); return s[s.length >> 1]; }
+
+  let lastTick = -1;
+  function readouts() {
+    const n = P.n, ms = st.ms;
+    $("sMs").textContent = st.samples.length ? fmtMs(ms) : "…";
+    $("sNs").textContent = st.samples.length ? ((ms * 1e6) / n).toFixed(1) : "…";
+    const near = st.stats.near;
+    $("sNd").textContent = Math.round(near * 100) + "%";
+    $("sNd").className = "v " + (near >= 0.99 ? "good" : near < 0.5 ? "bad" : "");
+    $("sJump").textContent = "same or next cache line · average jump " + fmtBytes(st.stats.jump);
+    $("sMb").textContent = fmtBytes(n * BYTES);
+    $("sMbS").textContent = fmtInt(n) + " × 32 bytes";
+    $("endLbl").textContent = "end of " + fmtBytes(n * BYTES);
+    $("nLabel").textContent = fmtInt(n);
+    $("clock").textContent = "played " + (st.frames / 60).toFixed(1) + " s";
+    $("mapTag").textContent = near >= 0.99 ? "in order" : near < 0.01 ? "shuffled" : Math.round(near * 100) + "% in order";
+    $("play").textContent = st.running ? "⏸ Freeze time" : "▶ Let time run";
+    $("play").setAttribute("aria-pressed", st.running);
+    $("poolNote").textContent = st.mode === "free"
+      ? "A dead particle's slot goes on a free list. A new particle takes it and goes to the END of the alive list."
+      : "A dead particle is replaced by the last live one. Live particles always fill slots 0, 1, 2, … with no holes.";
+    for (let i = 0; i < 4; i++) $("n" + i).setAttribute("aria-pressed", i === st.ni);
+    $("pFree").setAttribute("aria-pressed", st.mode === "free");
+    $("pDense").setAttribute("aria-pressed", st.mode === "dense");
+
+    const goal = st.ni === 2 && st.frames >= 600 && near >= 0.99;
+    $("goalPill").className = "pill " + (goal ? "ok" : "over");
+    $("goalPill").textContent = goal ? "Goal met" : st.ni !== 2 ? "Not at 500K" : st.frames < 600 ? "Play at least 10 s" : "Reads not in order";
+
+    // first reads
+    const first = [];
+    for (let k = 0; k < 5; k++) first.push(slotAt(P, k));
+    let txt = "First reads of the loop:\n  slot " + first.map(fmtInt).join(" → ") + " → …\n";
+    const gaps = first.slice(1).map((s, k) => Math.abs(s - first[k]) * BYTES);
+    txt += "  jumps: " + gaps.map(fmtBytes).join(", ");
+    $("reads").textContent = txt;
+
+    // coach
+    let coach;
+    if (near >= 0.99) coach = `<span class="pill ok">In order</span> Every read is next to the last one. Each 64-byte cache line brings 2 particles, and the CPU fetches the next lines before the loop asks.`;
+    else if (near < 0.01) coach = `<span class="pill over">Shuffled</span> Almost every read jumps to a new place in ${fmtBytes(n * BYTES)}. ` + (n * BYTES > 8e6 ? `That is bigger than a typical laptop's L3 cache, so most reads wait for RAM.` : `But ${fmtBytes(n * BYTES)} may fit in your CPU's caches, so the jumps are cheap.`);
+    else coach = `<span class="pill over">Breaking up</span> Particles are dying and being reborn. Each one goes to the end of the alive list, and the order is falling apart.`;
+    $("coach").innerHTML = coach;
+
+    // budget bar
+    const maxMs = Math.max(30, Math.ceil(ms / 10) * 10);
+    $("seg").style.width = Math.min(100, (ms / maxMs) * 100) + "%";
+    $("seg").style.background = near >= 0.5 ? "var(--order)" : "var(--jump)";
+    $("budget").style.left = (BUDGET / maxMs) * 100 + "%";
+    $("barTotal").textContent = st.samples.length ? fmtMs(ms) + " ms of 16.67" : "…";
+    if (maxMs !== lastTick) {
+      lastTick = maxMs;
+      $("barScale").innerHTML = [0, BUDGET, maxMs].map((t, i) => `<span style="left:${(t / maxMs) * 100}%;${i === 2 ? "transform:translateX(-100%)" : ""}">${i === 1 ? "16.67 ms" : Math.round(t) + " ms"}</span>`).join("");
+    }
+  }
+
+  // ---------- main loop ----------
+  let tick = 0;
+  function loop() {
+    if (!st.benchRunning && P) {
+      // Small pools finish faster than the browser's timer can see, so they also run extra
+      // passes with time frozen (same reads and writes) and we report the time of one pass.
+      const reps = Math.max(1, Math.round(300000 / P.n));
+      const t0 = performance.now();
+      update(P, st.running ? DT : 0);
+      for (let r = 1; r < reps; r++) update(P, 0);
+      const ms = (performance.now() - t0) / reps;
+      st.samples.push(ms); if (st.samples.length > 40) st.samples.shift();
+      st.ms = median(st.samples);
+      if (st.running) {
+        st.frames++;
+        if (tick % 10 === 0) st.stats = orderStats(P);
+      }
+      if (!reduced.matches) st.phase += Math.max(1, P.count / CELLS) / 6;
+      drawMap();
+      if (tick % 6 === 0) readouts();
+      tick++;
+    }
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- controls ----------
+  function setSize(i) { st.ni = i; reload(); readouts(); }
+  function setMode(m) { st.mode = m; reload(); readouts(); }
+  for (let i = 0; i < 4; i++) $("n" + i).addEventListener("click", () => setSize(i));
+  $("pFree").addEventListener("click", () => setMode("free"));
+  $("pDense").addEventListener("click", () => setMode("dense"));
+  $("play").addEventListener("click", () => { st.running = !st.running; readouts(); });
+  $("skip").addEventListener("click", () => { skip(10); readouts(); });
+  $("reload").addEventListener("click", () => { reload(); readouts(); });
+
+  // ---------- guided steps ----------
+  const STEPS = [
+    { t: "The level just loaded", d: "500,000 particles, free-list pool, played 0 s, time frozen. Next-door reads: 100%. The trail sweeps through memory like eyes reading a page. Write down the update time: this is what the perf test saw.", s: { ni: 2, mode: "free", run: false, skip: 0 } },
+    { t: "Let time run", d: "Same pool, but now particles age, die and are reborn. Watch the played clock. Between about 1 and 3 seconds, next-door reads fall from 100% to 0%, the trail starts to jump, and the update time climbs.", s: { ni: 2, mode: "free", run: true, skip: 0 } },
+    { t: "A minute into the level", d: "60 seconds played, time frozen. Next-door reads: 0%. The average jump is about 5 MB. Same 500,000 particles, same code as step 1, yet the update is usually 2 to 10 times slower.", s: { ni: 2, mode: "free", run: false, skip: 60 } },
+    { t: "The fix: swap-and-pop", d: "Same 60 seconds of play with the swap-and-pop pool, and time running. Next-door reads stay at 100% however long you wait. The update time is back near step 1's, often a little faster, because the loop no longer reads the alive list. The goal at the top turns green.", s: { ni: 2, mode: "dense", run: true, skip: 60 } },
+    { t: "The small test scene, just loaded", d: "20,000 particles: only 640 KB. Free list, played 0 s, time frozen. Next-door reads: 100%. Write down the time per particle.", s: { ni: 0, mode: "free", run: false, skip: 0 } },
+    { t: "The small test scene, a minute later", d: "Same 20,000 particles after 60 seconds. Next-door reads fall to 0% here too, but the time per particle grows far less than it did at 500,000 (usually under 2× step 5, compared with 3× or more in step 3). 640 KB fits in the caches, so most jumps are cheap. Run the order test below to see all four sizes side by side.", s: { ni: 0, mode: "free", run: false, skip: 60 } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      st.ni = s.s.ni; st.mode = s.s.mode; reload();
+      if (s.s.skip) skip(s.s.skip);
+      st.running = s.s.run;
+      readouts();
+      stage.scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  // ---------- order test ----------
+  const sleep = () => new Promise((r) => setTimeout(r, 0));
+  async function timeIt(fn, reps) {
+    const runs = []; const t0 = performance.now();
+    fn();
+    while (runs.length < 5 || (performance.now() - t0 < 400 && runs.length < 30)) {
+      const a = performance.now(); for (let r = 0; r < reps; r++) fn(); runs.push((performance.now() - a) / reps); await sleep();
+    }
+    runs.sort((x, y) => x - y); return runs[runs.length >> 1];
+  }
+  async function runBench() {
+    const btn = $("runBench"); btn.disabled = true; st.benchRunning = true;
+    const res = [];
+    try {
+      for (const n of SIZES) {
+        $("benchStatus").textContent = `Timing ${fmtInt(n)} particles…`;
+        await sleep();
+        seed = 999;
+        const A = makePool(n, "free");
+        const reps = Math.max(1, Math.round(2000000 / n));
+        const ordered = await timeIt(() => updateFree(A, 0), reps);
+        for (let i = n - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = A.alive[i]; A.alive[i] = A.alive[j]; A.alive[j] = t; }
+        const shuffled = await timeIt(() => updateFree(A, 0), reps);
+        res.push({ n, ordered, shuffled });
+        renderBench(res);
+      }
+      const big = res[2];
+      $("benchStatus").textContent = `Done. At 500,000 particles the shuffled order was ${(big.shuffled / Math.max(big.ordered, 0.001)).toFixed(1)}× slower on this device.`;
+    } catch (e) {
+      $("benchStatus").textContent = "The test stopped early: " + e.message;
+    } finally { btn.disabled = false; st.benchRunning = false; st.samples = []; }
+  }
+  function renderBench(res) {
+    const tb = $("benchTable"); tb.hidden = false;
+    tb.querySelector("tbody").innerHTML = res.map((r) => {
+      const ratio = r.shuffled / Math.max(r.ordered, 0.001);
+      return `<tr><td>${fmtInt(r.n)}</td><td>${fmtBytes(r.n * BYTES)}</td><td>${fmtMs(r.ordered)} ms</td><td>${fmtMs(r.shuffled)} ms</td><td class="${ratio >= 2 ? "hot" : "cool"}">×${ratio.toFixed(1)}</td></tr>`;
+    }).join("");
+  }
+  $("runBench").addEventListener("click", runBench);
+
+  // ---------- start ----------
+  reload(); resize(); readouts();
+  requestAnimationFrame(loop);
+})();
+</script>
