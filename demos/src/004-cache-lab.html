@@ -18,6 +18,7 @@
   --order: #2a78d6;
   --jump: #eb6834;
   --cell: #e3e8ef;
+  --purple: #8a4fbf;
   --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -25,12 +26,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
-    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --order: #3987e5; --jump: #d95926; --cell: #1f2833; color-scheme: dark;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --order: #3987e5; --jump: #d95926; --cell: #1f2833; --purple: #b98ae6; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
-  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --order: #3987e5; --jump: #d95926; --cell: #1f2833; color-scheme: dark;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --order: #3987e5; --jump: #d95926; --cell: #1f2833; --purple: #b98ae6; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -133,6 +134,21 @@ td.cool { color: var(--good); font-weight: 600; }
 .note p { margin: 0; color: var(--muted); font-size: 14px; }
 .fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
 @media (prefers-reduced-motion: reduce) { .bar .seg { transition: none; } }
+
+/* Lesson 005: cache-line view */
+.lines { display: grid; gap: 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--field); padding: 10px; }
+.line { display: grid; grid-template-columns: minmax(64px, 92px) minmax(0, 1fr); gap: 8px; align-items: center; }
+.line .ln { font-family: var(--f-mono); font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cells { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 2px; }
+.cells i { display: block; height: 18px; border-radius: 2px; background: var(--cell); }
+.cells i.u { outline: 1px solid var(--ink); outline-offset: -1px; }
+.cells i.w { opacity: 0.28; }
+.lines .scale { display: grid; grid-template-columns: minmax(64px, 92px) minmax(0, 1fr); gap: 8px; font-family: var(--f-mono); font-size: 11px; color: var(--muted); }
+.lines .scale span:last-child { display: flex; justify-content: space-between; }
+.f-pos { background: var(--order) !important; } .f-vel { background: var(--purple) !important; } .f-life { background: var(--accent) !important; }
+.f-col { background: var(--good) !important; } .f-rot { background: var(--jump) !important; } .f-cold { background: var(--muted) !important; }
+.passes { grid-auto-flow: column; }
+.passes button:disabled { opacity: 0.35; cursor: default; }
 </style>
 
 <div class="wrap">
@@ -140,23 +156,25 @@ td.cool { color: var(--good); font-weight: 600; }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/004-cpu-caches-and-the-memory-hierarchy.md">Read Lesson 004 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/005-data-oriented-design-aos-vs-soa.md">Read Lesson 005 ↗</a>
     </div>
-    <div class="eyebrow">Lab 004 · Lesson 004 · measured live on your device</div>
+    <div class="eyebrow">Lab 004 · Lessons 004–005 · measured live on your device</div>
     <h1>Cache Lab</h1>
-    <p class="lede">A real particle pool: 32 bytes per particle, updated every frame. Same particles, same code. Only the order of the reads changes. Watch what that does to the time.</p>
+    <p class="lede">A real particle pool, updated every frame. Lesson 004: same particles, same code, only the order of the reads changes. Lesson 005: same particles, same work, only the layout in memory changes. Watch what each does to the time.</p>
   </header>
 
   <div class="goal">
-    <p><strong>Rain and blood particles, night city level.</strong> Goal: 500,000 particles, at least 10 seconds played, and the loop still reads memory in order.</p>
+    <p id="goalText"><strong>Rain and blood particles, night city level.</strong> Goal: 500,000 particles, at least 10 seconds played, and the loop still reads memory in order.</p>
     <span id="goalPill" class="pill over">Not yet</span>
   </div>
 
   <section class="lab" aria-label="Memory map, readouts and controls">
     <div class="panel">
       <div class="mapbar">
-        <h2>Where the loop reads</h2>
+        <h2 id="viewH">Where the loop reads</h2>
         <span class="tag" id="mapTag">in order</span>
       </div>
+      <div id="orderView" style="display:grid;gap:14px">
       <div class="stage" id="stage"><canvas id="cv" aria-label="Memory map. Each square is one piece of the particle array. The bright trail shows where the update loop is reading."></canvas></div>
       <div class="ends"><span>slot 0 (start)</span><span id="endLbl">end of 16 MB</span></div>
       <div class="legend">
@@ -164,23 +182,46 @@ td.cool { color: var(--good); font-weight: 600; }
         <span><i style="background:var(--jump)"></i>reads that jump</span>
         <span><i style="background:var(--cell)"></i>particle memory, left to right, top to bottom</span>
       </div>
+      </div>
+      <div id="layoutView" style="display:grid;gap:10px" hidden>
+        <div class="seg-ctl passes" role="group" aria-label="Which module to look at">
+          <button type="button" id="v0" aria-pressed="true">Move</button>
+          <button type="button" id="v1" aria-pressed="false">Age</button>
+          <button type="button" id="v2" aria-pressed="false">Fade</button>
+          <button type="button" id="v3" aria-pressed="false">Spin</button>
+          <button type="button" id="v4" aria-pressed="false">Recycle</button>
+        </div>
+        <div class="lines" id="lines" aria-label="Cache lines the selected module loads. Each line is 64 bytes, drawn as 16 boxes of 4 bytes. Outlined boxes are bytes the module uses; faded boxes are loaded but wasted."></div>
+        <p class="coach" id="linesCap"></p>
+        <div class="legend">
+          <span><i class="f-pos"></i>position</span><span><i class="f-vel"></i>velocity</span><span><i class="f-life"></i>life</span>
+          <span><i class="f-col"></i>color</span><span><i class="f-rot"></i>rotation, spin</span><span><i class="f-cold"></i>6 cold fields</span>
+        </div>
+      </div>
       <pre class="reads" id="reads"></pre>
       <p class="coach" id="coach"></p>
     </div>
 
     <div class="panel">
       <div class="stats">
-        <div class="stat"><span class="k">Particle update</span><span class="v" id="sMs">0</span><span class="s">ms per frame, measured</span></div>
-        <div class="stat"><span class="k">Per particle</span><span class="v" id="sNs">0</span><span class="s">ns, measured</span></div>
-        <div class="stat"><span class="k">Next-door reads</span><span class="v" id="sNd">100%</span><span class="s" id="sJump">same or next cache line</span></div>
+        <div class="stat"><span class="k" id="kMs">Particle update</span><span class="v" id="sMs">0</span><span class="s">ms per frame, measured</span></div>
+        <div class="stat"><span class="k" id="kNs">Per particle</span><span class="v" id="sNs">0</span><span class="s" id="sNsS">ns, measured</span></div>
+        <div class="stat"><span class="k" id="kNd">Next-door reads</span><span class="v" id="sNd">100%</span><span class="s" id="sJump">same or next cache line</span></div>
         <div class="stat"><span class="k">Particle data</span><span class="v" id="sMb">16 MB</span><span class="s" id="sMbS">500,000 × 32 bytes</span></div>
       </div>
       <div class="bar-wrap">
-        <div class="bar-head"><span>Particle update vs the whole frame budget</span><span class="mono" id="barTotal">0 ms</span></div>
+        <div class="bar-head"><span id="barLbl">Particle update vs the whole frame budget</span><span class="mono" id="barTotal">0 ms</span></div>
         <div class="bar"><div class="seg" id="seg"></div><div class="budget" id="budget"></div></div>
         <div class="bar-scale" id="barScale"></div>
       </div>
       <div class="controls">
+        <div class="field-row">
+          <span class="lbl"><span>Lesson</span></span>
+          <div class="seg-ctl" role="group" aria-label="Lab mode">
+            <button type="button" id="mOrder" aria-pressed="true">004 · Read order</button>
+            <button type="button" id="mLayout" aria-pressed="false">005 · Data layout</button>
+          </div>
+        </div>
         <div class="field-row">
           <span class="lbl"><span>Particles</span><span class="mono" id="nLabel">500,000</span></span>
           <div class="seg-ctl" role="group" aria-label="Number of particles">
@@ -190,7 +231,24 @@ td.cool { color: var(--good); font-weight: 600; }
             <button type="button" id="n3" aria-pressed="false">1M</button>
           </div>
         </div>
-        <div class="field-row">
+        <div class="field-row" id="rowLayout" hidden>
+          <span class="lbl"><span>Data layout</span><span class="mono">64 bytes per particle</span></span>
+          <div class="seg-ctl" role="group" aria-label="Data layout">
+            <button type="button" id="lAos" aria-pressed="true">AoS</button>
+            <button type="button" id="lSoa" aria-pressed="false">16 arrays</button>
+            <button type="button" id="lGrp" aria-pressed="false">5 groups</button>
+          </div>
+          <small id="layNote"></small>
+        </div>
+        <div class="field-row" id="rowPasses" hidden>
+          <span class="lbl"><span>Modules that run each frame</span></span>
+          <div class="seg-ctl" role="group" aria-label="Modules">
+            <button type="button" id="pAll" aria-pressed="true">All 4 + Recycle</button>
+            <button type="button" id="pAge" aria-pressed="false">Age only</button>
+          </div>
+          <small>"All 4": time runs, particles die, and Recycle removes them with swap-and-pop. "Age only": time is frozen, nobody dies, and only the Age loop is timed.</small>
+        </div>
+        <div class="field-row" id="rowPool">
           <span class="lbl"><span>Pool type</span></span>
           <div class="seg-ctl" role="group" aria-label="Pool type">
             <button type="button" id="pFree" aria-pressed="true">Free list</button>
@@ -198,7 +256,7 @@ td.cool { color: var(--good); font-weight: 600; }
           </div>
           <small id="poolNote"></small>
         </div>
-        <div class="field-row">
+        <div class="field-row" id="rowPlay">
           <span class="lbl"><span>Play time</span></span>
           <div class="row-btns">
             <button type="button" class="btn primary" id="play">▶ Let time run</button>
@@ -217,9 +275,22 @@ td.cool { color: var(--good); font-weight: 600; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. The times are measured on your device, so your numbers will differ from the lesson's laptop. The pattern will not.</p>
     <div class="group-h"><h3>Lesson 004 · access order</h3><span class="tag">the particle update that got slower after 3 seconds</span></div>
     <ol class="steps" id="steps"></ol>
+    <div class="group-h"><h3>Lesson 005 · data layout</h3><span class="tag">Rain 2.0: same particles, twice the bytes</span></div>
+    <ol class="steps" id="steps5"></ol>
   </section>
 
-  <section class="panel" aria-labelledby="benchH">
+  <section class="panel" aria-labelledby="profH" id="profPanel" hidden>
+    <h2 id="profH">Profiler capture: particle modules</h2>
+    <p class="fine">Each module is timed on its own, every frame (median of the last 40 frames). "Loaded" counts the bytes the module pulls in from memory: whole 64-byte cache lines. "Used" counts the bytes it actually needs. Recycle is different: it jumps to each dead particle and moves the last particle into its place, so we count the cache lines it touches per dead particle.</p>
+    <div class="table-box">
+      <table id="profTable">
+        <thead><tr><th>Module</th><th style="text-align:left">Needs</th><th>Loaded</th><th>Used</th><th>Useful</th><th>Time</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="benchH" id="benchPanel">
     <div style="display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between">
       <h2 id="benchH">Order test</h2>
       <button type="button" class="btn" id="runBench">Run order test</button>
@@ -241,7 +312,13 @@ td.cool { color: var(--good); font-weight: 600; }
       <div class="note"><h3>Size decides how much</h3><p>When the data fits in the caches (20K particles is 640 KB), a shuffled order costs little. When it doesn't fit, every jump is a trip to RAM.</p></div>
       <div class="note"><h3>Containers decide order</h3><p>A free list scrambles the order on its own within seconds. Swap-and-pop keeps the live particles packed, so the loop always reads front to back.</p></div>
     </div>
-    <p class="fine">Measured live with <code>performance.now()</code>: this is the real loop, in JavaScript, on your device. A particle is 8 floats (32 bytes) in one big <code>Float32Array</code>. The "Skip 10 s" button fast-forwards the deaths and births of particles without timing them; it scrambles the free list the same way as letting time run. A C++ or Burst build would be faster overall, and your CPU's cache sizes decide where the jump happens, but the ratio is the lesson.</p>
+    <h3>Lesson 005 · data layout</h3>
+    <div class="notes">
+      <div class="note"><h3>Loaded is not used</h3><p>The CPU always loads whole 64-byte lines. With one big struct, the Age module loads 64 bytes to use 4. That is 94% wasted trips to memory.</p></div>
+      <div class="note"><h3>Lay data out by how it is read</h3><p>With arrays of fields, every byte a module loads is a byte it needs. The work is the same; the bytes the modules load drop from 128 MB to 22 MB per frame.</p></div>
+      <div class="note"><h3>Splitting has a price</h3><p>With 16 arrays, removing one particle touches 16 cache lines instead of 1. Grouping fields that are always read together (pos with vel, rot with spin) keeps the streams 100% useful and cuts that to about 5.</p></div>
+    </div>
+    <p class="fine">Measured live with <code>performance.now()</code>: this is the real loop, in JavaScript, on your device. A particle is 8 floats (32 bytes) in one big <code>Float32Array</code>. The "Skip 10 s" button fast-forwards the deaths and births of particles without timing them; it scrambles the free list the same way as letting time run. A C++ or Burst build would be faster overall, and your CPU's cache sizes decide where the jump happens, but the ratio is the lesson. In Lesson 005 mode, a particle is 16 floats (64 bytes): one <code>Float32Array</code> with a stride of 16 (AoS), 16 separate <code>Float32Array</code>s, or 5 grouped ones (SoA). The "Loaded" and "Useful" numbers are counted exactly from the layout, not measured; the times are measured.</p>
   </section>
 </div>
 
@@ -353,10 +430,101 @@ td.cool { color: var(--good); font-weight: 600; }
     return { near: near / (c - 1), jump: (jump / (c - 1)) * BYTES };
   }
 
+  // ---------- Lesson 005: Rain 2.0 particles, 16 floats = 64 bytes ----------
+  // Fields: 0-2 position, 3-5 velocity, 6 life, 7 color, 8 rotation, 9 spin, 10-15 cold (size, frame, emitter, seed, born, flags)
+  const F = 16;
+  const FIELD_NAMES = ["posX", "posY", "posZ", "velX", "velY", "velZ", "life", "color", "rot", "spin", "size", "frame", "emitter", "seed", "born", "flags"];
+  const FIELD_CLASS = (f) => (f < 3 ? "f-pos" : f < 6 ? "f-vel" : f === 6 ? "f-life" : f === 7 ? "f-col" : f < 10 ? "f-rot" : "f-cold");
+  const PASSES = [
+    { name: "Move", needs: "position, velocity", fields: [0, 1, 2, 3, 4, 5] },
+    { name: "Age", needs: "life", fields: [6] },
+    { name: "Fade", needs: "life, color", fields: [6, 7] },
+    { name: "Spin", needs: "rotation, spin", fields: [8, 9] },
+  ];
+  // How each layout groups the 16 fields into arrays.
+  const GROUPS = {
+    aos: [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]],
+    soa: [[0], [1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12], [13], [14], [15]],
+    grp: [[0, 1, 2, 3, 4, 5], [6], [7], [8, 9], [10, 11, 12, 13, 14, 15]],
+  };
+  const GROUP_NAMES = { grp: ["motion", "life", "color", "rotSpin", "cold"] };
+  const LINES_PER_DEATH = { aos: 1, soa: 16, grp: 5 };   // cache lines touched to move one particle (about 5 for grp: some 24-byte items straddle two lines)
+  const LAY_LABEL = { aos: "AoS · one struct", soa: "SoA · 16 arrays", grp: "SoA · 5 groups" };
+  function spawnVals(v) {
+    v[0] = rnd() * 100; v[1] = 50 + rnd() * 50; v[2] = rnd() * 100;
+    v[3] = rnd() - 0.5; v[4] = -10 - rnd() * 10; v[5] = rnd() - 0.5;
+    v[6] = 1 + 2 * rnd(); v[7] = 1; v[8] = rnd() * 6.28; v[9] = rnd() * 4 - 2;
+    for (let f = 10; f < F; f++) v[f] = rnd();
+  }
+  const tmp = new Float32Array(F);
+  const BANK = new Float32Array(1024 * F);   // 1,024 ready-made particles for the emitter to copy
+  function makeLayout(n, lay) {
+    const L = { n, lay, count: n, dead: new Int32Array(n), nd: 0, g: [], bi: 0 };
+    for (let i = 0; i < 1024; i++) { spawnVals(tmp); BANK.set(tmp, i * F); }
+    for (const fs of GROUPS[lay]) L.g.push({ fs, w: fs.length, a: new Float32Array(n * fs.length) });
+    for (let i = 0; i < n; i++) {
+      spawnVals(tmp);
+      tmp[6] = Math.max(0.02, rnd() * tmp[6]);   // start mid-life, so particles die at a steady rate from the first frame
+      writeAt(L, i);
+    }
+    // where each field lives: [array, stride, offset]
+    L.at = [];
+    for (const g of L.g) g.fs.forEach((f, o) => { L.at[f] = [g.a, g.w, o]; });
+    return L;
+  }
+  function writeAt(L, i) { for (const g of L.g) { const b = i * g.w; for (let o = 0; o < g.w; o++) g.a[b + o] = tmp[g.fs[o]]; } }
+
+  // Move: one version per layout, written the way you would write it by hand.
+  function moveAos(L, dt) { const d = L.g[0].a, c = L.count; for (let k = 0; k < c; k++) { const b = k * 16; d[b] += d[b + 3] * dt; d[b + 1] += d[b + 4] * dt; d[b + 2] += d[b + 5] * dt; d[b + 4] -= 9.8 * dt; } }
+  function moveSoa(L, dt) { const px = L.g[0].a, py = L.g[1].a, pz = L.g[2].a, vx = L.g[3].a, vy = L.g[4].a, vz = L.g[5].a, c = L.count; for (let k = 0; k < c; k++) { px[k] += vx[k] * dt; py[k] += vy[k] * dt; pz[k] += vz[k] * dt; vy[k] -= 9.8 * dt; } }
+  function moveGrp(L, dt) { const m = L.g[0].a, c = L.count; for (let k = 0; k < c; k++) { const b = k * 6; m[b] += m[b + 3] * dt; m[b + 1] += m[b + 4] * dt; m[b + 2] += m[b + 5] * dt; m[b + 4] -= 9.8 * dt; } }
+  // Age: life -= dt; dead particles go on a list for Recycle.
+  function ageAos(L, dt) { const d = L.g[0].a, dead = L.dead, c = L.count; let nd = 0; for (let k = 0; k < c; k++) { const j = k * 16 + 6, v = d[j] - dt; d[j] = v; if (v <= 0) dead[nd++] = k; } L.nd = nd; }
+  function ageArr(L, dt) { const life = L.at[6][0], dead = L.dead, c = L.count; let nd = 0; for (let k = 0; k < c; k++) { const v = life[k] - dt; life[k] = v; if (v <= 0) dead[nd++] = k; } L.nd = nd; }
+  // Fade: color alpha follows life. Spin: rotation += spin * dt.
+  function fadeAos(L) { const d = L.g[0].a, c = L.count; for (let k = 0; k < c; k++) { const b = k * 16; d[b + 7] = d[b + 6] * 0.3333; } }
+  function fadeArr(L) { const life = L.at[6][0], col = L.at[7][0], c = L.count; for (let k = 0; k < c; k++) col[k] = life[k] * 0.3333; }
+  function spinAos(L, dt) { const d = L.g[0].a, c = L.count; for (let k = 0; k < c; k++) { const b = k * 16; d[b + 8] += d[b + 9] * dt; } }
+  function spinArr(L, dt) { const rot = L.at[8][0], sp = L.at[9][0], c = L.count; for (let k = 0; k < c; k++) rot[k] += sp[k] * dt; }
+  // Recycle: swap-and-pop every dead particle (largest index first), then spawn new ones at the end.
+  // Moving one particle touches one place in EVERY array: 1 cache line for AoS, 16 for 16 arrays, about 5 for 5 groups.
+  function recycle(L) {
+    const dead = L.dead, gs = L.g, n = L.n; let c = L.count;
+    for (let j = L.nd - 1; j >= 0; j--) {
+      const i = dead[j]; c--;
+      if (i < c) for (let q = 0; q < gs.length; q++) { const g = gs[q], w = g.w, a = g.a; for (let o = 0; o < w; o++) a[i * w + o] = a[c * w + o]; }
+    }
+    const died = L.nd;
+    while (c < n) { tmp.set(BANK.subarray((L.bi & 1023) * F, (L.bi & 1023) * F + F)); L.bi++; writeAt(L, c); c++; }   // the emitter copies a ready-made particle
+    L.count = c; L.nd = 0;
+    return died;
+  }
+  const FNS = { aos: [moveAos, ageAos, fadeAos, spinAos], soa: [moveSoa, ageArr, fadeArr, spinArr], grp: [moveGrp, ageArr, fadeArr, spinArr] };
+  // Bytes a module loads (whole cache lines) and bytes it uses.
+  function passBytes(p, n, lay) {
+    const used = PASSES[p].fields.length * 4 * n;
+    return { used, loaded: lay === "aos" ? F * 4 * n : used };
+  }
+  const activePasses = () => (st.passes === "age" ? [1] : [0, 1, 2, 3]);
+  function layoutTotals() {
+    let used = 0, loaded = 0;
+    for (const p of activePasses()) { const b = passBytes(p, SIZES[st.ni], st.lay); used += b.used; loaded += b.loaded; }
+    return { used, loaded };
+  }
+
   // ---------- state ----------
-  const st = { ni: 2, mode: "free", running: false, frames: 0, samples: [], ms: 0, benchRunning: false, stats: { near: 1, jump: 32 }, phase: 0 };
-  let P = null;
+  const st = { lab: "order", lay: "aos", passes: "all", view: 0, viewAuto: true, viewT: 0, pSamples: [[], [], [], [], []], pMs: [0, 0, 0, 0, 0], deaths: 0,
+    ni: 2, mode: "free", running: false, frames: 0, samples: [], ms: 0, benchRunning: false, stats: { near: 1, jump: 32 }, phase: 0 };
+  let P = null, L = null;
   function reload() {
+    if (st.lab === "layout") {
+      P = null; L = null;
+      seed = 777 + st.ni * 7;
+      L = makeLayout(SIZES[st.ni], st.lay);
+      st.pSamples = [[], [], [], [], []]; st.pMs = [0, 0, 0, 0, 0]; st.ms = 0; st.samples = []; st.deaths = 0;
+      return;
+    }
+    L = null;
     seed = 12345 + st.ni * 7 + (st.mode === "dense" ? 1 : 0);
     P = null;
     P = makePool(SIZES[st.ni], st.mode);
@@ -428,11 +596,40 @@ td.cool { color: var(--good); font-weight: 600; }
   // ---------- readouts ----------
   const fmtInt = (v) => Math.round(v).toLocaleString("en-US");
   const fmtMs = (v) => (v >= 10 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v.toFixed(3));
-  const fmtBytes = (b) => (b >= 1e6 ? (b / 1e6).toFixed(b >= 1e7 ? 0 : 1) + " MB" : b >= 1e3 ? Math.round(b / 1e3) + " KB" : Math.round(b) + " B");
+  const fmtBytes = (b) => (b >= 1e6 ? (b / 1e6).toFixed(b >= 1e7 ? 0 : 1).replace(/\.0$/, "") + " MB" : b >= 1e3 ? Math.round(b / 1e3) + " KB" : Math.round(b) + " B");
   function median(a) { if (!a.length) return 0; const s = a.slice().sort((x, y) => x - y); return s[s.length >> 1]; }
 
   let lastTick = -1;
+  function setBar(ms, color) {
+    const maxMs = Math.max(30, Math.ceil(ms / 10) * 10);
+    $("seg").style.width = Math.min(100, (ms / maxMs) * 100) + "%";
+    $("seg").style.background = color;
+    $("budget").style.left = (BUDGET / maxMs) * 100 + "%";
+    $("barTotal").textContent = st.samples.length ? fmtMs(ms) + " ms of 16.67" : "…";
+    if (maxMs !== lastTick) {
+      lastTick = maxMs;
+      $("barScale").innerHTML = [0, BUDGET, maxMs].map((t, i) => `<span style="left:${(t / maxMs) * 100}%;${i === 2 ? "transform:translateX(-100%)" : ""}">${i === 1 ? "16.67 ms" : Math.round(t) + " ms"}</span>`).join("");
+    }
+  }
+  function commonControls() {
+    const lay = st.lab === "layout";
+    $("mOrder").setAttribute("aria-pressed", !lay); $("mLayout").setAttribute("aria-pressed", lay);
+    $("orderView").hidden = lay; $("layoutView").hidden = !lay;
+    $("rowPool").hidden = lay; $("rowPlay").hidden = lay;
+    $("rowLayout").hidden = !lay; $("rowPasses").hidden = !lay;
+    $("benchPanel").hidden = lay; $("profPanel").hidden = !lay;
+    for (let i = 0; i < 4; i++) $("n" + i).setAttribute("aria-pressed", i === st.ni);
+    $("nLabel").textContent = fmtInt(SIZES[st.ni]);
+    $("kMs").textContent = lay ? "Particle modules" : "Particle update";
+    $("kNs").textContent = lay ? "Loaded per frame" : "Per particle";
+    $("sNsS").textContent = lay ? "bytes pulled from memory, counted" : "ns, measured";
+    $("kNd").textContent = lay ? "Useful bytes" : "Next-door reads";
+    $("barLbl").textContent = lay ? "Particle modules vs the whole frame budget" : "Particle update vs the whole frame budget";
+    $("viewH").textContent = lay ? "What each cache line brings" : "Where the loop reads";
+  }
   function readouts() {
+    commonControls();
+    if (st.lab === "layout") { layoutReadouts(); return; }
     const n = P.n, ms = st.ms;
     $("sMs").textContent = st.samples.length ? fmtMs(ms) : "…";
     $("sNs").textContent = st.samples.length ? ((ms * 1e6) / n).toFixed(1) : "…";
@@ -443,7 +640,6 @@ td.cool { color: var(--good); font-weight: 600; }
     $("sMb").textContent = fmtBytes(n * BYTES);
     $("sMbS").textContent = fmtInt(n) + " × 32 bytes";
     $("endLbl").textContent = "end of " + fmtBytes(n * BYTES);
-    $("nLabel").textContent = fmtInt(n);
     $("clock").textContent = "played " + (st.frames / 60).toFixed(1) + " s";
     $("mapTag").textContent = near >= 0.99 ? "in order" : near < 0.01 ? "shuffled" : Math.round(near * 100) + "% in order";
     $("play").textContent = st.running ? "⏸ Freeze time" : "▶ Let time run";
@@ -451,10 +647,10 @@ td.cool { color: var(--good); font-weight: 600; }
     $("poolNote").textContent = st.mode === "free"
       ? "A dead particle's slot goes on a free list. A new particle takes it and goes to the END of the alive list."
       : "A dead particle is replaced by the last live one. Live particles always fill slots 0, 1, 2, … with no holes.";
-    for (let i = 0; i < 4; i++) $("n" + i).setAttribute("aria-pressed", i === st.ni);
     $("pFree").setAttribute("aria-pressed", st.mode === "free");
     $("pDense").setAttribute("aria-pressed", st.mode === "dense");
 
+    $("goalText").innerHTML = "<strong>Rain and blood particles, night city level.</strong> Goal: 500,000 particles, at least 10 seconds played, and the loop still reads memory in order.";
     const goal = st.ni === 2 && st.frames >= 600 && near >= 0.99;
     $("goalPill").className = "pill " + (goal ? "ok" : "over");
     $("goalPill").textContent = goal ? "Goal met" : st.ni !== 2 ? "Not at 500K" : st.frames < 600 ? "Play at least 10 s" : "Reads not in order";
@@ -474,22 +670,143 @@ td.cool { color: var(--good); font-weight: 600; }
     else coach = `<span class="pill over">Breaking up</span> Particles are dying and being reborn. Each one goes to the end of the alive list, and the order is falling apart.`;
     $("coach").innerHTML = coach;
 
-    // budget bar
-    const maxMs = Math.max(30, Math.ceil(ms / 10) * 10);
-    $("seg").style.width = Math.min(100, (ms / maxMs) * 100) + "%";
-    $("seg").style.background = near >= 0.5 ? "var(--order)" : "var(--jump)";
-    $("budget").style.left = (BUDGET / maxMs) * 100 + "%";
-    $("barTotal").textContent = st.samples.length ? fmtMs(ms) + " ms of 16.67" : "…";
-    if (maxMs !== lastTick) {
-      lastTick = maxMs;
-      $("barScale").innerHTML = [0, BUDGET, maxMs].map((t, i) => `<span style="left:${(t / maxMs) * 100}%;${i === 2 ? "transform:translateX(-100%)" : ""}">${i === 1 ? "16.67 ms" : Math.round(t) + " ms"}</span>`).join("");
+    setBar(ms, near >= 0.5 ? "var(--order)" : "var(--jump)");
+  }
+
+  // ---------- Lesson 005 readouts and cache-line view ----------
+  function layoutReadouts() {
+    const n = SIZES[st.ni], tot = layoutTotals(), useful = tot.used / tot.loaded, ms = st.ms, lpd = LINES_PER_DEATH[st.lay];
+    const frozen = st.passes === "age";
+    $("sMs").textContent = st.samples.length ? fmtMs(ms) : "…";
+    $("sNs").textContent = fmtBytes(tot.loaded);
+    $("sNd").textContent = Math.round(useful * 100) + "%";
+    $("sNd").className = "v " + (useful >= 0.9 ? "good" : useful < 0.5 ? "bad" : "");
+    $("sJump").textContent = "used " + fmtBytes(tot.used) + " of " + fmtBytes(tot.loaded) + " loaded";
+    $("sMb").textContent = fmtBytes(n * F * 4);
+    $("sMbS").textContent = fmtInt(n) + " × 64 bytes";
+    $("lAos").setAttribute("aria-pressed", st.lay === "aos"); $("lSoa").setAttribute("aria-pressed", st.lay === "soa"); $("lGrp").setAttribute("aria-pressed", st.lay === "grp");
+    $("pAll").setAttribute("aria-pressed", !frozen); $("pAge").setAttribute("aria-pressed", frozen);
+    $("layNote").textContent = st.lay === "aos"
+      ? "Array of Structures: all 16 fields of particle 0, then all 16 of particle 1, … One particle fills one 64-byte cache line."
+      : st.lay === "soa"
+      ? "Structure of Arrays: posX in one array, posY in another, life in another … 16 arrays. A cache line holds 16 values of one field."
+      : "Fields that are always read together share an array: motion (pos + vel, read only by Move), life, color, rotSpin (read only by Spin), and one array for the 6 cold fields.";
+    $("mapTag").textContent = LAY_LABEL[st.lay];
+    $("goalText").innerHTML = "<strong>Rain 2.0, night city level.</strong> Goal: 500,000 particles of 64 bytes, all 4 modules running, at least 90% of loaded bytes used, and Recycle touching 8 cache lines or fewer per dead particle.";
+    const goal = st.ni === 2 && !frozen && useful >= 0.9 && lpd <= 8;
+    $("goalPill").className = "pill " + (goal ? "ok" : "over");
+    $("goalPill").textContent = goal ? "Goal met" : st.ni !== 2 ? "Not at 500K" : frozen ? "Turn on all 4" : useful < 0.9 ? "Too many wasted bytes" : "Recycle touches too much";
+    if (st.view === 4) {
+      $("reads").textContent = `Recycle: fill each hole with the last one\n  ${lpd} line${lpd > 1 ? "s" : ""} per dead · ~${fmtInt(st.deaths)} dead/frame`;
+    } else {
+      const pb = passBytes(st.view, n, st.lay), ps = PASSES[st.view];
+      $("reads").textContent = `${ps.name}: needs ${ps.needs} (${ps.fields.length * 4} B)\n` +
+        `  loads ${fmtBytes(pb.loaded)}, uses ${fmtBytes(pb.used)} → ${Math.round((pb.used / pb.loaded) * 100)}% useful`;
     }
+    $("coach").innerHTML = st.view === 4
+      ? (st.lay === "aos" ? `<span class="pill ok">1 line</span> One particle is one 64-byte line, so moving it is one trip.` : `<span class="pill over">${lpd} lines</span> One particle is spread over ${lpd} arrays, so moving it means ${lpd} separate trips to memory.`)
+      : st.lay === "aos"
+      ? `<span class="pill over">AoS</span> The CPU can't load 4 bytes; it loads the whole 64-byte line. Faded boxes are bytes carried from memory and thrown away.`
+      : `<span class="pill ok">SoA</span> Each line holds values of the fields this module needs, and it uses all of them. Nothing loaded is wasted.`;
+    for (let i = 0; i < 5; i++) {
+      $("v" + i).setAttribute("aria-pressed", i === st.view);
+      $("v" + i).disabled = frozen && i !== 1;
+    }
+    drawLines();
+    // profiler table
+    const rows = activePasses().map((p) => {
+      const b = passBytes(p, n, st.lay), u = b.used / b.loaded;
+      return `<tr><td>${PASSES[p].name}</td><td style="text-align:left">${PASSES[p].needs}</td><td>${fmtBytes(b.loaded)}</td><td>${fmtBytes(b.used)}</td><td class="${u >= 0.9 ? "cool" : "hot"}">${Math.round(u * 100)}%</td><td>${st.pSamples[p].length ? fmtMs(st.pMs[p]) + " ms" : "…"}</td></tr>`;
+    });
+    rows.push(frozen
+      ? `<tr><td>Recycle</td><td style="text-align:left">paused: time is frozen</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`
+      : `<tr><td>Recycle</td><td style="text-align:left">${fmtInt(st.deaths)} dead × 64 B</td><td>${lpd} line${lpd > 1 ? "s" : ""} each</td><td>64 B each</td><td>—</td><td>${st.pSamples[4].length ? fmtMs(st.pMs[4]) + " ms" : "…"}</td></tr>`);
+    rows.push(`<tr><td><strong>Total</strong></td><td></td><td>${fmtBytes(tot.loaded)}</td><td>${fmtBytes(tot.used)}</td><td class="${useful >= 0.9 ? "cool" : "hot"}">${Math.round(useful * 100)}%</td><td>${st.samples.length ? fmtMs(ms) + " ms" : "…"}</td></tr>`);
+    $("profTable").querySelector("tbody").innerHTML = rows.join("");
+    setBar(ms, st.lay === "aos" ? "var(--jump)" : "var(--order)");
+  }
+  let linesKey = "";
+  function cellsHtml(cls) { return `<span class="cells">${cls.map((c) => `<i class="${c}"></i>`).join("")}</span>`; }
+  function lineRow(label, cls) { return `<div class="line"><span class="ln">${label}</span>${cellsHtml(cls)}</div>`; }
+  function drawLines() {
+    const key = st.lay + st.view;
+    if (key === linesKey) return;
+    linesKey = key;
+    const rows = [];
+    let cap;
+    if (st.view === 4) {
+      // Recycle: the lines touched to move ONE particle (number 37 here).
+      const gs = GROUPS[st.lay];
+      const show = Math.min(gs.length, 7);
+      for (let q = 0; q < show; q++) {
+        const fs = gs[q], w = fs.length, cls = [];
+        if (w === 16) { for (let f = 0; f < 16; f++) cls.push(FIELD_CLASS(f) + " u"); }
+        else {
+          const start = (37 * w) % 16;   // where particle 37 sits inside its line (wraps for simplicity)
+          for (let c = 0; c < 16; c++) { const o = (c - start + 16) % 16; cls.push(FIELD_CLASS(fs[Math.min(o, w - 1)]) + (o < w ? " u" : " w")); }
+        }
+        const name = st.lay === "aos" ? "particle 37" : st.lay === "soa" ? FIELD_NAMES[fs[0]] : GROUP_NAMES.grp[q];
+        rows.push(lineRow(name, cls));
+      }
+      if (gs.length > show) rows.push(`<div class="line"><span class="ln">…</span><span class="ln">+ ${gs.length - show} more lines</span></div>`);
+      const lpd = LINES_PER_DEATH[st.lay];
+      cap = `Moving particle 37 touches <strong>${lpd} cache line${lpd > 1 ? "s" : ""}</strong>${st.lay === "grp" ? " (about 5: some 24-byte items straddle two lines)" : ""}. Outlined boxes are its 64 bytes.`;
+    } else {
+      const fields = PASSES[st.view].fields;
+      if (st.lay === "aos") {
+        for (let r = 0; r < 6; r++) {
+          const cls = []; for (let f = 0; f < F; f++) cls.push(FIELD_CLASS(f) + (fields.includes(f) ? " u" : " w"));
+          rows.push(lineRow("particle " + r, cls));
+        }
+        cap = `${PASSES[st.view].name} uses <strong>${fields.length * 4} of every 64 bytes</strong> it loads.`;
+      } else {
+        const groups = GROUPS[st.lay].map((fs, q) => ({ fs, q })).filter((g) => g.fs.some((f) => fields.includes(f)));
+        for (let r = 0; r < 6; r++) {
+          const g = groups[r % groups.length], blk = Math.floor(r / groups.length) + 1, cls = [];
+          for (let c = 0; c < 16; c++) cls.push(FIELD_CLASS(g.fs[c % g.fs.length]) + " u");
+          const name = st.lay === "soa" ? FIELD_NAMES[g.fs[0]] : GROUP_NAMES.grp[g.q];
+          rows.push(lineRow(`${name} · line ${blk}`, cls));
+        }
+        cap = `${PASSES[st.view].name} reads ${groups.length} array${groups.length > 1 ? "s" : ""} and uses <strong>all 64 bytes</strong> of every line.`;
+      }
+    }
+    rows.push(`<div class="scale"><span></span><span><span>byte 0</span><span>64</span></span></div>`);
+    $("lines").innerHTML = rows.join("");
+    $("linesCap").innerHTML = cap;
   }
 
   // ---------- main loop ----------
   let tick = 0;
   function loop() {
-    if (!st.benchRunning && P) {
+    if (st.lab === "layout" && L) {
+      // Small pools finish faster than the timer can see, so modules run extra passes with time frozen
+      // (same reads and writes) and we report the time of one pass.
+      const reps = Math.max(1, Math.round(300000 / L.n));
+      const frozen = st.passes === "age";
+      const dt = frozen ? 0 : DT;
+      const fns = FNS[L.lay];
+      let total = 0;
+      for (const p of activePasses()) {
+        const t0 = performance.now();
+        fns[p](L, dt);
+        for (let r = 1; r < reps; r++) fns[p](L, 0);
+        const a = st.pSamples[p]; a.push((performance.now() - t0) / reps); if (a.length > 40) a.shift();
+        st.pMs[p] = median(a); total += st.pMs[p];
+      }
+      if (!frozen) {
+        const t0 = performance.now();
+        const died = recycle(L);
+        const a = st.pSamples[4]; a.push(performance.now() - t0); if (a.length > 40) a.shift();
+        st.pMs[4] = median(a); total += st.pMs[4];
+        st.deaths = st.deaths ? st.deaths * 0.9 + died * 0.1 : died;
+      }
+      st.samples.push(total); if (st.samples.length > 40) st.samples.shift();
+      st.ms = total;
+      if (frozen) st.view = 1;
+      else if (st.viewAuto && !reduced.matches && ++st.viewT >= 130) { st.viewT = 0; st.view = (st.view + 1) % 5; }
+      if (tick % 6 === 0) readouts();
+      tick++;
+    } else if (st.lab === "order" && !st.benchRunning && P) {
       // Small pools finish faster than the browser's timer can see, so they also run extra
       // passes with time frozen (same reads and writes) and we report the time of one pass.
       const reps = Math.max(1, Math.round(300000 / P.n));
@@ -513,6 +830,15 @@ td.cool { color: var(--good); font-weight: 600; }
 
   // ---------- controls ----------
   function setSize(i) { st.ni = i; reload(); readouts(); }
+  function setLab(m) { if (st.lab === m) return; st.lab = m; if (m === "order") st.running = false; reload(); readouts(); }
+  $("mOrder").addEventListener("click", () => setLab("order"));
+  $("mLayout").addEventListener("click", () => setLab("layout"));
+  $("lAos").addEventListener("click", () => { st.lay = "aos"; reload(); readouts(); });
+  $("lSoa").addEventListener("click", () => { st.lay = "soa"; reload(); readouts(); });
+  $("lGrp").addEventListener("click", () => { st.lay = "grp"; reload(); readouts(); });
+  $("pAll").addEventListener("click", () => { st.passes = "all"; st.pSamples = [[], [], [], [], []]; st.samples = []; readouts(); });
+  $("pAge").addEventListener("click", () => { st.passes = "age"; st.view = 1; st.pSamples = [[], [], [], [], []]; st.samples = []; readouts(); });
+  for (let i = 0; i < 5; i++) $("v" + i).addEventListener("click", () => { st.view = i; st.viewAuto = false; readouts(); });
   function setMode(m) { st.mode = m; reload(); readouts(); }
   for (let i = 0; i < 4; i++) $("n" + i).addEventListener("click", () => setSize(i));
   $("pFree").addEventListener("click", () => setMode("free"));
@@ -538,11 +864,33 @@ td.cool { color: var(--good); font-weight: 600; }
     li.querySelector("button").addEventListener("click", () => {
       [...stepsEl.children].forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
-      st.ni = s.s.ni; st.mode = s.s.mode; reload();
+      [...$("steps5").children].forEach((c) => c.classList.remove("active"));
+      st.lab = "order"; st.ni = s.s.ni; st.mode = s.s.mode; reload();
       if (s.s.skip) skip(s.s.skip);
       st.running = s.s.run;
       readouts();
       stage.scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  const STEPS5 = [
+    { t: "Rain 2.0 ships: 64-byte particles", d: "Lesson 005 mode. 500,000 particles, one 64-byte struct each (AoS), all 4 modules. Loaded per frame: 128 MB. Useful bytes: 17%. In the profiler table, Age costs more than half of Move's time, though Age reads 1 float and Move reads 6. Write down the total.", s: { ni: 2, lay: "aos", passes: "all", view: 0 } },
+    { t: "Zoom in on the Age module", d: "Same struct, time frozen, only the Age loop runs. It needs 4 bytes per particle, but each cache line brings the whole 64-byte particle. Loaded: 32 MB. Used: 2 MB. Useful bytes: 6%. In the line view, 1 box in 16 is outlined. Write down the time.", s: { ni: 2, lay: "aos", passes: "age", view: 1 } },
+    { t: "Split it into 16 arrays", d: "Same Age loop, now with one array per field (SoA). Loaded: 2 MB. Useful bytes: 100%. Every box in every line is used. Same work, but the Age time usually drops 2 to 8 times compared with step 2.", s: { ni: 2, lay: "soa", passes: "age", view: 1 } },
+    { t: "All 4 modules with 16 arrays", d: "Time runs again. Loaded per frame: 22 MB instead of 128 MB, 100% useful. The four modules are now fast, but look at the Recycle row: each dead particle is spread over 16 arrays, so moving it touches 16 cache lines. Tap the Recycle tab to see them. The goal stays red.", s: { ni: 2, lay: "soa", passes: "all", view: 4 } },
+    { t: "Group what is read together: 5 arrays", d: "motion (pos + vel, only Move reads them), life, color, rotSpin (only Spin reads them), and one array for the 6 cold fields. Still 22 MB loaded and 100% useful, but Recycle touches about 5 lines, not 16, and its time drops. The goal turns green. The total is usually 2 times faster or more than step 1 (on the lesson's laptop: 4.7 times).", s: { ni: 2, lay: "grp", passes: "all", view: 4 } },
+  ];
+  const steps5El = $("steps5");
+  STEPS5.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${STEPS.length + k}">Set up</button>`;
+    steps5El.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children, ...steps5El.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      st.lab = "layout"; st.running = false; st.ni = s.s.ni; st.lay = s.s.lay; st.passes = s.s.passes; st.view = s.s.view; st.viewAuto = false; st.viewT = 0;
+      reload(); readouts();
+      $("layoutView").scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "nearest" });
     });
   });
 

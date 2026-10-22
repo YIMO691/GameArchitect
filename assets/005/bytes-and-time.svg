@@ -1,0 +1,67 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='470' viewBox='0 0 860 470' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='469' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='38' font-size='20' font-weight='700' fill='#1f2328'>Rain 2.0 particle cost per frame, three layouts</text>
+<text x='24' y='62' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>500,000 particles of 64 B · laptop, approximate · streaming ≈ 0.08 ms per MB, each random cache-line trip ≈ 20 ns</text>
+<text x='24' y='98' font-size='16' fill='#1f2328' font-weight='700' text-anchor='start'>Bytes the 4 modules load</text>
+<text x='24' y='131' font-size='14' fill='#1f2328' font-weight='400' text-anchor='start'>AoS · one struct</text>
+<rect x='190' y='112' width='124.8' height='26' fill='#4e79a7' stroke='#ffffff'/>
+<text x='252.4' y='130' font-size='12' fill='#ffffff' font-weight='700' text-anchor='middle'>Move 32</text>
+<rect x='314.8' y='112' width='124.8' height='26' fill='#e8a33d' stroke='#ffffff'/>
+<text x='377.2' y='130' font-size='12' fill='#ffffff' font-weight='700' text-anchor='middle'>Age 32</text>
+<rect x='439.6' y='112' width='124.8' height='26' fill='#59a14f' stroke='#ffffff'/>
+<text x='502.0' y='130' font-size='12' fill='#ffffff' font-weight='700' text-anchor='middle'>Fade 32</text>
+<rect x='564.4' y='112' width='124.8' height='26' fill='#76b7b2' stroke='#ffffff'/>
+<text x='626.8' y='130' font-size='12' fill='#ffffff' font-weight='700' text-anchor='middle'>Spin 32</text>
+<text x='699.1999999999999' y='131' font-size='14' fill='#cf222e' font-weight='700' text-anchor='start'>128 MB</text>
+<text x='24' y='171' font-size='14' fill='#1f2328' font-weight='400' text-anchor='start'>SoA · 16 arrays</text>
+<rect x='190' y='152' width='46.8' height='26' fill='#4e79a7' stroke='#ffffff'/>
+<rect x='236.8' y='152' width='7.8' height='26' fill='#e8a33d' stroke='#ffffff'/>
+<rect x='244.60000000000002' y='152' width='15.6' height='26' fill='#59a14f' stroke='#ffffff'/>
+<rect x='260.20000000000005' y='152' width='15.6' height='26' fill='#76b7b2' stroke='#ffffff'/>
+<text x='285.80000000000007' y='171' font-size='14' fill='#1a7f37' font-weight='700' text-anchor='start'>22 MB</text>
+<text x='24' y='211' font-size='14' fill='#1f2328' font-weight='400' text-anchor='start'>SoA · 5 groups</text>
+<rect x='190' y='192' width='46.8' height='26' fill='#4e79a7' stroke='#ffffff'/>
+<rect x='236.8' y='192' width='7.8' height='26' fill='#e8a33d' stroke='#ffffff'/>
+<rect x='244.60000000000002' y='192' width='15.6' height='26' fill='#59a14f' stroke='#ffffff'/>
+<rect x='260.20000000000005' y='192' width='15.6' height='26' fill='#76b7b2' stroke='#ffffff'/>
+<text x='285.80000000000007' y='211' font-size='14' fill='#1a7f37' font-weight='700' text-anchor='start'>22 MB</text>
+<text x='190' y='250' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Each AoS module loads all 32 MB, even Age, which needs 2 MB.</text>
+<line x1='24' y1='268' x2='836' y2='268' stroke='#d0d7de'/>
+<text x='24' y='298' font-size='16' fill='#1f2328' font-weight='700' text-anchor='start'>Time on the CPU (modules + Recycle)</text>
+<text x='24' y='331' font-size='14' fill='#1f2328' font-weight='400' text-anchor='start'>AoS · one struct</text>
+<rect x='190' y='312' width='124.80000000000001' height='26' fill='#4e79a7' stroke='#ffffff'/>
+<text x='252.4' y='330' font-size='12' fill='#ffffff' font-weight='700' text-anchor='middle'>Move 2.6</text>
+<rect x='314.8' y='312' width='120.0' height='26' fill='#e8a33d' stroke='#ffffff'/>
+<text x='374.8' y='330' font-size='12' fill='#ffffff' font-weight='700' text-anchor='middle'>Age 2.5</text>
+<rect x='434.8' y='312' width='120.0' height='26' fill='#59a14f' stroke='#ffffff'/>
+<text x='494.8' y='330' font-size='12' fill='#ffffff' font-weight='700' text-anchor='middle'>Fade 2.5</text>
+<rect x='554.8' y='312' width='124.80000000000001' height='26' fill='#76b7b2' stroke='#ffffff'/>
+<text x='617.1999999999999' y='330' font-size='12' fill='#ffffff' font-weight='700' text-anchor='middle'>Spin 2.6</text>
+<rect x='679.5999999999999' y='312' width='3.84' height='26' fill='#1f2328' stroke='#ffffff'/>
+<text x='693.4399999999999' y='331' font-size='14' fill='#cf222e' font-weight='700' text-anchor='start'>10.3 ms</text>
+<text x='24' y='371' font-size='14' fill='#1f2328' font-weight='400' text-anchor='start'>SoA · 16 arrays</text>
+<rect x='190' y='352' width='46.08' height='26' fill='#4e79a7' stroke='#ffffff'/>
+<rect x='236.07999999999998' y='352' width='7.68' height='26' fill='#e8a33d' stroke='#ffffff'/>
+<rect x='243.76' y='352' width='15.36' height='26' fill='#59a14f' stroke='#ffffff'/>
+<rect x='259.12' y='352' width='15.36' height='26' fill='#76b7b2' stroke='#ffffff'/>
+<rect x='274.48' y='352' width='63.84' height='26' fill='#1f2328' stroke='#ffffff'/>
+<text x='348.32000000000005' y='371' font-size='14' fill='#1a7f37' font-weight='700' text-anchor='start'>3.1 ms</text>
+<text x='24' y='411' font-size='14' fill='#1f2328' font-weight='400' text-anchor='start'>SoA · 5 groups</text>
+<rect x='190' y='392' width='46.08' height='26' fill='#4e79a7' stroke='#ffffff'/>
+<rect x='236.07999999999998' y='392' width='7.68' height='26' fill='#e8a33d' stroke='#ffffff'/>
+<rect x='243.76' y='392' width='15.36' height='26' fill='#59a14f' stroke='#ffffff'/>
+<rect x='259.12' y='392' width='15.36' height='26' fill='#76b7b2' stroke='#ffffff'/>
+<rect x='274.48' y='392' width='22.080000000000002' height='26' fill='#1f2328' stroke='#ffffff'/>
+<text x='306.56' y='411' font-size='14' fill='#1a7f37' font-weight='700' text-anchor='start'>2.2 ms</text>
+<rect x='24' y='434' width='14' height='14' rx='2' fill='#4e79a7'/>
+<text x='44' y='446' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Move</text>
+<rect x='92.0' y='434' width='14' height='14' rx='2' fill='#e8a33d'/>
+<text x='112.0' y='446' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Age</text>
+<rect x='152.5' y='434' width='14' height='14' rx='2' fill='#59a14f'/>
+<text x='172.5' y='446' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Fade</text>
+<rect x='220.5' y='434' width='14' height='14' rx='2' fill='#76b7b2'/>
+<text x='240.5' y='446' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Spin</text>
+<rect x='288.5' y='434' width='14' height='14' rx='2' fill='#1f2328'/>
+<text x='308.5' y='446' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Recycle</text>
+<text x='389.0' y='446' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Recycle: 1 line per removal (AoS), 16 (16 arrays), about 5 (5 groups).</text>
+</svg>
