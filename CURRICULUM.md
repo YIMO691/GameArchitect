@@ -20,7 +20,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 |---|-------|--------|
 | 004 | CPU caches and the memory hierarchy: the particle update that got slower after 3 seconds | ✅ |
 | 005 | Data-oriented design, AoS vs SoA: the age loop that cost as much as movement | ✅ |
-| 006 | Branch prediction, SIMD and why "clever" code is often slow | ⬜ |
+| 006 | Branch prediction, SIMD and why "clever" code is often slow: the one `if` that cost 1.4 ms | ✅ |
 | 007 | Memory allocation: heap, pools, arenas, garbage collection | ⬜ |
 | 008 | Threads, cores, contention and false sharing | ⬜ |
 | 009 | Job systems and task graphs | ⬜ |

@@ -1,0 +1,138 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='626' viewBox='0 0 860 626' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='625' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='38' font-size='20' fill='#1f2328' font-weight='700' text-anchor='start'>SIMD: one instruction, 8 particles</text>
+<text x='24' y='62' font-size='14' fill='#57606a' font-weight='400' text-anchor='start'>AVX2 registers are 256 bits wide: 8 floats side by side. Each slot is a lane.</text>
+<text x='200' y='88' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>lane 0</text>
+<text x='852' y='88' font-size='12' fill='#57606a' font-weight='400' text-anchor='end'>lane 7</text>
+<text x='24' y='114' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>life[i … i+7]</text>
+<text x='24' y='132' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>1 load: 32 bytes</text>
+<rect x='200' y='96' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='239.0' y='118' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>2.7</text>
+<rect x='282' y='96' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='321.0' y='118' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>0.9</text>
+<rect x='364' y='96' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='403.0' y='118' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>1.5</text>
+<rect x='446' y='96' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='485.0' y='118' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>3.0</text>
+<rect x='528' y='96' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='567.0' y='118' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>0.3</text>
+<rect x='610' y='96' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='649.0' y='118' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>2.1</text>
+<rect x='692' y='96' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='731.0' y='118' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>1.2</text>
+<rect x='774' y='96' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='813.0' y='118' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>0.6</text>
+<text x='24' y='164' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>kind</text>
+<text x='24' y='182' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>R = rain, B = blood</text>
+<rect x='200' y='146' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='239.0' y='168' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>R</text>
+<rect x='282' y='146' width='78' height='34' rx='4' fill='#e5534b'/>
+<text x='321.0' y='168' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>B</text>
+<rect x='364' y='146' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='403.0' y='168' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>R</text>
+<rect x='446' y='146' width='78' height='34' rx='4' fill='#e5534b'/>
+<text x='485.0' y='168' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>B</text>
+<rect x='528' y='146' width='78' height='34' rx='4' fill='#e5534b'/>
+<text x='567.0' y='168' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>B</text>
+<rect x='610' y='146' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='649.0' y='168' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>R</text>
+<rect x='692' y='146' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='731.0' y='168' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>R</text>
+<rect x='774' y='146' width='78' height='34' rx='4' fill='#e5534b'/>
+<text x='813.0' y='168' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>B</text>
+<text x='24' y='214' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>r = life × 0.333</text>
+<text x='24' y='232' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>1 multiply, 8 lanes</text>
+<rect x='200' y='196' width='78' height='34' rx='4' fill='#e7eef6'/>
+<text x='239.0' y='218' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.90</text>
+<rect x='282' y='196' width='78' height='34' rx='4' fill='#e7eef6'/>
+<text x='321.0' y='218' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.30</text>
+<rect x='364' y='196' width='78' height='34' rx='4' fill='#e7eef6'/>
+<text x='403.0' y='218' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.50</text>
+<rect x='446' y='196' width='78' height='34' rx='4' fill='#e7eef6'/>
+<text x='485.0' y='218' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>1.00</text>
+<rect x='528' y='196' width='78' height='34' rx='4' fill='#e7eef6'/>
+<text x='567.0' y='218' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.10</text>
+<rect x='610' y='196' width='78' height='34' rx='4' fill='#e7eef6'/>
+<text x='649.0' y='218' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.70</text>
+<rect x='692' y='196' width='78' height='34' rx='4' fill='#e7eef6'/>
+<text x='731.0' y='218' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.40</text>
+<rect x='774' y='196' width='78' height='34' rx='4' fill='#e7eef6'/>
+<text x='813.0' y='218' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.20</text>
+<text x='24' y='264' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>b = r × r</text>
+<text x='24' y='282' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>1 multiply, 8 lanes</text>
+<rect x='200' y='246' width='78' height='34' rx='4' fill='#f5ebf2'/>
+<text x='239.0' y='268' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.81</text>
+<rect x='282' y='246' width='78' height='34' rx='4' fill='#f5ebf2'/>
+<text x='321.0' y='268' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.09</text>
+<rect x='364' y='246' width='78' height='34' rx='4' fill='#f5ebf2'/>
+<text x='403.0' y='268' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.25</text>
+<rect x='446' y='246' width='78' height='34' rx='4' fill='#f5ebf2'/>
+<text x='485.0' y='268' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>1.00</text>
+<rect x='528' y='246' width='78' height='34' rx='4' fill='#f5ebf2'/>
+<text x='567.0' y='268' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.01</text>
+<rect x='610' y='246' width='78' height='34' rx='4' fill='#f5ebf2'/>
+<text x='649.0' y='268' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.49</text>
+<rect x='692' y='246' width='78' height='34' rx='4' fill='#f5ebf2'/>
+<text x='731.0' y='268' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.16</text>
+<rect x='774' y='246' width='78' height='34' rx='4' fill='#f5ebf2'/>
+<text x='813.0' y='268' font-size='13' fill='#1f2328' font-weight='600' text-anchor='middle'>0.04</text>
+<text x='24' y='314' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>mask = kind is B</text>
+<text x='24' y='332' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>1 compare</text>
+<rect x='200' y='296' width='78' height='34' rx='4' fill='#eaeef2'/>
+<text x='239.0' y='318' font-size='13' fill='#57606a' font-weight='600' text-anchor='middle'>no</text>
+<rect x='282' y='296' width='78' height='34' rx='4' fill='#1f2328'/>
+<text x='321.0' y='318' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>yes</text>
+<rect x='364' y='296' width='78' height='34' rx='4' fill='#eaeef2'/>
+<text x='403.0' y='318' font-size='13' fill='#57606a' font-weight='600' text-anchor='middle'>no</text>
+<rect x='446' y='296' width='78' height='34' rx='4' fill='#1f2328'/>
+<text x='485.0' y='318' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>yes</text>
+<rect x='528' y='296' width='78' height='34' rx='4' fill='#1f2328'/>
+<text x='567.0' y='318' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>yes</text>
+<rect x='610' y='296' width='78' height='34' rx='4' fill='#eaeef2'/>
+<text x='649.0' y='318' font-size='13' fill='#57606a' font-weight='600' text-anchor='middle'>no</text>
+<rect x='692' y='296' width='78' height='34' rx='4' fill='#eaeef2'/>
+<text x='731.0' y='318' font-size='13' fill='#57606a' font-weight='600' text-anchor='middle'>no</text>
+<rect x='774' y='296' width='78' height='34' rx='4' fill='#1f2328'/>
+<text x='813.0' y='318' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>yes</text>
+<text x='24' y='364' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>alpha = mask ? b : r</text>
+<text x='24' y='382' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>1 blend (select), no jump</text>
+<rect x='200' y='346' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='239.0' y='368' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>0.90</text>
+<rect x='282' y='346' width='78' height='34' rx='4' fill='#b07aa1'/>
+<text x='321.0' y='368' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>0.09</text>
+<rect x='364' y='346' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='403.0' y='368' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>0.50</text>
+<rect x='446' y='346' width='78' height='34' rx='4' fill='#b07aa1'/>
+<text x='485.0' y='368' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>1.00</text>
+<rect x='528' y='346' width='78' height='34' rx='4' fill='#b07aa1'/>
+<text x='567.0' y='368' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>0.01</text>
+<rect x='610' y='346' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='649.0' y='368' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>0.70</text>
+<rect x='692' y='346' width='78' height='34' rx='4' fill='#4e79a7'/>
+<text x='731.0' y='368' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>0.40</text>
+<rect x='774' y='346' width='78' height='34' rx='4' fill='#b07aa1'/>
+<text x='813.0' y='368' font-size='13' fill='#ffffff' font-weight='600' text-anchor='middle'>0.04</text>
+<line x1='24' y1='400' x2='836' y2='400' stroke='#d0d7de' stroke-width='1'/>
+<text x='24' y='428' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>Scalar (no SIMD): the same 8 particles</text>
+<rect x='200' y='442' width='78' height='26' rx='4' fill='#eaeef2'/>
+<text x='239.0' y='460' font-size='12' fill='#57606a' font-weight='600' text-anchor='middle'>step 1</text>
+<rect x='282' y='442' width='78' height='26' rx='4' fill='#eaeef2'/>
+<text x='321.0' y='460' font-size='12' fill='#57606a' font-weight='600' text-anchor='middle'>step 2</text>
+<rect x='364' y='442' width='78' height='26' rx='4' fill='#eaeef2'/>
+<text x='403.0' y='460' font-size='12' fill='#57606a' font-weight='600' text-anchor='middle'>step 3</text>
+<rect x='446' y='442' width='78' height='26' rx='4' fill='#eaeef2'/>
+<text x='485.0' y='460' font-size='12' fill='#57606a' font-weight='600' text-anchor='middle'>step 4</text>
+<rect x='528' y='442' width='78' height='26' rx='4' fill='#eaeef2'/>
+<text x='567.0' y='460' font-size='12' fill='#57606a' font-weight='600' text-anchor='middle'>step 5</text>
+<rect x='610' y='442' width='78' height='26' rx='4' fill='#eaeef2'/>
+<text x='649.0' y='460' font-size='12' fill='#57606a' font-weight='600' text-anchor='middle'>step 6</text>
+<rect x='692' y='442' width='78' height='26' rx='4' fill='#eaeef2'/>
+<text x='731.0' y='460' font-size='12' fill='#57606a' font-weight='600' text-anchor='middle'>step 7</text>
+<rect x='774' y='442' width='78' height='26' rx='4' fill='#eaeef2'/>
+<text x='813.0' y='460' font-size='12' fill='#57606a' font-weight='600' text-anchor='middle'>step 8</text>
+<text x='24' y='494' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>8 trips through load, multiply, test, jump, store: one particle at a time.</text>
+<rect x='24' y='512' width='812' height='92' rx='10' fill='#dafbe1' stroke='#1a7f37' stroke-width='1.5'/>
+<text x='44' y='540' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>Both sides are computed for every lane, then the mask picks one. Nothing to guess.</text>
+<text x='44' y='566' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>Work: 1.5 ns per particle ÷ 8 lanes ≈ 0.19 ns. 500,000 particles ≈ 0.09 ms of work,</text>
+<text x='44' y='588' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>but reading and writing 4.5 MB takes 0.36 ms. So Fade now waits on memory: 0.36 ms.</text>
+</svg>

@@ -90,10 +90,10 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="004-cache-lab/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lessons 004–005</span><span>measured on your device</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 004–006</span><span>measured on your device</span></div>
       <h3>Cache Lab</h3>
-      <p>A real 500,000-particle pool. Lesson 004: after 3 seconds of play the update gets several times slower; fix it with swap-and-pop. Lesson 005: 64-byte particles waste most of every cache line; split them into arrays and watch the bytes drop from 128 MB to 22 MB.</p>
-      <ul><li>Cache lines and next-door reads</li><li>Free list vs swap-and-pop</li><li>AoS vs SoA: loaded vs used bytes</li></ul>
+      <p>A real 500,000-particle pool. Lesson 004: after 3 seconds of play the update gets several times slower; fix it with swap-and-pop. Lesson 005: 64-byte particles waste most of every cache line; split them into arrays and watch the bytes drop from 128 MB to 22 MB. Lesson 006: mix rain and blood at random and watch half the CPU's guesses go wrong; fix it with branchless code, SIMD, and splitting by kind.</p>
+      <ul><li>Cache lines and next-door reads</li><li>Free list vs swap-and-pop</li><li>AoS vs SoA: loaded vs used bytes</li><li>Branch guesses, branchless code and SIMD lanes</li></ul>
       <span class="go">Open lab →</span>
     </a>
   </section>
@@ -108,7 +108,7 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
           <tr><td>Zombie Horde</td><td class="mono">001 · 037 · 053</td><td>Today: grid vs check everyone. Later: quadtrees, and AI that updates less often far from the camera.</td></tr>
           <tr><td>Frame Pipeline</td><td class="mono">002 · 059 · 060</td><td>Today: CPU vs GPU. Later: frame pacing and shader-compile stutter.</td></tr>
           <tr><td>Profiler Detective</td><td class="mono">003 · 035</td><td>Today: find the spike the average hides, read self time and calls. Later: hypothesis-driven profiling.</td></tr>
-          <tr><td>Cache Lab</td><td class="mono">004 · 005 · 006</td><td>Today: access order, cache lines, and AoS vs SoA. Later: branches and SIMD.</td></tr>
+          <tr><td>Cache Lab</td><td class="mono">004 · 005 · 006</td><td>Access order, cache lines, AoS vs SoA, and branches and SIMD. All three lessons are live.</td></tr>
           <tr><td>Memory &amp; GC Lab</td><td class="mono">007 · 040 · 041 · 042</td><td>Allocate every frame and watch garbage-collection spikes; fix them with pools.</td></tr>
           <tr><td>Jobs Lab</td><td class="mono">008 · 009</td><td>Split work across workers; see contention and false sharing.</td></tr>
           <tr><td>Game Loop Lab</td><td class="mono">011</td><td>Fixed vs variable timestep: physics that explodes on a slow frame.</td></tr>

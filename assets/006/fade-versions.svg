@@ -1,0 +1,34 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='470' viewBox='0 0 860 470' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='469' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='38' font-size='20' fill='#1f2328' font-weight='700' text-anchor='start'>Fade on the lesson's laptop, 500,000 particles</text>
+<text x='24' y='62' font-size='14' fill='#57606a' font-weight='400' text-anchor='start'>Same particles, same number of rain and blood drops. Only the code and the order change.</text>
+<text x='24' y='115' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>Lesson 005 Fade (one line, SIMD)</text>
+<rect x='330' y='96' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de' stroke-width='1'/>
+<text x='24' y='159' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>if / else · test scene, rain only</text>
+<rect x='330' y='140' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de' stroke-width='1'/>
+<text x='24' y='203' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>if / else · big fight, 50/50</text>
+<rect x='330' y='184' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de' stroke-width='1'/>
+<text x='24' y='247' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>branchless · any order</text>
+<rect x='330' y='228' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de' stroke-width='1'/>
+<text x='24' y='291' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>branchless + SIMD (8 lanes)</text>
+<rect x='330' y='272' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de' stroke-width='1'/>
+<text x='24' y='335' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>split by kind (two arrays)</text>
+<rect x='330' y='316' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de' stroke-width='1'/>
+<line x1='414.6' y1='90' x2='414.6' y2='348' stroke='#57606a' stroke-width='1.5' stroke-dasharray='5 4'/>
+<rect x='330' y='96' width='75.2' height='26' rx='4' fill='#59a14f'/>
+<text x='413.2' y='114' font-size='13' fill='#1f2328' font-weight='700' stroke='#ffffff' stroke-width='4' paint-order='stroke'>0.32 ms</text>
+<rect x='330' y='140' width='117.5' height='26' rx='4' fill='#4e79a7'/>
+<text x='455.5' y='158' font-size='13' fill='#1f2328' font-weight='700' stroke='#ffffff' stroke-width='4' paint-order='stroke'>0.50 ms</text>
+<rect x='330' y='184' width='411.25' height='26' rx='4' fill='#e5534b'/>
+<text x='749.25' y='202' font-size='13' fill='#1f2328' font-weight='700' stroke='#ffffff' stroke-width='4' paint-order='stroke'>1.75 ms</text>
+<rect x='330' y='228' width='176.25' height='26' rx='4' fill='#4e79a7'/>
+<text x='514.25' y='246' font-size='13' fill='#1f2328' font-weight='700' stroke='#ffffff' stroke-width='4' paint-order='stroke'>0.75 ms</text>
+<rect x='330' y='272' width='84.6' height='26' rx='4' fill='#59a14f'/>
+<text x='422.6' y='290' font-size='13' fill='#1f2328' font-weight='700' stroke='#ffffff' stroke-width='4' paint-order='stroke'>0.36 ms</text>
+<rect x='330' y='316' width='75.2' height='26' rx='4' fill='#59a14f'/>
+<text x='413.2' y='334' font-size='13' fill='#1f2328' font-weight='700' stroke='#ffffff' stroke-width='4' paint-order='stroke'>0.32 ms</text>
+<text x='418.6' y='366' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>memory floor with the kind byte: 0.36 ms</text>
+<rect x='24' y='384' width='812' height='62' rx='10' fill='#f6f8fa' stroke='#d0d7de' stroke-width='1'/>
+<text x='44' y='410' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>Wrong guesses cost 1.25 ms of the 1.75. Removing the jump lets SIMD work,</text>
+<text x='44' y='430' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>and then the loop is limited by memory, not by math.</text>
+</svg>

@@ -149,6 +149,16 @@ td.cool { color: var(--good); font-weight: 600; }
 .f-col { background: var(--good) !important; } .f-rot { background: var(--jump) !important; } .f-cold { background: var(--muted) !important; }
 .passes { grid-auto-flow: column; }
 .passes button:disabled { opacity: 0.35; cursor: default; }
+
+/* Lesson 006: branch view */
+.bcells i { display: grid; place-items: center; font-size: 11px; font-weight: 700; line-height: 1; color: #ffffff; }
+.bcells i.k0 { background: var(--order); } .bcells i.k1 { background: var(--bad); }
+.bcells i.x::after { content: "✗"; }
+.bcells i.x { box-shadow: inset 0 0 0 2px var(--ink); }
+.bcells.l8 i:nth-child(9) { margin-left: 5px; }
+.seg-ctl.tight button { font-size: 13px; padding: 8px 2px; }
+tr.cur td { background: var(--field); }
+tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
 </style>
 
 <div class="wrap">
@@ -157,10 +167,11 @@ td.cool { color: var(--good); font-weight: 600; }
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/004-cpu-caches-and-the-memory-hierarchy.md">Read Lesson 004 ↗</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/005-data-oriented-design-aos-vs-soa.md">Read Lesson 005 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/006-branch-prediction-and-simd.md">Read Lesson 006 ↗</a>
     </div>
-    <div class="eyebrow">Lab 004 · Lessons 004–005 · measured live on your device</div>
+    <div class="eyebrow">Lab 004 · Lessons 004–006 · measured live on your device</div>
     <h1>Cache Lab</h1>
-    <p class="lede">A real particle pool, updated every frame. Lesson 004: same particles, same code, only the order of the reads changes. Lesson 005: same particles, same work, only the layout in memory changes. Watch what each does to the time.</p>
+    <p class="lede">A real particle pool, updated every frame. Lesson 004: same particles, same code, only the order of the reads changes. Lesson 005: same particles, same work, only the layout in memory changes. Lesson 006: same particles, same work, only the order of rain and blood changes, and the CPU has to guess. Watch what each does to the time.</p>
   </header>
 
   <div class="goal">
@@ -198,16 +209,24 @@ td.cool { color: var(--good); font-weight: 600; }
           <span><i class="f-col"></i>color</span><span><i class="f-rot"></i>rotation, spin</span><span><i class="f-cold"></i>6 cold fields</span>
         </div>
       </div>
+      <div id="branchView" style="display:grid;gap:10px" hidden>
+        <div class="lines" id="bLines" aria-label="64 particles from the middle of the pool. Blue is rain, red is blood. A cross marks a particle where the CPU guessed the if wrong."></div>
+        <p class="coach" id="bCap"></p>
+        <div class="legend">
+          <span><i style="background:var(--order)"></i>rain</span><span><i style="background:var(--bad)"></i>blood</span>
+          <span><i style="background:var(--ink)"></i>✗ wrong guess: the work after the if is thrown away</span>
+        </div>
+      </div>
       <pre class="reads" id="reads"></pre>
       <p class="coach" id="coach"></p>
     </div>
 
     <div class="panel">
       <div class="stats">
-        <div class="stat"><span class="k" id="kMs">Particle update</span><span class="v" id="sMs">0</span><span class="s">ms per frame, measured</span></div>
+        <div class="stat"><span class="k" id="kMs">Particle update</span><span class="v" id="sMs">0</span><span class="s" id="sMsS">ms per frame, measured</span></div>
         <div class="stat"><span class="k" id="kNs">Per particle</span><span class="v" id="sNs">0</span><span class="s" id="sNsS">ns, measured</span></div>
         <div class="stat"><span class="k" id="kNd">Next-door reads</span><span class="v" id="sNd">100%</span><span class="s" id="sJump">same or next cache line</span></div>
-        <div class="stat"><span class="k">Particle data</span><span class="v" id="sMb">16 MB</span><span class="s" id="sMbS">500,000 × 32 bytes</span></div>
+        <div class="stat"><span class="k" id="kMb">Particle data</span><span class="v" id="sMb">16 MB</span><span class="s" id="sMbS">500,000 × 32 bytes</span></div>
       </div>
       <div class="bar-wrap">
         <div class="bar-head"><span id="barLbl">Particle update vs the whole frame budget</span><span class="mono" id="barTotal">0 ms</span></div>
@@ -220,6 +239,7 @@ td.cool { color: var(--good); font-weight: 600; }
           <div class="seg-ctl" role="group" aria-label="Lab mode">
             <button type="button" id="mOrder" aria-pressed="true">004 · Read order</button>
             <button type="button" id="mLayout" aria-pressed="false">005 · Data layout</button>
+            <button type="button" id="mBranch" aria-pressed="false">006 · Branches</button>
           </div>
         </div>
         <div class="field-row">
@@ -247,6 +267,27 @@ td.cool { color: var(--good); font-weight: 600; }
             <button type="button" id="pAge" aria-pressed="false">Age only</button>
           </div>
           <small>"All 4": time runs, particles die, and Recycle removes them with swap-and-pop. "Age only": time is frozen, nobody dies, and only the Age loop is timed.</small>
+        </div>
+        <div class="field-row" id="rowPat" hidden>
+          <span class="lbl"><span>Order of rain and blood in the pool</span></span>
+          <div class="seg-ctl tight" role="group" aria-label="Order of rain and blood">
+            <button type="button" id="o0" aria-pressed="true">All rain</button>
+            <button type="button" id="o1" aria-pressed="false">Sorted</button>
+            <button type="button" id="o2" aria-pressed="false">R B R B</button>
+            <button type="button" id="o3" aria-pressed="false">90/10</button>
+            <button type="button" id="o4" aria-pressed="false">50/50</button>
+          </div>
+          <small id="patNote"></small>
+        </div>
+        <div class="field-row" id="rowCode" hidden>
+          <span class="lbl"><span>Fade code</span></span>
+          <div class="seg-ctl tight" role="group" aria-label="Fade code">
+            <button type="button" id="c0" aria-pressed="true">if / else</button>
+            <button type="button" id="c1" aria-pressed="false">Branchless</button>
+            <button type="button" id="c2" aria-pressed="false">+ SIMD</button>
+            <button type="button" id="c3" aria-pressed="false">Split by kind</button>
+          </div>
+          <small id="codeNote"></small>
         </div>
         <div class="field-row" id="rowPool">
           <span class="lbl"><span>Pool type</span></span>
@@ -277,6 +318,8 @@ td.cool { color: var(--good); font-weight: 600; }
     <ol class="steps" id="steps"></ol>
     <div class="group-h"><h3>Lesson 005 · data layout</h3><span class="tag">Rain 2.0: same particles, twice the bytes</span></div>
     <ol class="steps" id="steps5"></ol>
+    <div class="group-h"><h3>Lesson 006 · branches and SIMD</h3><span class="tag">Blood 2.0: one if, and the big fight</span></div>
+    <ol class="steps" id="steps6"></ol>
   </section>
 
   <section class="panel" aria-labelledby="profH" id="profPanel" hidden>
@@ -285,6 +328,17 @@ td.cool { color: var(--good); font-weight: 600; }
     <div class="table-box">
       <table id="profTable">
         <thead><tr><th>Module</th><th style="text-align:left">Needs</th><th>Loaded</th><th>Used</th><th>Useful</th><th>Time</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="brH" id="brPanel" hidden>
+    <h2 id="brH">Profiler capture: Fade, four ways</h2>
+    <p class="fine">All four versions of Fade on the same particles in the same order. "Wrong guesses" are counted by running a simple branch guesser (the kind real CPUs use, much smaller) over the real kind array. "Laptop" columns use the lesson's model: work per particle, plus 5 ns per wrong guess, but never faster than memory allows. "This device" is the real loop, timed in JavaScript every frame (median of 40).</p>
+    <div class="table-box">
+      <table id="brTable">
+        <thead><tr><th>Fade code</th><th>Wrong guesses</th><th>Lanes</th><th>Laptop: Fade</th><th>Laptop: all particles</th><th>This device</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -318,6 +372,13 @@ td.cool { color: var(--good); font-weight: 600; }
       <div class="note"><h3>Lay data out by how it is read</h3><p>With arrays of fields, every byte a module loads is a byte it needs. The work is the same; the bytes the modules load drop from 128 MB to 22 MB per frame.</p></div>
       <div class="note"><h3>Splitting has a price</h3><p>With 16 arrays, removing one particle touches 16 cache lines instead of 1. Grouping fields that are always read together (pos with vel, rot with spin) keeps the streams 100% useful and cuts that to about 5.</p></div>
     </div>
+    <h3>Lesson 006 · branches and SIMD</h3>
+    <div class="notes">
+      <div class="note"><h3>An if is a guess</h3><p>The CPU doesn't wait to see which way an if goes. It guesses and keeps working. A wrong guess throws that work away. With rain and blood mixed at random, half the guesses are wrong.</p></div>
+      <div class="note"><h3>Order decides the cost</h3><p>Same particles, same work. Sorted or in a steady pattern, the guesser is almost never wrong. Random, it is wrong about half the time, and Fade gets several times slower.</p></div>
+      <div class="note"><h3>No jump, then 8 at once</h3><p>Branchless code computes both answers and picks one: no guess. With no jump inside, the compiler can use SIMD and do 8 particles per instruction. Splitting rain and blood into their own arrays removes the if completely.</p></div>
+    </div>
+    <p class="fine">Lesson 006 mode: the if / else, branchless and split loops are real JavaScript, timed live with <code>performance.now()</code> on 500,000 particles (time frozen, so only Fade runs). JavaScript has no SIMD, so the "+ SIMD" version can't be measured here; its device time shows "—" and the laptop model gives the lesson's number. "Wrong guesses" come from a small guesser model (a table of 2-bit counters indexed by the last 8 outcomes), run over the real kind array; real CPUs use bigger, smarter guessers, but they can't guess random data either. The laptop numbers are the lesson's model, not measurements.</p>
     <p class="fine">Measured live with <code>performance.now()</code>: this is the real loop, in JavaScript, on your device. A particle is 8 floats (32 bytes) in one big <code>Float32Array</code>. The "Skip 10 s" button fast-forwards the deaths and births of particles without timing them; it scrambles the free list the same way as letting time run. A C++ or Burst build would be faster overall, and your CPU's cache sizes decide where the jump happens, but the ratio is the lesson. In Lesson 005 mode, a particle is 16 floats (64 bytes): one <code>Float32Array</code> with a stride of 16 (AoS), 16 separate <code>Float32Array</code>s, or 5 grouped ones (SoA). The "Loaded" and "Useful" numbers are counted exactly from the layout, not measured; the times are measured.</p>
   </section>
 </div>
@@ -512,11 +573,75 @@ td.cool { color: var(--good); font-weight: 600; }
     return { used, loaded };
   }
 
+  // ---------- Lesson 006: Blood 2.0, one if in the Fade loop ----------
+  // kind[i] = 0 rain, 1 blood. Fade: r = life / 3; rain alpha = r, blood alpha = r * r.
+  const PATS = ["rain", "sorted", "alt", "p10", "rand"];
+  const PAT_LABEL = { rain: "all rain (the test scene)", sorted: "sorted: all rain, then all blood", alt: "alternating: rain, blood, rain, blood …", p10: "90% rain, 10% blood, mixed at random", rand: "50/50, mixed at random (the big fight)" };
+  const CODES = ["if", "bl", "simd", "split"];
+  const CODE_LABEL = { if: "if / else", bl: "Branchless", simd: "Branchless + SIMD", split: "Split by kind" };
+  const LANES = { if: 1, bl: 1, simd: 8, split: 8 };
+  const WIN = 64;   // particles shown in the branch view
+  function makeBranch(n, pat) {
+    seed = 4242;
+    const B = { n, pat, life: new Float32Array(n), alpha: new Float32Array(n), kind: new Uint8Array(n), misses: 0, win: new Uint8Array(WIN), w0: Math.max(0, (n >> 1) - 16) };
+    for (let i = 0; i < n; i++) {
+      B.life[i] = rnd() * 3;
+      B.kind[i] = pat === "rain" ? 0 : pat === "sorted" ? (i < n / 2 ? 0 : 1) : pat === "alt" ? i & 1 : pat === "p10" ? (rnd() < 0.1 ? 1 : 0) : (rnd() < 0.5 ? 1 : 0);
+    }
+    // The guesser: 256 two-bit counters, picked by the last 8 outcomes (like a tiny real branch predictor).
+    const T = new Uint8Array(256).fill(1);
+    let h = 0, m = 0;
+    for (let i = 0; i < n; i++) {
+      const t = B.kind[i], c = T[h], wrong = (c >= 2 ? 1 : 0) !== t;
+      if (wrong) m++;
+      if (i >= B.w0 && i < B.w0 + WIN) B.win[i - B.w0] = wrong ? 1 : 0;
+      T[h] = t ? Math.min(3, c + 1) : Math.max(0, c - 1);
+      h = ((h << 1) | t) & 255;
+    }
+    B.misses = m;
+    // Split by kind: rain and blood live in their own arrays, so no kind byte and no if.
+    let nr = 0; for (let i = 0; i < n; i++) if (!B.kind[i]) nr++;
+    B.rl = new Float32Array(nr); B.ra = new Float32Array(nr); B.bl = new Float32Array(n - nr); B.ba = new Float32Array(n - nr);
+    let a = 0, b = 0;
+    for (let i = 0; i < n; i++) { if (B.kind[i]) B.bl[b++] = B.life[i]; else B.rl[a++] = B.life[i]; }
+    return B;
+  }
+  // The three loops we can run in JavaScript (it has no SIMD).
+  function fadeIf(B) { const life = B.life, al = B.alpha, kind = B.kind, n = B.n; for (let i = 0; i < n; i++) { const r = life[i] * 0.3333; if (kind[i] === 1) al[i] = r * r; else al[i] = r; } }
+  function fadeBl(B) { const life = B.life, al = B.alpha, kind = B.kind, n = B.n; for (let i = 0; i < n; i++) { const r = life[i] * 0.3333, m = kind[i]; al[i] = r + m * (r * r - r); } }   // compute both, pick with arithmetic: no jump
+  function fadeSplit(B) {
+    const rl = B.rl, ra = B.ra, bl = B.bl, ba = B.ba;
+    for (let i = 0; i < rl.length; i++) ra[i] = rl[i] * 0.3333;
+    for (let i = 0; i < bl.length; i++) { const r = bl[i] * 0.3333; ba[i] = r * r; }
+  }
+  const FADE_FN = { if: fadeIf, bl: fadeBl, split: fadeSplit };
+  // The lesson's laptop model (500,000 particles; everything scales with the count).
+  // Memory floor: 0.08 ms per MB. With the kind byte, Fade moves 4.5 MB (0.36 ms); split by kind, 4 MB (0.32 ms).
+  // Work: if / else 1 ns per particle (one lane); branchless 1.5 ns (both sides); SIMD 1.5 ns / 8 lanes. Wrong guess: 5 ns.
+  // Other particle modules from Lesson 005: Move 0.96 + Age 0.16 + Spin 0.32 + Recycle 0.46 = 1.90 ms; the kind array adds one line per death to Recycle: 0.08 ms.
+  function fadeModel(code, n, misses) {
+    const k = n / 500000;
+    if (code === "if") return Math.max(0.36 * k, 0.5 * k) + misses * 5e-6;
+    if (code === "bl") return Math.max(0.36 * k, 0.75 * k);
+    if (code === "simd") return Math.max(0.36 * k, 0.75 * k / 8);
+    return Math.max(0.32 * k, 0.5 * k / 8);
+  }
+  const partsModel = (code, n, misses) => (1.90 + (code === "split" ? 0 : 0.08)) * (n / 500000) + fadeModel(code, n, misses);
+  const missesOf = (code, B) => (code === "if" ? B.misses : 0);
+  const PART_BUDGET = 2.5;
+
   // ---------- state ----------
-  const st = { lab: "order", lay: "aos", passes: "all", view: 0, viewAuto: true, viewT: 0, pSamples: [[], [], [], [], []], pMs: [0, 0, 0, 0, 0], deaths: 0,
+  const st = { pat: "rain", code: "if", bSamples: { if: [], bl: [], split: [] }, bMs: { if: 0, bl: 0, split: 0 }, lab: "order", lay: "aos", passes: "all", view: 0, viewAuto: true, viewT: 0, pSamples: [[], [], [], [], []], pMs: [0, 0, 0, 0, 0], deaths: 0,
     ni: 2, mode: "free", running: false, frames: 0, samples: [], ms: 0, benchRunning: false, stats: { near: 1, jump: 32 }, phase: 0 };
-  let P = null, L = null;
+  let P = null, L = null, Bd = null;
   function reload() {
+    if (st.lab === "branch") {
+      P = null; L = null; Bd = null;
+      Bd = makeBranch(SIZES[st.ni], st.pat);
+      st.bSamples = { if: [], bl: [], split: [] }; st.bMs = { if: 0, bl: 0, split: 0 };
+      return;
+    }
+    Bd = null;
     if (st.lab === "layout") {
       P = null; L = null;
       seed = 777 + st.ni * 7;
@@ -600,24 +725,31 @@ td.cool { color: var(--good); font-weight: 600; }
   function median(a) { if (!a.length) return 0; const s = a.slice().sort((x, y) => x - y); return s[s.length >> 1]; }
 
   let lastTick = -1;
-  function setBar(ms, color) {
-    const maxMs = Math.max(30, Math.ceil(ms / 10) * 10);
+  function setBar(ms, color, budget = BUDGET, ready = st.samples.length > 0) {
+    const small = budget < 5;
+    const maxMs = small ? Math.max(5, Math.ceil(ms)) : Math.max(30, Math.ceil(ms / 10) * 10);
     $("seg").style.width = Math.min(100, (ms / maxMs) * 100) + "%";
     $("seg").style.background = color;
-    $("budget").style.left = (BUDGET / maxMs) * 100 + "%";
-    $("barTotal").textContent = st.samples.length ? fmtMs(ms) + " ms of 16.67" : "…";
-    if (maxMs !== lastTick) {
-      lastTick = maxMs;
-      $("barScale").innerHTML = [0, BUDGET, maxMs].map((t, i) => `<span style="left:${(t / maxMs) * 100}%;${i === 2 ? "transform:translateX(-100%)" : ""}">${i === 1 ? "16.67 ms" : Math.round(t) + " ms"}</span>`).join("");
+    $("budget").style.left = (budget / maxMs) * 100 + "%";
+    const bl = small ? budget.toFixed(1) : "16.67";
+    $("barTotal").textContent = ready ? fmtMs(ms) + " ms of " + bl : "…";
+    const key = maxMs + "/" + budget;
+    if (key !== lastTick) {
+      lastTick = key;
+      $("barScale").innerHTML = [0, budget, maxMs].map((t, i) => `<span style="left:${(t / maxMs) * 100}%;${i === 2 ? "transform:translateX(-100%)" : ""}">${i === 1 ? bl + " ms" : Math.round(t) + " ms"}</span>`).join("");
     }
   }
   function commonControls() {
-    const lay = st.lab === "layout";
-    $("mOrder").setAttribute("aria-pressed", !lay); $("mLayout").setAttribute("aria-pressed", lay);
-    $("orderView").hidden = lay; $("layoutView").hidden = !lay;
-    $("rowPool").hidden = lay; $("rowPlay").hidden = lay;
+    const lay = st.lab === "layout", br = st.lab === "branch", ord = st.lab === "order";
+    $("mOrder").setAttribute("aria-pressed", ord); $("mLayout").setAttribute("aria-pressed", lay); $("mBranch").setAttribute("aria-pressed", br);
+    $("orderView").hidden = !ord; $("layoutView").hidden = !lay; $("branchView").hidden = !br;
+    $("rowPool").hidden = !ord; $("rowPlay").hidden = !ord;
     $("rowLayout").hidden = !lay; $("rowPasses").hidden = !lay;
-    $("benchPanel").hidden = lay; $("profPanel").hidden = !lay;
+    $("rowPat").hidden = !br; $("rowCode").hidden = !br;
+    $("benchPanel").hidden = !ord; $("profPanel").hidden = !lay; $("brPanel").hidden = !br;
+    $("sMsS").textContent = "ms per frame, measured";
+    $("kMb").textContent = "Particle data";
+    if (br) return;
     for (let i = 0; i < 4; i++) $("n" + i).setAttribute("aria-pressed", i === st.ni);
     $("nLabel").textContent = fmtInt(SIZES[st.ni]);
     $("kMs").textContent = lay ? "Particle modules" : "Particle update";
@@ -630,6 +762,7 @@ td.cool { color: var(--good); font-weight: 600; }
   function readouts() {
     commonControls();
     if (st.lab === "layout") { layoutReadouts(); return; }
+    if (st.lab === "branch") { branchReadouts(); return; }
     const n = P.n, ms = st.ms;
     $("sMs").textContent = st.samples.length ? fmtMs(ms) : "…";
     $("sNs").textContent = st.samples.length ? ((ms * 1e6) / n).toFixed(1) : "…";
@@ -775,10 +908,110 @@ td.cool { color: var(--good); font-weight: 600; }
     $("linesCap").innerHTML = cap;
   }
 
+  // ---------- Lesson 006 readouts and branch view ----------
+  const fmtMiss = (m) => (m < 1000 ? fmtInt(m) : "≈ " + fmtInt(Math.round(m / 1000) * 1000));
+  const fmtRate = (m, n) => { const r = (m / n) * 100; return (r > 0 && r < 0.5 ? "~0" : Math.round(r)) + "%"; };
+  function branchReadouts() {
+    const B = Bd, n = B.n, code = st.code, m = missesOf(code, B);
+    const fm = fadeModel(code, n, m), pm = partsModel(code, n, m);
+    const devCode = code === "simd" ? "bl" : code, dev = st.bSamples[devCode].length ? st.bMs[devCode] : null;
+    $("kMs").textContent = "Fade, this device";
+    $("sMs").textContent = dev === null ? "…" : fmtMs(dev);
+    $("sMsS").textContent = code === "simd" ? "ms, measured without SIMD: JavaScript has none" : "ms per frame, measured";
+    $("kNs").textContent = "Wrong guesses";
+    $("sNs").textContent = code === "if" ? fmtRate(m, n) : "0";
+    $("sNs").className = "v " + (code !== "if" || m / n < 0.02 ? "good" : m / n > 0.25 ? "bad" : "");
+    $("sNsS").textContent = code === "if" ? fmtMiss(m) + " per frame, counted" : "no if inside the loop: nothing to guess";
+    $("kNd").textContent = "Lesson laptop";
+    $("sNd").textContent = fm.toFixed(2) + " ms";
+    $("sNd").className = "v " + (fm <= 0.4 * (n / 500000) ? "good" : fm > 1 * (n / 500000) ? "bad" : "");
+    $("sJump").textContent = "Fade, model: work + 5 ns per wrong guess";
+    $("kMb").textContent = "Lanes";
+    $("sMb").textContent = String(LANES[code]);
+    $("sMbS").textContent = LANES[code] > 1 ? "particles per instruction (SIMD)" : "particle per instruction";
+    $("barLbl").textContent = "All particle modules on the lesson's laptop vs the 2.5 ms budget";
+    $("viewH").textContent = "What the CPU guesses";
+    $("mapTag").textContent = CODE_LABEL[code];
+    $("nLabel").textContent = fmtInt(n);
+    for (let i = 0; i < 4; i++) $("n" + i).setAttribute("aria-pressed", i === st.ni);
+    PATS.forEach((p, i) => $("o" + i).setAttribute("aria-pressed", p === st.pat));
+    CODES.forEach((c, i) => $("c" + i).setAttribute("aria-pressed", c === code));
+    const nb = B.bl.length;
+    $("patNote").textContent = `${PAT_LABEL[st.pat]}: ${fmtInt(n - nb)} rain, ${fmtInt(nb)} blood.`;
+    $("codeNote").textContent = code === "if" ? "Rain: alpha = r. Blood: alpha = r × r. The CPU must guess which side to take for every particle."
+      : code === "bl" ? "Compute both answers for every particle, then pick one with arithmetic. No jump, one particle at a time."
+      : code === "simd" ? "Branchless, and the compiler uses 8-lane SIMD: one instruction works on 8 particles."
+      : "Rain and blood live in separate arrays. Two simple loops, no kind byte, no if, SIMD in both.";
+    $("goalText").innerHTML = "<strong>Blood 2.0, the big fight.</strong> Goal: 500,000 particles, rain and blood mixed 50/50 at random, and all particle modules under the 2.5 ms budget on the lesson's laptop.";
+    const goal = st.ni === 2 && st.pat === "rand" && pm <= PART_BUDGET;
+    $("goalPill").className = "pill " + (goal ? "ok" : "over");
+    $("goalPill").textContent = goal ? "Goal met" : st.ni !== 2 ? "Not at 500K" : st.pat !== "rand" ? "Not the big fight" : "Over 2.5 ms";
+    const CODE_TXT = {
+      if: "r = life[i] * 0.333\nif (kind[i] == Blood)  // guess!\n  alpha[i] = r * r\nelse\n  alpha[i] = r",
+      bl: "r = life[i] * 0.333\nb = r * r        // both sides\nalpha[i] = kind[i] ? b : r\n                 // a pick, no jump",
+      simd: "for i in steps of 8:   // 8 lanes\n  r = life[i..i+7] * 0.333\n  b = r * r\n  alpha[i..i+7] =\n    blend(r, b, kind == Blood)",
+      split: "for each rain:\n  alpha = life * 0.333\nfor each blood:\n  r = life * 0.333; alpha = r * r\n// no kind, no if",
+    };
+    $("reads").textContent = CODE_TXT[code];
+    $("coach").innerHTML = code === "if"
+      ? (m / n > 0.25 ? `<span class="pill over">${fmtRate(m, n)} wrong</span> No pattern to learn. Every wrong guess throws away about 15 steps of work: ${fmtMiss(m)} × 5 ns ≈ ${(m * 5e-6).toFixed(2)} ms on the laptop.`
+        : m / n > 0.02 ? `<span class="pill over">${fmtRate(m, n)} wrong</span> The guesser bets on rain and loses on most blood drops: ${fmtMiss(m)} × 5 ns ≈ ${(m * 5e-6).toFixed(2)} ms.`
+        : `<span class="pill ok">${fmtRate(m, n)} wrong</span> The guesser found the pattern, so the if is almost free. Same work, same particles: only the order is different.`)
+      : code === "bl" ? `<span class="pill ok">No guess</span> Every particle does both sides, so the work is a bit bigger, but it never changes with the order.`
+      : code === "simd" ? `<span class="pill ok">8 lanes</span> The math is now tiny. Fade waits on memory: 4.5 MB per frame ≈ 0.36 ms on the laptop.`
+      : `<span class="pill ok">No if at all</span> Each array holds one kind, so there is nothing to test. No kind byte either: 4 MB ≈ 0.32 ms, Lesson 005's old Fade time.`;
+    drawBranch();
+    // table: all four versions
+    const rows = CODES.map((c) => {
+      const mc = missesOf(c, B), f = fadeModel(c, n, mc), pt = partsModel(c, n, mc);
+      const dc = c === "simd" ? null : st.bSamples[c].length ? fmtMs(st.bMs[c]) + " ms" : "…";
+      return `<tr class="${c === code ? "cur" : ""}"><td>${CODE_LABEL[c]}</td><td>${c === "if" ? fmtMiss(mc) + " (" + fmtRate(mc, n) + ")" : "0"}</td><td>${LANES[c]}</td><td>${f.toFixed(2)} ms</td><td class="${pt <= PART_BUDGET * (n / 500000) ? "cool" : "hot"}">${pt.toFixed(2)} ms</td><td>${dc === null ? "— no SIMD in JS" : dc}</td></tr>`;
+    });
+    $("brTable").querySelector("tbody").innerHTML = rows.join("");
+    setBar(pm, pm <= PART_BUDGET ? "var(--good)" : "var(--bad)", PART_BUDGET, true);
+  }
+  let branchKey = "";
+  function drawBranch() {
+    const B = Bd, code = st.code, key = st.pat + code + B.n;
+    if (key === branchKey) return;
+    branchKey = key;
+    const rows = [];
+    if (code === "split") {
+      for (let r = 0; r < 4; r++) {
+        const blood = r >= 2, have = blood ? B.bl.length : B.rl.length;
+        const cls = []; for (let c = 0; c < 16; c++) cls.push((r % 2) * 16 + c < have ? "k" + (blood ? 1 : 0) : "");
+        rows.push(`<div class="line"><span class="ln">${blood ? "blood" : "rain"} [${(r % 2) * 16}…]</span><span class="cells bcells l8">${cls.map((c) => `<i class="${c}"></i>`).join("")}</span></div>`);
+      }
+      $("bCap").innerHTML = `Two arrays: ${fmtInt(B.rl.length)} rain and ${fmtInt(B.bl.length)} blood. Each loop knows its kind, so there is <strong>no if to guess</strong>, and both run 8 lanes at a time.`;
+    } else {
+      for (let r = 0; r < 4; r++) {
+        const cls = [];
+        for (let c = 0; c < 16; c++) { const j = r * 16 + c, i = B.w0 + j; cls.push("k" + B.kind[i] + (code === "if" && B.win[j] ? " x" : "")); }
+        rows.push(`<div class="line"><span class="ln">i = ${fmtInt(B.w0 + r * 16)}</span><span class="cells bcells${code === "simd" ? " l8" : ""}">${cls.map((c) => `<i class="${c}"></i>`).join("")}</span></div>`);
+      }
+      let wrong = 0; for (let j = 0; j < WIN; j++) wrong += B.win[j];
+      $("bCap").innerHTML = code === "if"
+        ? `64 particles from the middle of the pool. The CPU guessed wrong on <strong>${wrong} of 64</strong> here${st.pat === "sorted" ? " (the switch from rain to blood is in row 2)" : ""}.`
+        : code === "bl" ? `Same 64 particles. Both answers are computed for each one, then one is picked: <strong>no guesses, no ✗</strong>.`
+        : `Same 64 particles, taken <strong>8 at a time</strong> (the gap in each row splits two groups of 8). One instruction handles a whole group.`;
+    }
+    $("bLines").innerHTML = rows.join("");
+  }
+
   // ---------- main loop ----------
   let tick = 0;
   function loop() {
-    if (st.lab === "layout" && L) {
+    if (st.lab === "branch" && Bd) {
+      const reps = Math.max(1, Math.round(300000 / Bd.n));
+      for (const c of ["if", "bl", "split"]) {
+        const t0 = performance.now();
+        for (let r = 0; r < reps; r++) FADE_FN[c](Bd);
+        const a = st.bSamples[c]; a.push((performance.now() - t0) / reps); if (a.length > 40) a.shift();
+        st.bMs[c] = median(a);
+      }
+      if (tick % 6 === 0) readouts();
+      tick++;
+    } else if (st.lab === "layout" && L) {
       // Small pools finish faster than the timer can see, so modules run extra passes with time frozen
       // (same reads and writes) and we report the time of one pass.
       const reps = Math.max(1, Math.round(300000 / L.n));
@@ -833,6 +1066,9 @@ td.cool { color: var(--good); font-weight: 600; }
   function setLab(m) { if (st.lab === m) return; st.lab = m; if (m === "order") st.running = false; reload(); readouts(); }
   $("mOrder").addEventListener("click", () => setLab("order"));
   $("mLayout").addEventListener("click", () => setLab("layout"));
+  $("mBranch").addEventListener("click", () => setLab("branch"));
+  PATS.forEach((p, i) => $("o" + i).addEventListener("click", () => { st.pat = p; reload(); readouts(); }));
+  CODES.forEach((c, i) => $("c" + i).addEventListener("click", () => { st.code = c; readouts(); }));
   $("lAos").addEventListener("click", () => { st.lay = "aos"; reload(); readouts(); });
   $("lSoa").addEventListener("click", () => { st.lay = "soa"; reload(); readouts(); });
   $("lGrp").addEventListener("click", () => { st.lay = "grp"; reload(); readouts(); });
@@ -857,14 +1093,14 @@ td.cool { color: var(--good); font-weight: 600; }
     { t: "The small test scene, a minute later", d: "Same 20,000 particles after 60 seconds. Next-door reads fall to 0% here too, but the time per particle grows far less than it did at 500,000 (usually under 2× step 5, compared with 3× or more in step 3). 640 KB fits in the caches, so most jumps are cheap. Run the order test below to see all four sizes side by side.", s: { ni: 0, mode: "free", run: false, skip: 60 } },
   ];
   const stepsEl = $("steps");
+  const clearActive = () => ["steps", "steps5", "steps6"].forEach((id) => [...$(id).children].forEach((c) => c.classList.remove("active")));
   STEPS.forEach((s, k) => {
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      clearActive();
       li.classList.add("active");
-      [...$("steps5").children].forEach((c) => c.classList.remove("active"));
       st.lab = "order"; st.ni = s.s.ni; st.mode = s.s.mode; reload();
       if (s.s.skip) skip(s.s.skip);
       st.running = s.s.run;
@@ -886,11 +1122,33 @@ td.cool { color: var(--good); font-weight: 600; }
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${STEPS.length + k}">Set up</button>`;
     steps5El.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children, ...steps5El.children].forEach((c) => c.classList.remove("active"));
+      clearActive();
       li.classList.add("active");
       st.lab = "layout"; st.running = false; st.ni = s.s.ni; st.lay = s.s.lay; st.passes = s.s.passes; st.view = s.s.view; st.viewAuto = false; st.viewT = 0;
       reload(); readouts();
       $("layoutView").scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  const STEPS6 = [
+    { t: "The test scene: rain only", d: "Lesson 006 mode. 500,000 particles, all rain, Fade written with if / else. Wrong guesses: 0%. On the lesson's laptop Fade costs 0.50 ms, and all particle modules 2.48 ms: under the 2.5 ms budget. This is what the nightly perf test saw. Write down the device time.", s: { ni: 2, pat: "rain", code: "if" } },
+    { t: "The big fight: 50/50 at random", d: "Same code, same 500,000 particles, but half are blood, mixed at random. Wrong guesses: 50%, about 250,000 per frame. Laptop: Fade 1.75 ms, all particles 3.73 ms, over budget. The red ✗ marks are wrong guesses. On your device Fade is usually 2 times slower than step 1 or more.", s: { ni: 2, pat: "rand", code: "if" } },
+    { t: "Same blood, sorted", d: "Still half blood, still if / else, but all rain first, then all blood. Only 9 wrong guesses (~0%), all at the switch in row 2. Laptop: back to 0.50 ms. Then tap R B R B (5 wrong guesses: the pattern is learned) and 90/10 (11% wrong, 0.77 ms).", s: { ni: 2, pat: "sorted", code: "if" } },
+    { t: "Remove the jump: branchless", d: "Back to 50/50 random. Both answers are computed and one is picked. Wrong guesses: 0. Laptop: 0.75 ms for every order, since each particle does both sides. Tap through the orders: the device time barely moves. But all particles are 2.73 ms: still over budget.", s: { ni: 2, pat: "rand", code: "bl" } },
+    { t: "Eight at once: SIMD", d: "Branchless, and with no jump inside, the compiler can use 8 lanes. Lanes: 8. Laptop: Fade 0.36 ms (now it waits on memory, not math), all particles 2.34 ms. The goal turns green. JavaScript has no SIMD, so this row is the laptop model only.", s: { ni: 2, pat: "rand", code: "simd" } },
+    { t: "The architect's fix: split by kind", d: "Rain and blood in their own arrays. No kind byte, no if, SIMD in both loops. Laptop: Fade 0.32 ms, all particles 2.22 ms, the same as before Blood 2.0. Compare the device time with step 2.", s: { ni: 2, pat: "rand", code: "split" } },
+  ];
+  const steps6El = $("steps6");
+  STEPS6.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${STEPS.length + STEPS5.length + k}">Set up</button>`;
+    steps6El.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      clearActive();
+      li.classList.add("active");
+      st.lab = "branch"; st.running = false; st.ni = s.s.ni; st.pat = s.s.pat; st.code = s.s.code;
+      reload(); readouts();
+      $("branchView").scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "nearest" });
     });
   });
 

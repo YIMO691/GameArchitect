@@ -1,0 +1,112 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='560' viewBox='0 0 860 560' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='559' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='38' font-size='20' fill='#1f2328' font-weight='700' text-anchor='start'>An if is a fork in the track: the CPU guesses, then checks</text>
+<text x='24' y='62' font-size='14' fill='#57606a' font-weight='400' text-anchor='start'>The core works like an assembly line about 15 stages long. It can't wait at every if, so it guesses.</text>
+<text x='190' y='92' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>stage 1 (fetch)</text>
+<text x='846' y='92' font-size='12' fill='#57606a' font-weight='400' text-anchor='end'>stage 15 (done)</text>
+<line x1='190' y1='98' x2='846' y2='98' stroke='#57606a' stroke-width='1'/>
+<text x='24' y='128' font-size='15' fill='#1f2328' font-weight='700' text-anchor='start'>No if</text>
+<text x='24' y='148' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>line always full</text>
+<rect x='190' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='210.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p15</text>
+<rect x='234' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='254.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p14</text>
+<rect x='278' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='298.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p13</text>
+<rect x='322' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='342.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p12</text>
+<rect x='366' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='386.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p11</text>
+<rect x='410' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='430.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p10</text>
+<rect x='454' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='474.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p9</text>
+<rect x='498' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='518.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p8</text>
+<rect x='542' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='562.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p7</text>
+<rect x='586' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='606.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p6</text>
+<rect x='630' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='650.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p5</text>
+<rect x='674' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='694.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p4</text>
+<rect x='718' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='738.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p3</text>
+<rect x='762' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='782.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p2</text>
+<rect x='806' y='110' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='826.0' y='137' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p1</text>
+<text x='190' y='174' font-size='13' fill='#57606a' font-weight='600' text-anchor='start'>One particle finishes every step. Nothing is wasted.</text>
+<text x='24' y='228' font-size='15' fill='#1f2328' font-weight='700' text-anchor='start'>Right guess</text>
+<text x='24' y='248' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>guessed rain, it was rain</text>
+<rect x='190' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='210.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p15</text>
+<rect x='234' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='254.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p14</text>
+<rect x='278' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='298.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p13</text>
+<rect x='322' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='342.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p12</text>
+<rect x='366' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='386.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p11</text>
+<rect x='410' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='430.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p10</text>
+<rect x='454' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='474.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p9</text>
+<rect x='498' y='210' width='40' height='44' rx='4' fill='#b07aa1'/>
+<text x='518.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>if</text>
+<rect x='542' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='562.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p7</text>
+<rect x='586' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='606.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p6</text>
+<rect x='630' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='650.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p5</text>
+<rect x='674' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='694.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p4</text>
+<rect x='718' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='738.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p3</text>
+<rect x='762' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='782.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p2</text>
+<rect x='806' y='210' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='826.0' y='237' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p1</text>
+<text x='190' y='274' font-size='13' fill='#1a7f37' font-weight='600' text-anchor='start'>The guess was right: the work after the if was already correct. Cost: 0.</text>
+<text x='24' y='328' font-size='15' fill='#1f2328' font-weight='700' text-anchor='start'>Wrong guess</text>
+<text x='24' y='348' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>guessed rain, it was blood</text>
+<rect x='190' y='310' width='40' height='44' rx='4' fill='#ffebe9'/>
+<text x='210.0' y='337' font-size='12' fill='#cf222e' font-weight='600' text-anchor='middle'>✗</text>
+<rect x='234' y='310' width='40' height='44' rx='4' fill='#ffebe9'/>
+<text x='254.0' y='337' font-size='12' fill='#cf222e' font-weight='600' text-anchor='middle'>✗</text>
+<rect x='278' y='310' width='40' height='44' rx='4' fill='#ffebe9'/>
+<text x='298.0' y='337' font-size='12' fill='#cf222e' font-weight='600' text-anchor='middle'>✗</text>
+<rect x='322' y='310' width='40' height='44' rx='4' fill='#ffebe9'/>
+<text x='342.0' y='337' font-size='12' fill='#cf222e' font-weight='600' text-anchor='middle'>✗</text>
+<rect x='366' y='310' width='40' height='44' rx='4' fill='#ffebe9'/>
+<text x='386.0' y='337' font-size='12' fill='#cf222e' font-weight='600' text-anchor='middle'>✗</text>
+<rect x='410' y='310' width='40' height='44' rx='4' fill='#ffebe9'/>
+<text x='430.0' y='337' font-size='12' fill='#cf222e' font-weight='600' text-anchor='middle'>✗</text>
+<rect x='454' y='310' width='40' height='44' rx='4' fill='#ffebe9'/>
+<text x='474.0' y='337' font-size='12' fill='#cf222e' font-weight='600' text-anchor='middle'>✗</text>
+<rect x='498' y='310' width='40' height='44' rx='4' fill='#b07aa1'/>
+<text x='518.0' y='337' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>if</text>
+<rect x='542' y='310' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='562.0' y='337' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p7</text>
+<rect x='586' y='310' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='606.0' y='337' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p6</text>
+<rect x='630' y='310' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='650.0' y='337' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p5</text>
+<rect x='674' y='310' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='694.0' y='337' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p4</text>
+<rect x='718' y='310' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='738.0' y='337' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p3</text>
+<rect x='762' y='310' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='782.0' y='337' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p2</text>
+<rect x='806' y='310' width='40' height='44' rx='4' fill='#4e79a7'/>
+<text x='826.0' y='337' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>p1</text>
+<text x='190' y='374' font-size='13' fill='#cf222e' font-weight='600' text-anchor='start'>Everything started after the if is thrown away and the line refills.</text>
+<rect x='24' y='410' width='812' height='126' rx='10' fill='#fff8f6' stroke='#e5534b' stroke-width='1.5'/>
+<text x='44' y='440' font-size='15' fill='#1f2328' font-weight='700' text-anchor='start'>What one wrong guess costs (approximate, our laptop at about 3 GHz)</text>
+<text x='44' y='466' font-size='14' fill='#1f2328' font-weight='400' text-anchor='start'>about 15 lost steps (cycles) × 0.33 ns = about 5 ns</text>
+<text x='44' y='492' font-size='14' fill='#1f2328' font-weight='400' text-anchor='start'>Big fight: 500,000 particles × 50% wrong guesses = 250,000 wrong guesses</text>
+<text x='44' y='518' font-size='14' fill='#cf222e' font-weight='700' text-anchor='start'>250,000 × 5 ns = 1.25 ms per frame, just for guessing wrong</text>
+</svg>
