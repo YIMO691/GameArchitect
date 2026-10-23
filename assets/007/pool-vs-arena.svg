@@ -1,0 +1,110 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='520' viewBox='0 0 860 520' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='519' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<defs><marker id='arr' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='8' markerHeight='8' orient='auto-start-reverse'><path d='M0 0 L10 5 L0 10 z' fill='#57606a'/></marker></defs>
+<text x='24.0' y='38.0' font-size='20' fill='#1f2328' font-weight='700' text-anchor='start'>Two ways to make no garbage: reuse (pool) or tear off the page (arena)</text>
+<text x='24.0' y='62.0' font-size='14' fill='#57606a' font-weight='400' text-anchor='start'>Big fight, 40 splashes in one frame, 24 drops each (24 × 12 B = 288 B)</text>
+<rect x='24.0' y='84.0' width='396.0' height='330.0' rx='10' fill='#f6f8fa' stroke='#d0d7de' stroke-width='1'/>
+<text x='40.0' y='112.0' font-size='16' fill='#1f2328' font-weight='700' text-anchor='start'>Pool: a shelf of reusable lists</text>
+<text x='40.0' y='134.0' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Made once. Each keeps capacity 32 after Clear().</text>
+<rect x='46.0' y='152.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='82.0' y='152.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='118.0' y='152.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='154.0' y='152.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='190.0' y='152.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='226.0' y='152.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='262.0' y='152.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='298.0' y='152.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='334.0' y='152.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='370.0' y='152.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='46.0' y='186.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='82.0' y='186.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='118.0' y='186.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='154.0' y='186.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='190.0' y='186.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='226.0' y='186.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='262.0' y='186.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='298.0' y='186.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='334.0' y='186.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='370.0' y='186.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='46.0' y='220.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='82.0' y='220.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='118.0' y='220.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='154.0' y='220.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='190.0' y='220.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='226.0' y='220.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='262.0' y='220.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='298.0' y='220.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='334.0' y='220.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='370.0' y='220.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='46.0' y='254.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='82.0' y='254.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='118.0' y='254.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='154.0' y='254.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='190.0' y='254.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='226.0' y='254.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='262.0' y='254.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='298.0' y='254.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='334.0' y='254.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<rect x='370.0' y='254.0' width='30.0' height='24.0' rx='4' fill='#59a14f' stroke='none' stroke-width='1'/>
+<text x='40.0' y='310.0' font-size='14' fill='#1f2328' font-weight='600' text-anchor='start'>Get() → fill 24 drops → Release()</text>
+<text x='40.0' y='334.0' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>40 Get + 40 Release per frame</text>
+<text x='40.0' y='356.0' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Kept forever: 40 × ≈ 0.45 KB ≈ 18 KB</text>
+<text x='40.0' y='392.0' font-size='14' fill='#1a7f37' font-weight='700' text-anchor='start'>Best for things with their own lifetimes</text>
+<rect x='440.0' y='84.0' width='396.0' height='330.0' rx='10' fill='#f6f8fa' stroke='#d0d7de' stroke-width='1'/>
+<text x='456.0' y='112.0' font-size='16' fill='#1f2328' font-weight='700' text-anchor='start'>Arena: one 64 KB notepad per frame</text>
+<text x='456.0' y='134.0' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Allocate = move a pointer. Free = reset it to 0.</text>
+<rect x='456.0' y='160.0' width='364.0' height='36.0' rx='4' fill='#ffffff' stroke='#9aa0a6' stroke-width='1'/>
+<rect x='456.0' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='457.6' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='459.2' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='460.8' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='462.4' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='464.0' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='465.6' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='467.2' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='468.8' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='470.4' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='472.0' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='473.6' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='475.2' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='476.8' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='478.4' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='480.0' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='481.6' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='483.2' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='484.8' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='486.4' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='488.0' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='489.6' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='491.2' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='492.8' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='494.4' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='496.0' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='497.6' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='499.2' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='500.8' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='502.4' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='504.0' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='505.6' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='507.2' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='508.8' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='510.4' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='512.0' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='513.6' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='515.2' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='516.8' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<rect x='518.4' y='160.0' width='1.0' height='36.0' rx='0' fill='#4e79a7' stroke='none' stroke-width='1'/>
+<line x1='520.0' y1='150.0' x2='520.0' y2='206.0' stroke='#cf222e' stroke-width='2'/>
+<text x='526.0' y='152.0' font-size='12' fill='#cf222e' font-weight='700' text-anchor='start'>pointer: 11.25 KB</text>
+<text x='456.0' y='222.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>0</text>
+<text x='820.0' y='222.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='end'>64 KB</text>
+<text x='456.0' y='254.0' font-size='14' fill='#1f2328' font-weight='600' text-anchor='start'>End of frame: pointer → 0</text>
+<rect x='456.0' y='266.0' width='364.0' height='36.0' rx='4' fill='#ffffff' stroke='#9aa0a6' stroke-width='1'/>
+<line x1='456.0' y1='258.0' x2='456.0' y2='310.0' stroke='#cf222e' stroke-width='2'/>
+<text x='456.0' y='334.0' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>1 reset per frame, nothing to give back</text>
+<text x='456.0' y='356.0' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Rule: nothing may keep a pointer past the reset</text>
+<text x='456.0' y='392.0' font-size='14' fill='#1a7f37' font-weight='700' text-anchor='start'>Best for "this frame only" data</text>
+<rect x='24.0' y='430.0' width='812.0' height='66.0' rx='10' fill='#ffffff' stroke='#d0d7de' stroke-width='1'/>
+<text x='44.0' y='458.0' font-size='14' fill='#1f2328' font-weight='600' text-anchor='start'>Both: 0 B of garbage per frame, so the GC has nothing to collect during play.</text>
+<text x='44.0' y='482.0' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Lifetime decides: a drop list lives one frame (arena). Decals, bullets and enemies live longer (pool).</text>
+</svg>
