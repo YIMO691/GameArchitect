@@ -108,6 +108,13 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <ul><li>How often vs how long: garbage rate vs live data</li><li>GC.Collect and the GC Alloc column</li><li>Pools, frame arenas and incremental GC</li></ul>
       <span class="go">Open lab →</span>
     </a>
+    <a class="card" href="008-jobs-lab/index.html">
+      <div class="meta"><span class="tag live">live</span><span>Lesson 008</span><span>simulation</span></div>
+      <h3>Jobs Lab</h3>
+      <p>The storm's 2,000,000 particles on 1 to 8 threads. Eight threads give only 2×: watch each thread's timeline fill with lock waiting and false sharing, then fix both and hit Amdahl's limit.</p>
+      <ul><li>Threads vs cores and Amdahl's law</li><li>Lock contention vs per-thread lists</li><li>False sharing: 8 counters, one cache line</li></ul>
+      <span class="go">Open lab →</span>
+    </a>
   </section>
 
   <section class="panel" aria-labelledby="planH">
@@ -121,7 +128,7 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
           <tr><td>Frame Pipeline</td><td class="mono">002 · 059 · 060</td><td>Today: CPU vs GPU. Later: frame pacing and shader-compile stutter.</td></tr>
           <tr><td>Profiler Detective</td><td class="mono">003 · 035</td><td>Today: find the spike the average hides, read self time and calls. Later: hypothesis-driven profiling.</td></tr>
           <tr><td>Cache Lab</td><td class="mono">004 · 005 · 006</td><td>Access order, cache lines, AoS vs SoA, and branches and SIMD. All three lessons are live.</td></tr>
-          <tr><td>Jobs Lab</td><td class="mono">008 · 009</td><td>Split work across workers; see contention and false sharing.</td></tr>
+          <tr><td>Jobs Lab</td><td class="mono">008 · 009</td><td>Today: threads, locks and false sharing. Later: job systems and task graphs that keep every core busy.</td></tr>
           <tr><td>Game Loop Lab</td><td class="mono">011</td><td>Fixed vs variable timestep: physics that explodes on a slow frame.</td></tr>
           <tr><td>Draw Call &amp; Overdraw Lab</td><td class="mono">024 · 025 · 027</td><td>Batching, instancing, transparency and culling.</td></tr>
           <tr><td>Netcode Lab</td><td class="mono">048 · 049</td><td>Lag, interpolation, prediction and rollback with a fake network.</td></tr>

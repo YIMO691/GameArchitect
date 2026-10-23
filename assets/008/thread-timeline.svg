@@ -1,0 +1,113 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='735' viewBox='0 0 860 735' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='734' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<defs><pattern id='hatch' width='6' height='6' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'><rect width='6' height='6' fill='#f6f8fa'/><line x1='0' y1='0' x2='0' y2='6' stroke='#9aa0a6' stroke-width='1.5'/></pattern><marker id='arr' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0 0 L10 5 L0 10 z' fill='#57606a'/></marker></defs>
+<text x='24.0' y='38.0' font-size='20' fill='#1f2328' font-weight='700' text-anchor='start'>Thread timeline of the particle update, Storm scene</text>
+<text x='24.0' y='62.0' font-size='14' fill='#57606a' font-weight='400' text-anchor='start'>2,000,000 particles · 8 threads on 8 cores · one frame of particles, in ms</text>
+<text x='24.0' y='96.0' font-size='16' fill='#e5534b' font-weight='700' text-anchor='start'>As first written: 4.4 ms (only 2.0× faster than 8.8 ms)</text>
+<text x='24.0' y='116.0' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Each worker: 1.0 ms of real work + 1.6 ms fighting for a cache line + 1.0 ms queuing for the lock</text>
+<text x='110.0' y='147.0' font-size='13' fill='#1f2328' font-weight='600' text-anchor='end'>Main</text>
+<rect x='120.0' y='132.0' width='546.8' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='393.9' y='147.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>waits for workers</text>
+<rect x='667.8' y='132.0' width='121.7' height='20.0' rx='3' fill='#b07aa1' stroke='none' />
+<text x='728.7' y='147.0' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>0.8 serial</text>
+<text x='110.0' y='173.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 1</text>
+<rect x='120.0' y='158.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<text x='196.1' y='173.0' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>work 1.0</text>
+<rect x='272.2' y='158.0' width='242.5' height='20.0' rx='3' fill='#e5534b' stroke='none' />
+<text x='393.9' y='173.0' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>false sharing 1.6</text>
+<rect x='515.7' y='158.0' width='151.2' height='20.0' rx='3' fill='#e8913a' stroke='none' />
+<text x='591.7' y='173.0' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>lock 1.0</text>
+<rect x='667.8' y='158.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='199.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 2</text>
+<rect x='120.0' y='184.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='184.0' width='242.5' height='20.0' rx='3' fill='#e5534b' stroke='none' />
+<rect x='515.7' y='184.0' width='151.2' height='20.0' rx='3' fill='#e8913a' stroke='none' />
+<rect x='667.8' y='184.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='225.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 3</text>
+<rect x='120.0' y='210.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='210.0' width='242.5' height='20.0' rx='3' fill='#e5534b' stroke='none' />
+<rect x='515.7' y='210.0' width='151.2' height='20.0' rx='3' fill='#e8913a' stroke='none' />
+<rect x='667.8' y='210.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='251.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 4</text>
+<rect x='120.0' y='236.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='236.0' width='242.5' height='20.0' rx='3' fill='#e5534b' stroke='none' />
+<rect x='515.7' y='236.0' width='151.2' height='20.0' rx='3' fill='#e8913a' stroke='none' />
+<rect x='667.8' y='236.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='277.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 5</text>
+<rect x='120.0' y='262.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='262.0' width='242.5' height='20.0' rx='3' fill='#e5534b' stroke='none' />
+<rect x='515.7' y='262.0' width='151.2' height='20.0' rx='3' fill='#e8913a' stroke='none' />
+<rect x='667.8' y='262.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='303.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 6</text>
+<rect x='120.0' y='288.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='288.0' width='242.5' height='20.0' rx='3' fill='#e5534b' stroke='none' />
+<rect x='515.7' y='288.0' width='151.2' height='20.0' rx='3' fill='#e8913a' stroke='none' />
+<rect x='667.8' y='288.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='329.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 7</text>
+<rect x='120.0' y='314.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='314.0' width='242.5' height='20.0' rx='3' fill='#e5534b' stroke='none' />
+<rect x='515.7' y='314.0' width='151.2' height='20.0' rx='3' fill='#e8913a' stroke='none' />
+<rect x='667.8' y='314.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='355.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 8</text>
+<rect x='120.0' y='340.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='340.0' width='242.5' height='20.0' rx='3' fill='#e5534b' stroke='none' />
+<rect x='515.7' y='340.0' width='151.2' height='20.0' rx='3' fill='#e8913a' stroke='none' />
+<rect x='667.8' y='340.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<line x1='789.6' x2='789.6' y1='126' y2='368' stroke='#e5534b' stroke-width='2' stroke-dasharray='5 4'/>
+<text x='795.6' y='130.0' font-size='14' fill='#e5534b' font-weight='700' text-anchor='start'>4.4 ms</text>
+<text x='24.0' y='388.0' font-size='16' fill='#1a7f37' font-weight='700' text-anchor='start'>Fixed: 1.8 ms (4.9× faster)</text>
+<text x='24.0' y='408.0' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Per-thread dead lists + padded counters. Only real work is left; the serial 0.8 ms is Amdahl's limit</text>
+<text x='110.0' y='439.0' font-size='13' fill='#1f2328' font-weight='600' text-anchor='end'>Main</text>
+<rect x='120.0' y='424.0' width='151.2' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='196.1' y='439.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>waits for workers</text>
+<rect x='272.2' y='424.0' width='121.7' height='20.0' rx='3' fill='#b07aa1' stroke='none' />
+<text x='333.0' y='439.0' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>0.8 serial</text>
+<text x='110.0' y='465.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 1</text>
+<rect x='120.0' y='450.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<text x='196.1' y='465.0' font-size='12' fill='#ffffff' font-weight='600' text-anchor='middle'>work 1.0</text>
+<rect x='272.2' y='450.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='491.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 2</text>
+<rect x='120.0' y='476.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='476.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='517.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 3</text>
+<rect x='120.0' y='502.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='502.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='543.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 4</text>
+<rect x='120.0' y='528.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='528.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='569.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 5</text>
+<rect x='120.0' y='554.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='554.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='595.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 6</text>
+<rect x='120.0' y='580.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='580.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='621.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 7</text>
+<rect x='120.0' y='606.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='606.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='110.0' y='647.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='end'>Worker 8</text>
+<rect x='120.0' y='632.0' width='151.2' height='20.0' rx='3' fill='#4e79a7' stroke='none' />
+<rect x='272.2' y='632.0' width='120.7' height='20.0' rx='3' fill='url(#hatch)' stroke='#d0d7de' />
+<line x1='393.9' x2='393.9' y1='418' y2='660' stroke='#1a7f37' stroke-width='2' stroke-dasharray='5 4'/>
+<text x='399.9' y='422.0' font-size='14' fill='#1a7f37' font-weight='700' text-anchor='start'>1.8 ms</text>
+<line x1='120' x2='820' y1='668' y2='668' stroke='#d0d7de'/>
+<line x1='120.0' x2='120.0' y1='664' y2='672' stroke='#57606a'/>
+<text x='120.0' y='686.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>0 ms</text>
+<line x1='272.2' x2='272.2' y1='664' y2='672' stroke='#57606a'/>
+<text x='272.2' y='686.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>1 ms</text>
+<line x1='424.3' x2='424.3' y1='664' y2='672' stroke='#57606a'/>
+<text x='424.3' y='686.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>2 ms</text>
+<line x1='576.5' x2='576.5' y1='664' y2='672' stroke='#57606a'/>
+<text x='576.5' y='686.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>3 ms</text>
+<line x1='728.7' x2='728.7' y1='664' y2='672' stroke='#57606a'/>
+<text x='728.7' y='686.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>4 ms</text>
+<rect x='24.0' y='697.0' width='14.0' height='14.0' rx='2' fill='#4e79a7' stroke='none' />
+<text x='44.0' y='708.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>real work</text>
+<rect x='119.2' y='697.0' width='14.0' height='14.0' rx='2' fill='#e5534b' stroke='none' />
+<text x='139.2' y='708.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>false sharing (looks busy)</text>
+<rect x='330.0' y='697.0' width='14.0' height='14.0' rx='2' fill='#e8913a' stroke='none' />
+<text x='350.0' y='708.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>waiting for the lock</text>
+<rect x='500.0' y='697.0' width='14.0' height='14.0' rx='2' fill='#b07aa1' stroke='none' />
+<text x='520.0' y='708.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>serial part</text>
+<rect x='608.8' y='697.0' width='14.0' height='14.0' rx='2' fill='url(#hatch)' stroke='#d0d7de' />
+<text x='628.8' y='708.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>waiting / idle</text>
+</svg>

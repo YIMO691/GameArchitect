@@ -1,0 +1,48 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='440' viewBox='0 0 860 440' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='439' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<defs><pattern id='hatch' width='6' height='6' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'><rect width='6' height='6' fill='#f6f8fa'/><line x1='0' y1='0' x2='0' y2='6' stroke='#9aa0a6' stroke-width='1.5'/></pattern><marker id='arr' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto-start-reverse'><path d='M0 0 L10 5 L0 10 z' fill='#57606a'/></marker></defs>
+<text x='24.0' y='38.0' font-size='20' fill='#1f2328' font-weight='700' text-anchor='start'>Amdahl's law: the serial 0.8 ms never gets shorter</text>
+<text x='24.0' y='62.0' font-size='14' fill='#57606a' font-weight='400' text-anchor='start'>Particle update, Storm scene: 0.8 ms serial + 8.0 ms that can be split across threads</text>
+<line x1='277.2' x2='277.2' y1='84' y2='356' stroke='#1a7f37' stroke-width='2' stroke-dasharray='6 4'/>
+<text x='120.0' y='112.0' font-size='14' fill='#1f2328' font-weight='600' text-anchor='end'>1 thread</text>
+<rect x='130.0' y='96.0' width='47.1' height='24.0' rx='3' fill='#b07aa1' stroke='none' />
+<rect x='178.1' y='96.0' width='470.1' height='24.0' rx='3' fill='#4e79a7' stroke='none' />
+<text stroke='#ffffff' stroke-width='5' paint-order='stroke' x='656.2' y='113.0' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>8.8 ms</text>
+<text x='830.0' y='113.0' font-size='14' fill='#57606a' font-weight='700' text-anchor='end'>1.0×</text>
+<text x='120.0' y='156.0' font-size='14' fill='#1f2328' font-weight='600' text-anchor='end'>2 threads</text>
+<rect x='130.0' y='140.0' width='47.1' height='24.0' rx='3' fill='#b07aa1' stroke='none' />
+<rect x='178.1' y='140.0' width='234.6' height='24.0' rx='3' fill='#4e79a7' stroke='none' />
+<text stroke='#ffffff' stroke-width='5' paint-order='stroke' x='420.7' y='157.0' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>4.8 ms</text>
+<text x='830.0' y='157.0' font-size='14' fill='#57606a' font-weight='700' text-anchor='end'>1.8×</text>
+<text x='120.0' y='200.0' font-size='14' fill='#1f2328' font-weight='600' text-anchor='end'>4 threads</text>
+<rect x='130.0' y='184.0' width='47.1' height='24.0' rx='3' fill='#b07aa1' stroke='none' />
+<rect x='178.1' y='184.0' width='116.8' height='24.0' rx='3' fill='#4e79a7' stroke='none' />
+<text stroke='#ffffff' stroke-width='5' paint-order='stroke' x='302.9' y='201.0' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>2.8 ms</text>
+<text x='830.0' y='201.0' font-size='14' fill='#57606a' font-weight='700' text-anchor='end'>3.1×</text>
+<text x='120.0' y='244.0' font-size='14' fill='#1f2328' font-weight='600' text-anchor='end'>8 threads</text>
+<rect x='130.0' y='228.0' width='47.1' height='24.0' rx='3' fill='#b07aa1' stroke='none' />
+<rect x='178.1' y='228.0' width='57.9' height='24.0' rx='3' fill='#4e79a7' stroke='none' />
+<text stroke='#ffffff' stroke-width='5' paint-order='stroke' x='244.0' y='245.0' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>1.8 ms</text>
+<text x='830.0' y='245.0' font-size='14' fill='#1a7f37' font-weight='700' text-anchor='end'>4.9×</text>
+<text x='120.0' y='288.0' font-size='14' fill='#1f2328' font-weight='600' text-anchor='end'>16 threads</text>
+<rect x='130.0' y='272.0' width='47.1' height='24.0' rx='3' fill='#b07aa1' stroke='none' />
+<rect x='178.1' y='272.0' width='28.4' height='24.0' rx='3' fill='#4e79a7' stroke='none' />
+<text stroke='#ffffff' stroke-width='5' paint-order='stroke' x='214.6' y='289.0' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>1.3 ms</text>
+<text x='830.0' y='289.0' font-size='14' fill='#57606a' font-weight='700' text-anchor='end'>6.8×</text>
+<text x='120.0' y='332.0' font-size='14' fill='#1f2328' font-weight='600' text-anchor='end'>∞ threads</text>
+<rect x='130.0' y='316.0' width='47.1' height='24.0' rx='3' fill='#b07aa1' stroke='none' />
+<text stroke='#ffffff' stroke-width='5' paint-order='stroke' x='185.1' y='333.0' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>0.8 ms</text>
+<text x='830.0' y='333.0' font-size='14' fill='#57606a' font-weight='700' text-anchor='end'>11×</text>
+<text x='283.2' y='84.0' font-size='12' fill='#1a7f37' font-weight='600' text-anchor='start'>budget 2.5 ms</text>
+<text x='830.0' y='84.0' font-size='12' fill='#57606a' font-weight='600' text-anchor='end'>speedup</text>
+<line x1='130' x2='660' y1='360' y2='360' stroke='#d0d7de'/>
+<text x='130.0' y='378.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>0 ms</text>
+<text x='247.8' y='378.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>2 ms</text>
+<text x='365.6' y='378.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>4 ms</text>
+<text x='483.3' y='378.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>6 ms</text>
+<text x='601.1' y='378.0' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>8 ms</text>
+<rect x='24.0' y='395.0' width='14.0' height='14.0' rx='2' fill='#b07aa1' stroke='none' />
+<text x='44.0' y='406.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>serial: fill the holes the dead left (runs once, on one thread)</text>
+<rect x='24.0' y='417.0' width='14.0' height='14.0' rx='2' fill='#4e79a7' stroke='none' />
+<text x='44.0' y='428.0' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>parallel: Move, Age, Spin, Fade, find the dead (split across threads)</text>
+</svg>
