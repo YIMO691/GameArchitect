@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="672" viewBox="0 0 880 672" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<rect x="0.5" y="0.5" width="879" height="671" rx="14" fill="#ffffff" stroke="#d0d7de"/>
+<text x="28" y="40" font-size="20" font-weight="700" fill="#1f2328">Module 1 on one page: the price list</text>
+<text x="28" y="64" font-size="14" fill="#57606a">One rule and one number per lesson. Laptop numbers, approximate. Use them to estimate before you measure.</text>
+<rect x="28" y="86" width="400" height="170" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+<rect x="28" y="86" width="8" height="170" rx="4" fill="#4e79a7"/>
+<text x="50" y="116" font-size="13" font-weight="700" fill="#4e79a7">LESSON 004</text>
+<text x="138" y="116" font-size="17" font-weight="700" fill="#1f2328">Read order</text>
+<text x="50" y="142" font-size="14" fill="#1f2328">A jumping read goes to RAM: ~100 ns.</text>
+<text x="50" y="162" font-size="14" fill="#1f2328">~5 trips overlap, so about:</text>
+<text x="50" y="210" font-size="28" font-weight="700" fill="#4e79a7">20 ns per item</text>
+<text x="50" y="238" font-size="13" fill="#57606a">In order: the prefetcher hides it.</text>
+<rect x="452" y="86" width="400" height="170" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+<rect x="452" y="86" width="8" height="170" rx="4" fill="#59a14f"/>
+<text x="474" y="116" font-size="13" font-weight="700" fill="#59a14f">LESSON 005</text>
+<text x="562" y="116" font-size="17" font-weight="700" fill="#1f2328">Bytes loaded</text>
+<text x="474" y="142" font-size="14" fill="#1f2328">The CPU loads whole 64-byte lines.</text>
+<text x="474" y="162" font-size="14" fill="#1f2328">One core streams about:</text>
+<text x="474" y="210" font-size="28" font-weight="700" fill="#59a14f">0.08 ms per MB</text>
+<text x="474" y="238" font-size="13" fill="#57606a">All 8 cores together: ~60 GB/s.</text>
+<rect x="28" y="274" width="400" height="170" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+<rect x="28" y="274" width="8" height="170" rx="4" fill="#b07aa1"/>
+<text x="50" y="304" font-size="13" font-weight="700" fill="#b07aa1">LESSON 006</text>
+<text x="138" y="304" font-size="17" font-weight="700" fill="#1f2328">Branches</text>
+<text x="50" y="330" font-size="14" fill="#1f2328">The CPU guesses every if.</text>
+<text x="50" y="350" font-size="14" fill="#1f2328">A wrong guess costs about:</text>
+<text x="50" y="398" font-size="28" font-weight="700" fill="#b07aa1">5 ns</text>
+<text x="50" y="426" font-size="13" fill="#57606a">Random 50/50: half the guesses wrong.</text>
+<rect x="452" y="274" width="400" height="170" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+<rect x="452" y="274" width="8" height="170" rx="4" fill="#e5534b"/>
+<text x="474" y="304" font-size="13" font-weight="700" fill="#e5534b">LESSON 007</text>
+<text x="562" y="304" font-size="17" font-weight="700" fill="#1f2328">Garbage</text>
+<text x="474" y="330" font-size="14" fill="#1f2328">How often = free room ÷ garbage per frame.</text>
+<text x="474" y="350" font-size="14" fill="#1f2328">How long = live data × about:</text>
+<text x="474" y="398" font-size="28" font-weight="700" fill="#e5534b">0.3 ms per MB</text>
+<text x="474" y="426" font-size="13" fill="#57606a">Pools and arenas: 0 B, no GC.</text>
+<rect x="28" y="462" width="400" height="170" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+<rect x="28" y="462" width="8" height="170" rx="4" fill="#f28e2b"/>
+<text x="50" y="492" font-size="13" font-weight="700" fill="#f28e2b">LESSON 008</text>
+<text x="138" y="492" font-size="17" font-weight="700" fill="#1f2328">Threads</text>
+<text x="50" y="518" font-size="14" fill="#1f2328">Time = serial + parallel ÷ threads.</text>
+<text x="50" y="538" font-size="14" fill="#1f2328">Lock ~60 ns. Shared-line write:</text>
+<text x="50" y="586" font-size="28" font-weight="700" fill="#f28e2b">+6.4 ns each</text>
+<text x="50" y="614" font-size="13" fill="#57606a">Read shared, write private.</text>
+<rect x="452" y="462" width="400" height="170" rx="10" fill="#f6f8fa" stroke="#d0d7de"/>
+<rect x="452" y="462" width="8" height="170" rx="4" fill="#6e7781"/>
+<text x="474" y="492" font-size="13" font-weight="700" fill="#6e7781">LESSON 009</text>
+<text x="562" y="492" font-size="17" font-weight="700" fill="#1f2328">Jobs</text>
+<text x="474" y="518" font-size="14" fill="#1f2328">Frame ≥ the longest chain of jobs.</text>
+<text x="474" y="538" font-size="14" fill="#1f2328">Each job's fixed cost is about:</text>
+<text x="474" y="586" font-size="28" font-weight="700" fill="#6e7781">2 µs</text>
+<text x="474" y="614" font-size="13" fill="#57606a">Aim for ~0.2 ms of work per job.</text>
+<text x="28" y="652" font-size="13" fill="#57606a">Rule of thumb for every hot loop: divide the time by the item count. If ns per item is far above the math, one of these six is the reason.</text>
+</svg>

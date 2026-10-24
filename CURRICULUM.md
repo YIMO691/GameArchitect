@@ -24,7 +24,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 007 | Memory allocation, pools, arenas and garbage collection: the blood splash that froze the game every 3.7 seconds | ✅ |
 | 008 | Threads, cores, contention and false sharing: the 8-thread particle update that was only 2× faster | ✅ |
 | 009 | Job systems and task graphs: the frame that moved to jobs and got slower | ✅ |
-| 010 | Review: Module 1 + mini-project (measure cache effects yourself) | ⬜ |
+| 010 | Review: Module 1 + mini-project: the ember swarm pull request that cost 62 ns per ember | ✅ |
 
 ## Module 2 — Core architecture patterns
 | # | Title | Status |

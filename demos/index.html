@@ -95,24 +95,24 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="004-cache-lab/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lessons 004–006</span><span>measured on your device</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 004–006 · 010</span><span>measured on your device</span></div>
       <h3>Cache Lab</h3>
       <p>A real 500,000-particle pool. Lesson 004: after 3 seconds of play the update gets several times slower; fix it with swap-and-pop. Lesson 005: 64-byte particles waste most of every cache line; split them into arrays and watch the bytes drop from 128 MB to 22 MB. Lesson 006: mix rain and blood at random and watch half the CPU's guesses go wrong; fix it with branchless code, SIMD, and splitting by kind.</p>
-      <ul><li>Cache lines and next-door reads</li><li>Free list vs swap-and-pop</li><li>AoS vs SoA: loaded vs used bytes</li><li>Branch guesses, branchless code and SIMD lanes</li></ul>
+      <ul><li>Cache lines and next-door reads</li><li>Free list vs swap-and-pop</li><li>AoS vs SoA: loaded vs used bytes</li><li>Branch guesses, branchless code and SIMD lanes</li><li>Lesson 010 challenge: predict, then check</li></ul>
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="007-memory-gc/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lesson 007</span><span>simulation</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 007 · 010</span><span>simulation</span></div>
       <h3>Memory &amp; GC Lab</h3>
       <p>The big fight makes 64 KB of garbage per frame. Watch the heap's free room fill and the game stop for 18 ms every 3.7 seconds. Then remove the garbage with a pool, an arena and cached HUD strings, or hide it with incremental GC.</p>
-      <ul><li>How often vs how long: garbage rate vs live data</li><li>GC.Collect and the GC Alloc column</li><li>Pools, frame arenas and incremental GC</li></ul>
+      <ul><li>How often vs how long: garbage rate vs live data</li><li>GC.Collect and the GC Alloc column</li><li>Pools, frame arenas and incremental GC</li><li>Lesson 010 challenge: predict, then check</li></ul>
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="008-jobs-lab/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lessons 008–009</span><span>simulation</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 008–010</span><span>simulation</span></div>
       <h3>Jobs Lab</h3>
       <p>Lesson 008: the storm's 2,000,000 particles on 1 to 8 threads. Eight threads give only 2×: watch each thread's timeline fill with lock waiting and false sharing, then fix both and hit Amdahl's limit. Lesson 009: the whole frame as jobs. Complete() at once keeps 8 cores 19% busy; a task graph with batches takes the frame from 13.41 to 5.64 ms.</p>
-      <ul><li>Threads vs cores and Amdahl's law</li><li>Lock contention vs per-thread lists</li><li>False sharing: 8 counters, one cache line</li><li>Jobs, dependencies and the critical path</li><li>How big a job should be</li></ul>
+      <ul><li>Threads vs cores and Amdahl's law</li><li>Lock contention vs per-thread lists</li><li>False sharing: 8 counters, one cache line</li><li>Jobs, dependencies and the critical path</li><li>How big a job should be</li><li>Lesson 010 challenge: predict, then check</li></ul>
       <span class="go">Open lab →</span>
     </a>
   </section>
@@ -127,8 +127,8 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
           <tr><td>Zombie Horde</td><td class="mono">001 · 037 · 053</td><td>Today: grid vs check everyone. Later: quadtrees, and AI that updates less often far from the camera.</td></tr>
           <tr><td>Frame Pipeline</td><td class="mono">002 · 059 · 060</td><td>Today: CPU vs GPU. Later: frame pacing and shader-compile stutter.</td></tr>
           <tr><td>Profiler Detective</td><td class="mono">003 · 035</td><td>Today: find the spike the average hides, read self time and calls. Later: hypothesis-driven profiling.</td></tr>
-          <tr><td>Cache Lab</td><td class="mono">004 · 005 · 006</td><td>Access order, cache lines, AoS vs SoA, and branches and SIMD. All three lessons are live.</td></tr>
-          <tr><td>Jobs Lab</td><td class="mono">008 · 009</td><td>Threads, locks and false sharing; then job systems, task graphs and job size. Both lessons are live.</td></tr>
+          <tr><td>Cache Lab</td><td class="mono">004 · 005 · 006 · 010</td><td>Access order, cache lines, AoS vs SoA, and branches and SIMD. All three lessons are live, plus the Module 1 challenge.</td></tr>
+          <tr><td>Jobs Lab</td><td class="mono">008 · 009 · 010</td><td>Threads, locks and false sharing; then job systems, task graphs and job size. Both lessons are live, plus the Module 1 challenge.</td></tr>
           <tr><td>Game Loop Lab</td><td class="mono">011</td><td>Fixed vs variable timestep: physics that explodes on a slow frame.</td></tr>
           <tr><td>Draw Call &amp; Overdraw Lab</td><td class="mono">024 · 025 · 027</td><td>Batching, instancing, transparency and culling.</td></tr>
           <tr><td>Netcode Lab</td><td class="mono">048 · 049</td><td>Lag, interpolation, prediction and rollback with a fake network.</td></tr>

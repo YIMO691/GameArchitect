@@ -314,6 +314,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <ol class="steps" id="steps"></ol>
     <div class="group-h"><h3>Lesson 009 · job systems and task graphs</h3><span class="tag">8 cores, 19% busy: the frame that waited for itself</span></div>
     <ol class="steps" id="steps9" style="counter-reset: step 7"></ol>
+    <div class="group-h"><h3>Lesson 010 · Challenge</h3><span class="tag">predict the number first, then tap Set up and check</span></div>
+    <ol class="steps" id="steps10" style="counter-reset: step 14"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -824,6 +826,26 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       Object.assign(st9, s.s);
       setMode(9);
       $("tl9").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  // Lesson 010 review: predict first, then check. Each step reuses the modes above.
+  const STEPS10 = [
+    { t: "Amdahl in your head: 2 threads", d: "Predict first: both fixes on, 2 threads. Serial 0.8 ms + parallel 8.0 ms ÷ 2 = ? Then tap Set up. The lab shows 4.80 ms, a 1.8× speedup (8.80 ÷ 4.80). Efficiency 92%: with only 2 threads the serial part barely hurts.", m: 8, s: { n: 2, dead: "per", ctr: "local" } },
+    { t: "Which fight is bigger?", d: "Predict first: 8 threads, counters Padded, but the lock kept. Lock 16,667 × 60 ns ≈ 1.0 ms, work 1.0 ms, serial 0.8 ms. Then tap Set up: 2.80 ms. Fixing false sharing alone saves 1.6 ms; fixing the lock alone saved only 1.0 ms (Lesson 008, step 4). Fix the bigger one first.", m: 8, s: { n: 8, dead: "lock", ctr: "padded" } },
+    { t: "The ember PR's batch size", d: "The review case used batch size 64: 15,625 jobs, 31 ms of overhead. Here, predict first: 1,024 particle jobs × 2 µs = 2.0 ms of overhead, about 0.26 ms per core. Then tap Set up: CPU 5.96 ms, 0.32 ms above the best 5.64. Drag to 16,384 jobs to see the ember PR's mistake: 9.80 ms.", m: 9, s: { mode: "graph", split: true, pi: 7 } },
+  ];
+  const steps10El = $("steps10");
+  STEPS10.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${STEPS.length + STEPS9.length + k}">Set up</button>`;
+    steps10El.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      if (s.m === 8) { setMode(8); apply(s.s); }
+      else { Object.assign(st9, s.s); setMode(9); }
+      $(s.m === 8 ? "timeline" : "tl9").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
     });
   });
 

@@ -61,9 +61,9 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `001-zombie-horde` | 001, 037 (quadtree vs grid), 053 (AI LOD / time slicing) |
 | `002-frame-pipeline` | 002, 059 (frame pacing), 060 (shader compile stutter) |
 | `003-profiler-detective` | 003, 035 |
-| `004-cache-lab` | 004, 005, 006 |
-| `007-memory-gc` | 007, 040, 041, 042 |
-| `008-jobs-lab` | 008, 009 |
+| `004-cache-lab` | 004, 005, 006, 010 (challenge) |
+| `007-memory-gc` | 007, 010 (challenge), 040, 041, 042 |
+| `008-jobs-lab` | 008, 009, 010 (challenge) |
 | `011-game-loop` | 011 |
 | `012-ecs-lab` | 012, 013 |
 | `024-draw-calls` | 024, 025, 027, 028 |

@@ -240,6 +240,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the chart, the heap bar and the numbers. This replays the lesson's story.</p>
     <p class="group-t">Lesson 007: garbage, pools and arenas</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-t">Lesson 010: Challenge · predict first, then tap Set up and check</p>
+    <ol class="steps" id="steps10" style="counter-reset: step 7"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -467,7 +469,26 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $("chart").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  // Lesson 010 review: predict first, then check. How often = free room ÷ garbage; how long = live MB × 0.3 ms.
+  const STEPS10 = [
+    { t: "The test scene, with the pool", d: "Predict first: 2 splashes with ListPool make 0 KB, the HUD still makes 4 KB. 16,384 KB ÷ 4 KB = how many frames? Then tap Set up: every 59.4 s (4,096 frames). The worst frame is still 31.5 ms.", s: { ...BASE, scene: "test", code: "pool" } },
+    { t: "Double the free room", d: "Predict first: the big fight again (64 KB per frame), but 32 MB of free room. How often, and how long? Then tap Set up: every 7.4 s (512 frames), twice as rare. The stop is still 18.0 ms and the worst frame still 31.5 ms. Free room only moves the hitch.", s: { ...BASE, free: 32 } },
+    { t: "Double the live data", d: "Predict first: back to 16 MB free, but 120 MB of live data. Then tap Set up: still every 3.7 s, but the GC works 120 × 0.3 = 36.0 ms, so the worst frame is 49.5 ms. Garbage decides how often; live data decides how long.", s: { ...BASE, live: 120 } },
+  ];
+  const steps10El = $("steps10");
+  STEPS10.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${STEPS.length + k}">Set up</button>`;
+    steps10El.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
       apply(s.s);
       $("chart").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });

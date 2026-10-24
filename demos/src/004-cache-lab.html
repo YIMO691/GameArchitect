@@ -320,6 +320,8 @@ tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
     <ol class="steps" id="steps5"></ol>
     <div class="group-h"><h3>Lesson 006 · branches and SIMD</h3><span class="tag">Blood 2.0: one if, and the big fight</span></div>
     <ol class="steps" id="steps6"></ol>
+    <div class="group-h"><h3>Lesson 010 · Challenge</h3><span class="tag">predict the number first, then tap Set up and check</span></div>
+    <ol class="steps" id="steps10"></ol>
   </section>
 
   <section class="panel" aria-labelledby="profH" id="profPanel" hidden>
@@ -1093,7 +1095,7 @@ tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
     { t: "The small test scene, a minute later", d: "Same 20,000 particles after 60 seconds. Next-door reads fall to 0% here too, but the time per particle grows far less than it did at 500,000 (usually under 2× step 5, compared with 3× or more in step 3). 640 KB fits in the caches, so most jumps are cheap. Run the order test below to see all four sizes side by side.", s: { ni: 0, mode: "free", run: false, skip: 60 } },
   ];
   const stepsEl = $("steps");
-  const clearActive = () => ["steps", "steps5", "steps6"].forEach((id) => [...$(id).children].forEach((c) => c.classList.remove("active")));
+  const clearActive = () => ["steps", "steps5", "steps6", "steps10"].forEach((id) => [...$(id).children].forEach((c) => c.classList.remove("active")));
   STEPS.forEach((s, k) => {
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
@@ -1149,6 +1151,39 @@ tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
       st.lab = "branch"; st.running = false; st.ni = s.s.ni; st.pat = s.s.pat; st.code = s.s.code;
       reload(); readouts();
       $("branchView").scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  // Lesson 010 review: predict first, then check. Each step reuses one of the three modes above.
+  const STEPS10 = [
+    { t: "A bigger pool, a minute in", d: "Predict first: 1,000,000 particles (32 MB, 4 times the laptop's L3) in the free-list pool after 60 seconds. What share of reads are next-door? Then tap Set up: 0%, the same as at 500,000, and the average jump grows to about 11 MB. On the lesson's laptop that is about 1,000,000 × 100 ns ÷ 5 ≈ 20 ms. Run the order test below to compare sizes on your device.", lab: "order", s: { ni: 3, mode: "free", run: false, skip: 60 } },
+    { t: "Count the bytes of the small scene", d: "Predict first: 20,000 particles, one 64-byte struct each, all 4 modules. How many bytes do they load per frame? 20,000 × 64 B × 4 walks = ? Then tap Set up: 5.1 MB loaded (5.12 MB exactly), only 880 KB used: 17% useful, the same share as at 500,000. Small data hides the waste; it doesn't remove it.", lab: "layout", s: { ni: 0, lay: "aos", passes: "all", view: 0 } },
+    { t: "10% blood: is the if a problem?", d: "Predict first: 90% rain, 10% blood at random, if / else. About how many guesses go wrong? Then tap Set up: about 11% (our small guesser is a bit worse than perfect), and the laptop model gives Fade 0.77 ms: 0.50 of work + 55,000 × 5 ns.", lab: "branch", s: { ni: 2, pat: "p10", code: "if" } },
+    { t: "10% blood: is branchless better?", d: "Predict first: same 90/10 order, branchless. Every particle now does both sides, 1.5 ns instead of 1. Then tap Set up: laptop Fade 0.75 ms. Only 0.02 ms better than the if: a rare surprise is cheap. Branchless pays off on 50/50 data, or when it lets SIMD in.", lab: "branch", s: { ni: 2, pat: "p10", code: "bl" } },
+  ];
+  const steps10El = $("steps10");
+  STEPS10.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${STEPS.length + STEPS5.length + STEPS6.length + k}">Set up</button>`;
+    steps10El.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      clearActive();
+      li.classList.add("active");
+      const c = s.s;
+      if (s.lab === "order") {
+        st.lab = "order"; st.ni = c.ni; st.mode = c.mode; reload();
+        if (c.skip) skip(c.skip);
+        st.running = c.run; readouts();
+        stage.scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "nearest" });
+      } else if (s.lab === "layout") {
+        st.lab = "layout"; st.running = false; st.ni = c.ni; st.lay = c.lay; st.passes = c.passes; st.view = c.view; st.viewAuto = false; st.viewT = 0;
+        reload(); readouts();
+        $("layoutView").scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "nearest" });
+      } else {
+        st.lab = "branch"; st.running = false; st.ni = c.ni; st.pat = c.pat; st.code = c.code;
+        reload(); readouts();
+        $("branchView").scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "nearest" });
+      }
     });
   });
 
