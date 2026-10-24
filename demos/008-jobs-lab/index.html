@@ -127,6 +127,12 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
   .steps li .btn { grid-column: 2; justify-self: start; }
 }
 .btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; min-height: 36px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.stack { display: grid; gap: 20px; }
+.seg-ctl.c2 { grid-template-columns: repeat(2, 1fr); }
+.modebar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.modebar .seg-ctl { flex: 1 1 320px; max-width: 520px; }
+.dag svg, .sizes svg { display: block; width: 100%; height: auto; }
+.dag text, .sizes text { font-family: var(--f-mono); font-size: 12px; }
 .notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
 .note { display: grid; gap: 4px; }
@@ -138,17 +144,26 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/008-threads-cores-contention-false-sharing.md">Read Lesson 008 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/009-job-systems-and-task-graphs.md">Read Lesson 009 ↗</a>
     </div>
-    <div class="eyebrow">Lab 008 · Lesson 008 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 008 · Lessons 008–009 · simulation using the lessons' numbers</div>
     <h1>Jobs Lab</h1>
-    <p class="lede">The storm has 2,000,000 rain particles. Split their update across up to 8 threads and watch each thread's row: blue is real work, red is fighting over a cache line, orange is queuing for a lock.</p>
+    <p class="lede">Lesson 008: split the storm's 2,000,000 rain particles across up to 8 threads and watch each thread's row: blue is real work, red is fighting over a cache line, orange is queuing for a lock. Lesson 009: turn the whole frame into jobs and watch 8 cores fill up, or sit idle, depending on who waits for whom.</p>
   </header>
 
+  <div class="modebar">
+    <div class="seg-ctl c2" role="group" aria-label="Lab mode">
+      <button type="button" id="mode8" aria-pressed="true">Lesson 008 · threads</button>
+      <button type="button" id="mode9" aria-pressed="false">Lesson 009 · task graph</button>
+    </div>
+  </div>
+
   <div class="goal">
-    <p><strong>Storm finale, night city.</strong> Goal: the particle update under its 2.5 ms budget, so the GPU (14.5 ms) stays the slower side.</p>
+    <p id="goalText"><strong>Storm finale, night city.</strong> Goal: the particle update under its 2.5 ms budget, so the GPU (14.5 ms) stays the slower side.</p>
     <span id="goalPill" class="pill over">Not yet</span>
   </div>
 
+  <div class="stack" id="v8">
   <section class="lab" aria-label="Thread timeline and controls">
     <div class="panel">
       <h2>Thread timeline, one frame of particles</h2>
@@ -219,22 +234,102 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <span><i style="background:var(--good)"></i>budget 2.5 ms</span>
     </div>
   </section>
+  </div>
+
+  <div class="stack" id="v9" hidden>
+  <section class="lab" aria-label="Frame timeline and controls">
+    <div class="panel">
+      <h2>Frame timeline: 8 cores, one frame</h2>
+      <div class="timeline" id="tl9"></div>
+      <div class="legend">
+        <span><i style="background:var(--c6)"></i>Gameplay</span>
+        <span><i style="background:var(--c2)"></i>AI</span>
+        <span><i style="background:var(--c3)"></i>Physics</span>
+        <span><i style="background:var(--c5)"></i>Animation</span>
+        <span><i style="background:var(--c7)"></i>Audio</span>
+        <span><i style="background:var(--c1)"></i>Particles</span>
+        <span><i style="background:var(--c4)"></i>Render prep</span>
+        <span><i style="background:repeating-linear-gradient(45deg,var(--muted) 0 2px,var(--field) 2px 6px)"></i>main thread waiting</span>
+      </div>
+      <p class="coach" id="coach9"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">CPU frame</span><span class="v" id="nCpu">0</span><span class="s" id="nCpuS">ms · budget 6.94</span></div>
+        <div class="stat"><span class="k">Frame rate</span><span class="v" id="nFps">0</span><span class="s" id="nFpsS">fps</span></div>
+        <div class="stat"><span class="k">Cores busy</span><span class="v" id="nUse">0%</span><span class="s" id="nUseS">of 8 cores × frame</span></div>
+        <div class="stat"><span class="k">Longest chain</span><span class="v" id="nChain">0</span><span class="s" id="nChainS">ms · best with ∞ cores</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <span class="lbl"><span>Scheduling</span><small>who waits for whom</small></span>
+          <div class="seg-ctl" role="group" aria-label="Scheduling">
+            <button type="button" id="sMain" aria-pressed="false">Main only</button>
+            <button type="button" id="sSync" aria-pressed="true">Complete now</button>
+            <button type="button" id="sGraph" aria-pressed="false">Task graph</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Big systems</span><small>AI, Physics, Animation, Render prep</small></span>
+          <div class="seg-ctl c2" role="group" aria-label="Big systems">
+            <button type="button" id="bOne" aria-pressed="true">One job each</button>
+            <button type="button" id="bSplit" aria-pressed="false">Batches</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="pjobs"><span>Particle jobs</span><span class="mono" id="pjLabel">8</span></label>
+          <input type="range" id="pjobs" min="0" max="9" step="1" value="3">
+          <small id="pjNote"></small>
+        </div>
+        <p class="fine" id="ctlNote9"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>Who waits for whom</h2>
+      <p class="fine">Each arrow means "needs the results of". Red: the longest chain this frame. Numbers: the system's time on one core.</p>
+      <div class="dag" id="dag9"></div>
+    </div>
+    <div class="panel">
+      <h2>What the profiler shows</h2>
+      <p class="fine">Main thread row, Unity-style. WaitForJobGroupID is the main thread sleeping until a job it needs is done.</p>
+      <pre class="capture" id="cap9"></pre>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="sizeH">
+    <h2 id="sizeH">Job size test: the particle update split 1 to 16,384 ways</h2>
+    <p class="fine">CPU frame for each particle job count, with your current scheduling. Each job costs about 2 µs extra. Green dashed: the 6.94 ms budget.</p>
+    <div class="sizes" id="size9"></div>
+  </section>
+  </div>
 
   <section class="panel" aria-labelledby="tryH">
     <h2 id="tryH">Try this</h2>
     <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the thread timeline and the capture. This replays the lesson's story.</p>
     <div class="group-h"><h3>Lesson 008 · threads and false sharing</h3><span class="tag">the 8-thread particle update that was only 2× faster</span></div>
     <ol class="steps" id="steps"></ol>
+    <div class="group-h"><h3>Lesson 009 · job systems and task graphs</h3><span class="tag">8 cores, 19% busy: the frame that waited for itself</span></div>
+    <ol class="steps" id="steps9" style="counter-reset: step 7"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
     <h2 id="whatH">What this shows</h2>
-    <div class="notes">
+    <div class="notes" id="notes8">
       <div class="note"><h3>The serial part sets the limit</h3><p>0.8 ms of FillHoles runs on one thread. With 8 threads the best is 0.8 + 8.0 ÷ 8 = 1.8 ms, a 4.9× speedup, not 8×.</p></div>
       <div class="note"><h3>A lock makes threads take turns</h3><p>16,667 trips through one lock can't overlap. That 1.0 ms stays the same with 2 or 8 threads. Per-thread lists remove it.</p></div>
       <div class="note"><h3>False sharing looks like work</h3><p>8 counters in one 64-byte line make every ++ pull the line from another core. No wait marker shows it; only the cost per particle does (10.4 ns vs 4.0 ns).</p></div>
     </div>
+    <div class="notes" id="notes9" hidden>
+      <div class="note"><h3>A job is not parallel by itself</h3><p>Schedule() then Complete() at once makes the main thread wait for every job in turn. The work moved to Worker 1, but the frame got 0.3 ms slower: 13.41 ms.</p></div>
+      <div class="note"><h3>The longest chain sets the limit</h3><p>With the task graph, each job waits only for what it needs. The frame then can't beat its critical path: Gameplay → AI → Animation → Render prep = 8.8 ms. Batches shorten that chain: 5.64 ms.</p></div>
+      <div class="note"><h3>Job size has a sweet spot</h3><p>1 particle job leaves 7 cores idle (11.66 ms). 16,384 jobs keep the cores 68% busy, mostly with overhead (9.80 ms). Anything from 4 to 1,024 jobs is within 0.32 ms of the best.</p></div>
+    </div>
     <p class="fine">This lab is a simulation using Lesson 008's numbers, not a measurement: 4 ns of work per particle, 0.8 ms serial, 16,667 deaths per frame at about 60 ns per contended lock and 40 ns per atomic, and about 6.4 ns per counter write when 8 cores share the line (scaled by (threads − 1) ÷ 7 for fewer threads). With 1 thread it treats the code as the original loop: no lock, no shared counter. Real chips vary, and a real timeline is less tidy: the red and orange time is mixed into the blue, not after it. At 8 threads the work (1.0 ms) is just above the memory-bandwidth floor (about 0.93 ms), so more cores would not help much.</p>
+    <p class="fine">Lesson 009 mode is also a simulation, using Lesson 009's numbers: Gameplay 1.4 ms (main thread only), AI 2.4 + 0.4 ms, Physics 1.0 + 1.0 ms, Animation 2.0 + 0.4 ms, Audio 0.5 ms, Particles 8.0 + 0.8 ms, Render prep 1.2 + 1.0 ms (the submit is main thread only); the first number can be split into batches (16, 8, 16 and 8), the second can't. Each job costs about 2 µs extra and each early Complete() about 0.06 ms. A simple scheduler hands the oldest ready job to the first free core (7 workers; the main thread runs its own work first and helps when there is more work than workers). Real job systems also steal work, use priorities and run things across frames, so a real timeline is less tidy.</p>
   </section>
 </div>
 
@@ -463,15 +558,278 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
+      setMode(8);
       apply(s.s);
       $("timeline").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
     });
   });
 
-  render();
+
+  // =====================================================================
+  // Lesson 009: job systems and task graphs (simulation)
+  // =====================================================================
+  const OH = 0.002, SYNC = 0.06, LANES = 8;
+  const SYS9 = [
+    { k: "G", name: "Gameplay", par: 0, ser: 1.4, mainSer: true, deps: [] },
+    { k: "AI", name: "AI", par: 2.4, ser: 0.4, deps: ["G"], batches: 16 },
+    { k: "PH", name: "Physics", par: 1.0, ser: 1.0, deps: ["AI"], batches: 8 },
+    { k: "AN", name: "Animation", par: 2.0, ser: 0.4, deps: ["AI"], batches: 16 },
+    { k: "AU", name: "Audio", par: 0, ser: 0.5, deps: ["G"] },
+    { k: "PA", name: "Particles", par: 8.0, ser: 0.8, deps: ["G"] },
+    { k: "R", name: "Render prep", par: 1.2, ser: 1.0, mainSer: true, deps: ["PH", "AN", "PA"], batches: 8 },
+  ];
+  function build9(cfg) {
+    const jobs = [], endOf = {}; let prev = null;
+    const add = (o) => { o.id = jobs.length; jobs.push(o); return o.id; };
+    for (const s of SYS9) {
+      const deps = cfg.mode === "graph" ? s.deps.map((d) => endOf[d]) : prev == null ? [] : [prev];
+      if (cfg.mode === "main" && s.k !== "PA") { prev = endOf[s.k] = add({ sys: s.k, dur: s.par + s.ser, deps, delay: 0, main: true }); continue; }
+      if (s.k === "G") { prev = endOf[s.k] = add({ sys: s.k, dur: s.ser, deps, delay: 0, main: true }); continue; }
+      const delay = cfg.mode === "sync" && s.k !== "PA" ? SYNC : 0;
+      const n = s.k === "PA" ? cfg.pBatch : s.par > 0 ? (cfg.split ? s.batches : 1) : 0;
+      if (n <= 1 && !s.mainSer && s.k !== "PA") { prev = endOf[s.k] = add({ sys: s.k, dur: s.par + s.ser + OH, deps, delay, main: false }); continue; }
+      const ids = [];
+      for (let b = 0; b < n; b++) ids.push(add({ sys: s.k, dur: s.par / n + OH, deps, delay, main: false, par: true }));
+      prev = endOf[s.k] = add({ sys: s.k, dur: s.ser + (s.mainSer ? 0 : OH), deps: ids, delay: 0, main: !!s.mainSer || cfg.mode === "main" });
+    }
+    return jobs;
+  }
+  function heap(less) {
+    const a = [];
+    return {
+      get size() { return a.length; }, top: () => a[0],
+      push(x) { a.push(x); let i = a.length - 1; while (i > 0) { const p = (i - 1) >> 1; if (!less(a[i], a[p])) break; [a[i], a[p]] = [a[p], a[i]]; i = p; } },
+      pop() { const r = a[0], x = a.pop(); if (a.length) { a[0] = x; let i = 0; for (;;) { const l = 2 * i + 1, rr = l + 1; let m = i; if (l < a.length && less(a[l], a[m])) m = l; if (rr < a.length && less(a[rr], a[m])) m = rr; if (m === i) break; [a[i], a[m]] = [a[m], a[i]]; i = m; } } return r; },
+    };
+  }
+  function simulate9(jobs) {
+    const n = jobs.length, fin = new Float64Array(n), start = new Float64Array(n), lane = new Int8Array(n), rt = new Float64Array(n);
+    const need = new Int32Array(n), kids = Array.from({ length: n }, () => []);
+    jobs.forEach((j) => { need[j.id] = j.deps.length; j.deps.forEach((d) => kids[d].push(j.id)); });
+    const byRt = (x, y) => rt[x] < rt[y] - 1e-9 || (Math.abs(rt[x] - rt[y]) <= 1e-9 && x < y);
+    const waiting = heap(byRt), readyMain = heap(byRt), readyAny = heap(byRt);
+    jobs.forEach((j) => { if (!need[j.id]) { rt[j.id] = j.delay; waiting.push(j.id); } });
+    const run = new Int32Array(LANES).fill(-1), busy = new Float64Array(LANES);
+    let t = 0, left = n;
+    while (left) {
+      for (let L = 0; L < LANES; L++) if (run[L] >= 0 && busy[L] <= t + 1e-9) {
+        const id = run[L]; run[L] = -1; left--;
+        for (const c of kids[id]) if (--need[c] === 0) { let m = 0; for (const d of jobs[c].deps) m = Math.max(m, fin[d]); rt[c] = m + jobs[c].delay; waiting.push(c); }
+      }
+      while (waiting.size && rt[waiting.top()] <= t + 1e-9) { const id = waiting.pop(); (jobs[id].main ? readyMain : readyAny).push(id); }
+      // main thread: its own jobs first; workers 1..7 take any job; the main thread helps only if work is left over
+      const give = (L, q) => { const id = q.pop(); start[id] = t; fin[id] = t + jobs[id].dur; lane[id] = L; run[L] = id; busy[L] = fin[id]; };
+      if (run[0] < 0 && readyMain.size) give(0, readyMain);
+      for (let L = 1; L < LANES; L++) if (run[L] < 0 && readyAny.size) give(L, readyAny);
+      if (run[0] < 0 && readyAny.size) give(0, readyAny);
+      if (!left) break;
+      let nt = Infinity;
+      for (let L = 0; L < LANES; L++) if (run[L] >= 0) nt = Math.min(nt, busy[L]);
+      if (waiting.size) nt = Math.min(nt, rt[waiting.top()]);
+      if (nt === Infinity) break;
+      t = Math.max(t, nt);
+    }
+    let end = 0, work = 0;
+    for (let i = 0; i < n; i++) { end = Math.max(end, fin[i]); work += jobs[i].dur; }
+    // longest chain with unlimited cores
+    const ef = new Float64Array(n), from = new Int32Array(n).fill(-1);
+    for (const j of jobs) { let m = 0, p = -1; for (const d of j.deps) if (ef[d] > m) { m = ef[d]; p = d; } ef[j.id] = m + j.delay + j.dur; from[j.id] = p; }
+    let last = 0; for (let i = 0; i < n; i++) if (ef[i] > ef[last]) last = i;
+    const pathSys = []; for (let i = last; i >= 0; i = from[i]) { const s = jobs[i].sys; if (pathSys[0] !== s) pathSys.unshift(s); }
+    return { end, work, util: work / (LANES * end), start, fin, lane, chain: ef[last], pathSys };
+  }
+
+  const PJ = [1, 2, 4, 8, 16, 64, 256, 1024, 4096, 16384];
+  const B9 = 6.94, GPU9 = 6.5, WORK9 = 20.1;
+  const COLV = { G: "--c6", AI: "--c2", PH: "--c3", AN: "--c5", AU: "--c7", PA: "--c1", R: "--c4" };
+  const NAME9 = { G: "Gameplay", AI: "AI", PH: "Physics", AN: "Animation", AU: "Audio", PA: "Particles", R: "Render prep" };
+  const SHORT9 = { G: "Game", AI: "AI", PH: "Phys", AN: "Anim", AU: "Aud", PA: "Part", R: "Rend" };
+  const st9 = { mode: "sync", split: false, pi: 3 };
+  const cache9 = new Map();
+  function run9(cfg) {
+    const key = cfg.mode + (cfg.split ? "s" : "o") + cfg.pBatch;
+    if (!cache9.has(key)) { const jobs = build9(cfg); cache9.set(key, { jobs, r: simulate9(jobs) }); }
+    return cache9.get(key);
+  }
+  const cfg9 = (pi = st9.pi) => ({ mode: st9.mode, split: st9.split, pBatch: PJ[pi] });
+  const fmtN = (v) => v.toLocaleString("en-US");
+
+  function timeline9(jobs, r) {
+    const box = $("tl9").clientWidth || 640;
+    const W = Math.max(320, Math.min(680, Math.round(box))), narrow = W < 480;
+    const L = narrow ? 30 : 74, R = 12, top = 26, lh = narrow ? 18 : 21, gap = 5;
+    const span = Math.max(14, Math.ceil(r.end + 0.4)), X = (t) => L + (t / span) * (W - L - R);
+    const H = top + 8 * (lh + gap) + 44, yEnd = top + 8 * (lh + gap) - gap;
+    let g = `<defs><pattern id="hatch9" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" style="fill:var(--field)"/><line x1="0" y1="0" x2="0" y2="7" style="stroke:var(--muted);stroke-width:1.6;opacity:.55"/></pattern></defs>`;
+    // coalesce neighbouring jobs of one system on one core
+    const lanes = Array.from({ length: 8 }, () => []);
+    const order = jobs.map((j) => j.id).sort((a, b) => r.start[a] - r.start[b]);
+    for (const id of order) {
+      const lane = lanes[r.lane[id]], last = lane[lane.length - 1], sys = jobs[id].sys;
+      if (last && last.sys === sys && Math.abs(last.f - r.start[id]) < 1e-6) { last.f = r.fin[id]; last.n++; }
+      else lane.push({ sys, s: r.start[id], f: r.fin[id], n: 1 });
+    }
+    for (let k = 0; k < 8; k++) {
+      const y = top + k * (lh + gap);
+      g += `<text x="0" y="${y + lh - 5}" style="fill:${k === 0 ? "var(--ink)" : "var(--muted)"};font-weight:${k === 0 ? 600 : 400}">${k === 0 ? (narrow ? "M" : "Main") : narrow ? String(k) : "Worker " + k}</text>`;
+      g += `<rect x="${X(0)}" y="${y}" width="${X(r.end) - X(0)}" height="${lh}" rx="2" style="fill:${k === 0 ? "url(#hatch9)" : "var(--field)"};stroke:var(--line)"><title>${k === 0 ? "Main thread waiting" : "Worker " + k + " idle"}</title></rect>`;
+    }
+    g += `<line x1="${X(B9)}" x2="${X(B9)}" y1="${top - 8}" y2="${yEnd + 4}" style="stroke:var(--good);stroke-width:1.5;stroke-dasharray:5 4"/>`;
+    g += `<text x="${X(B9) + 4}" y="${top - 12}" style="fill:var(--good);font-size:12px">budget 6.94</text>`;
+    for (let k = 0; k < 8; k++) {
+      const y = top + k * (lh + gap);
+      for (const sgm of lanes[k]) {
+        const w = Math.max(1, X(sgm.f) - X(sgm.s) - 1), nm = narrow ? SHORT9[sgm.sys] : NAME9[sgm.sys];
+        g += `<rect x="${X(sgm.s).toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${lh}" rx="2" style="fill:var(${COLV[sgm.sys]})"><title>${k === 0 ? "Main" : "Worker " + k}: ${NAME9[sgm.sys]}, ${fmtN(sgm.n)} job${sgm.n > 1 ? "s" : ""}, ${f2(sgm.f - sgm.s)} ms</title></rect>`;
+        if (w > nm.length * 7.4 + 6) g += `<text x="${X(sgm.s) + w / 2}" y="${y + lh - 5}" text-anchor="middle" style="fill:#fff;font-size:12px;font-weight:600">${nm}</text>`;
+      }
+    }
+    g += `<line x1="${X(r.end)}" x2="${X(r.end)}" y1="${top - 4}" y2="${yEnd + 4}" style="stroke:var(--ink);stroke-width:1.5"/>`;
+    const anchor = X(r.end) > W - 90 ? "end" : "start";
+    g += `<text x="${X(r.end) + (anchor === "end" ? -4 : 4)}" y="${yEnd + 18}" text-anchor="${anchor}" style="fill:var(--ink);font-weight:600">${f2(r.end)} ms</text>`;
+    const step = span > 16 ? 4 : 2;
+    for (let t = 0; t <= span; t += step) g += `<text x="${t + step > span ? W - 2 : X(t)}" y="${H - 4}" text-anchor="${t === 0 ? "start" : t + step > span ? "end" : "middle"}" style="fill:var(--muted);font-size:12px">${t}${t + step > span ? " ms" : ""}</text>`;
+    $("tl9").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Frame timeline: the main thread and 7 workers, coloured by system">${g}</svg>`;
+  }
+
+  function dag9(r) {
+    const W = Math.max(300, Math.min(560, Math.round($("dag9").clientWidth || 420))), H = 250;
+    const rows = [["G"], ["AI", "PA", "AU"], ["PH", "AN"], ["R"]];
+    const pos = {}, nw = Math.min(120, (W - 16) / 3 - 6), nh = 38, fs = nw < 100 ? 11 : 12;
+    rows.forEach((row, i) => row.forEach((k, j) => { const cx = (W / (row.length + 0)) * (j + 0.5); pos[k] = { x: cx, y: 14 + i * 62 }; }));
+    pos.PA.x = W / 2; pos.AI.x = W / 6; pos.AU.x = (5 * W) / 6; pos.PH.x = W / 6; pos.AN.x = (5 * W) / 6; pos.R.x = W / 2;
+    const graph = st9.mode === "graph";
+    const onPath = new Set(graph ? r.pathSys : []);
+    const pathEdge = (a, b) => graph && r.pathSys.indexOf(a) >= 0 && r.pathSys.indexOf(b) === r.pathSys.indexOf(a) + 1;
+    let g = `<defs><marker id="arr9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--muted)"/></marker><marker id="arr9h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill:var(--bad)"/></marker></defs>`;
+    for (const s of SYS9) for (const d of s.deps) {
+      const a = pos[d], b = pos[s.k], hot = pathEdge(d, s.k);
+      const y1 = a.y + nh, y2 = b.y - 2;
+      g += `<path d="M${a.x} ${y1} C ${a.x} ${(y1 + y2) / 2}, ${b.x} ${(y1 + y2) / 2}, ${b.x} ${y2}" style="fill:none;stroke:${hot ? "var(--bad)" : "var(--muted)"};stroke-width:${hot ? 2.5 : 1.3};opacity:${graph ? 1 : 0.45}" marker-end="url(#${hot ? "arr9h" : "arr9"})"/>`;
+    }
+    for (const s of SYS9) {
+      const p = pos[s.k], hot = onPath.has(s.k);
+      g += `<rect x="${p.x - nw / 2}" y="${p.y}" width="${nw}" height="${nh}" rx="6" style="fill:var(--panel);stroke:${hot ? "var(--bad)" : `var(${COLV[s.k]})`};stroke-width:${hot ? 3 : 2}"/>`;
+      g += `<rect x="${p.x - nw / 2 + 6}" y="${p.y + 8}" width="6" height="${nh - 16}" rx="2" style="fill:var(${COLV[s.k]})"/>`;
+      g += `<text x="${p.x + 4}" y="${p.y + 16}" text-anchor="middle" style="fill:var(--ink);font-weight:600;font-size:${fs}px">${NAME9[s.k]}</text>`;
+      g += `<text x="${p.x + 4}" y="${p.y + 31}" text-anchor="middle" style="fill:var(--muted);font-size:${fs}px">${f1(s.par + s.ser)} ms</text>`;
+    }
+    $("dag9").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Dependency graph of the frame's systems">${g}</svg>` +
+      `<p class="fine">${graph ? `Longest chain: ${r.pathSys.map((k) => NAME9[k]).join(" → ")} = ${f2(r.chain)} ms. Only work on this chain can shorten the frame.` : `Not used yet: with ${st9.mode === "main" ? "everything on the main thread" : "Complete() right after Schedule()"}, every system waits for the one before it, in list order. The chain is the whole frame.`}</p>`;
+  }
+
+  function sizes9() {
+    const W = Math.max(320, Math.round($("size9").clientWidth || 640)), H = 220, L = 40, R = 10, T = 22, B = 40;
+    const vals = PJ.map((_, i) => run9(cfg9(i)).r.end);
+    const top = Math.max(12, Math.ceil(Math.max(...vals) + 1));
+    const bw = (W - L - R) / PJ.length, Y = (ms) => T + (1 - ms / top) * (H - T - B);
+    let g = "";
+    for (let ms = 0; ms <= top; ms += top > 14 ? 4 : 2) g += `<line x1="${L}" x2="${W - R}" y1="${Y(ms)}" y2="${Y(ms)}" style="stroke:var(--line)"/><text x="${L - 6}" y="${Y(ms) + 4}" text-anchor="end" style="fill:var(--muted)">${ms}</text>`;
+    vals.forEach((v, i) => {
+      const x = L + i * bw + bw * 0.15, w = bw * 0.7, cur = i === st9.pi, ok = v <= B9 + 1e-9;
+      g += `<rect x="${x}" y="${Y(v)}" width="${w}" height="${Y(0) - Y(v)}" rx="3" style="fill:${ok ? "var(--good)" : "var(--bad)"};opacity:${cur ? 1 : 0.55}${cur ? ";stroke:var(--ink);stroke-width:2" : ""}"><title>${fmtN(PJ[i])} particle jobs: ${f2(v)} ms</title></rect>`;
+      const lab = PJ[i] >= 1024 ? PJ[i] / 1024 + "k" : String(PJ[i]);
+      g += `<text x="${x + w / 2}" y="${H - 22}" text-anchor="middle" style="fill:${cur ? "var(--ink)" : "var(--muted)"};font-weight:${cur ? 600 : 400}">${lab}</text>`;
+      if (cur || W > 560) g += `<text x="${x + w / 2}" y="${Y(v) - 5}" text-anchor="middle" style="fill:var(--ink);font-size:11px;font-weight:${cur ? 600 : 400}">${f1(v)}</text>`;
+    });
+    g += `<line x1="${L}" x2="${W - R}" y1="${Y(B9)}" y2="${Y(B9)}" style="stroke:var(--good);stroke-width:1.5;stroke-dasharray:5 4"/>`;
+    g += `<text x="${W - R}" y="${H - 4}" text-anchor="end" style="fill:var(--muted);font-size:11px">particle jobs</text>`;
+    $("size9").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="CPU frame time for 1 to 16,384 particle jobs">${g}</svg>`;
+  }
+
+  function render9() {
+    const { jobs, r } = run9(cfg9());
+    timeline9(jobs, r); dag9(r); sizes9();
+    const ok = r.end <= B9 + 1e-9, frame = Math.max(r.end, GPU9);
+    $("nCpu").textContent = f2(r.end);
+    $("nCpu").className = "v " + (ok ? "good" : "bad");
+    $("nCpuS").textContent = ok ? `ms · ${f2(B9 - r.end)} under the 6.94 budget` : `ms · ${f2(r.end - B9)} over the 6.94 budget`;
+    $("nFps").textContent = f1(1000 / frame);
+    $("nFps").className = "v " + (ok ? "good" : "bad");
+    $("nFpsS").textContent = `CPU ${f2(r.end)} · GPU 6.5 → ${r.end > GPU9 ? "CPU-bound" : "GPU-bound"}`;
+    $("nUse").textContent = Math.round(r.util * 100) + "%";
+    $("nUseS").textContent = `${f1(r.work)} ms of work (overhead ${f2(r.work - WORK9)}) on 8 cores × ${f2(r.end)} ms`;
+    $("nChain").textContent = f2(r.chain);
+    $("nChainS").textContent = st9.mode === "graph" ? `ms · ${r.pathSys.map((k) => SHORT9[k]).join("→")} · best with ∞ cores` : "ms · everything in one line";
+    for (const [id, v] of [["sMain", "main"], ["sSync", "sync"], ["sGraph", "graph"]]) $(id).setAttribute("aria-pressed", st9.mode === v);
+    $("bOne").setAttribute("aria-pressed", !st9.split); $("bSplit").setAttribute("aria-pressed", st9.split);
+    $("pjobs").value = st9.pi;
+    const pb = PJ[st9.pi];
+    $("pjLabel").textContent = fmtN(pb);
+    const per = 2000000 / pb, perMs = 8.0 / pb;
+    $("pjNote").textContent = `${fmtN(Math.round(per))} particles each · ${perMs >= 0.1 ? f2(perMs) + " ms" : (perMs * 1000).toFixed(perMs * 1000 >= 10 ? 0 : 1) + " µs"} of work + 2 µs overhead per job`;
+    $("ctlNote9").textContent = st9.mode === "main" ? "Main only: the code before the job system. Every system runs on the main thread; only the particles use the workers. \"Big systems\" changes nothing here." :
+      st9.mode === "sync" ? `Complete now: each system is scheduled, then Complete() is called at once, so the next system starts only after it (about 0.06 ms per early Complete()). ${jobs.length} jobs this frame.` :
+      `Task graph: every job is scheduled at the start with its dependencies, and the main thread calls Complete() only where it needs a result. ${fmtN(jobs.length)} jobs this frame.`;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over");
+    $("goalPill").textContent = ok ? "Under budget" : "Over budget";
+    let coach;
+    if (st9.mode === "main") coach = `Every system on the main thread: ${f2(r.end)} ms, ${f1(1000 / frame)} fps. The 7 workers only wake up for the particles. Cores busy: ${Math.round(r.util * 100)}%.`;
+    else if (st9.mode === "sync") coach = `The main thread row is mostly hatched: it waits in Complete() while one core runs each job. ${st9.split ? "Batches fill the cores for a moment, then everyone waits for the next system." : "One job at a time: the work moved, but nothing runs side by side."} ${f2(r.end)} ms.`;
+    else coach = `Each job waits only for the jobs it needs, so Particles, Audio and Physics run next to the longest chain. ${f2(r.end)} ms; the longest chain alone is ${f2(r.chain)} ms.${pb === 1 ? " One huge particle job keeps one worker busy for 8 ms." : pb >= 4096 ? " Thousands of tiny jobs: the cores are busy, but mostly with overhead." : ""}`;
+    $("coach9").textContent = coach;
+    // capture: main thread row
+    let mainBusy = 0, helped = 0, own = {};
+    for (const j of jobs) if (r.lane[j.id] === 0) { if (j.main) own[j.sys] = (own[j.sys] || 0) + j.dur; else helped += j.dur; }
+    for (const v of Object.values(own)) mainBusy += v;
+    const wait = r.end - mainBusy - helped;
+    const row = (label, ms, extra = "") => label + " ".repeat(Math.max(1, 26 - label.replace(/<[^>]+>/g, "").length)) + pad(f2(ms)) + extra + "\n";
+    let cap = `CPU frame ${f2(r.end)} ms  <span class="dim">${st9.mode === "main" ? "Main only" : st9.mode === "sync" ? "Complete now" : "Task graph"} · ${fmtN(jobs.length)} jobs</span>\n`;
+    cap += "Main thread" + " ".repeat(15) + pad("ms") + "\n";
+    const ownKeys = Object.keys(own);
+    ownKeys.forEach((k) => { cap += row(`├─ ${k === "G" ? "Gameplay.Update" : k === "R" ? (st9.mode === "main" ? "RenderPrep" : "Render.Submit") : k === "PA" ? "Particles.FillHoles" : NAME9[k] + ".Update"}`, own[k]); });
+    if (helped > 0.0005) cap += row(`├─ <span class="ok">jobs it helped with</span>`, helped);
+    cap += row(`└─ <span class="${wait > 0.5 ? "warn" : "dim"}">WaitForJobGroupID</span>`, Math.max(0, wait), wait > 0.5 ? `  <span class="warn">◀ idle</span>` : "");
+    cap += `<span class="dim">Workers 1–7 busy ${Math.round(((r.work - mainBusy - helped) / (7 * r.end)) * 100)}% of the frame</span>\n`;
+    $("cap9").innerHTML = cap;
+  }
+
+  // ---------- mode switch ----------
+  let labMode = 8;
+  function setMode(m) {
+    labMode = m;
+    $("v8").hidden = m !== 8; $("v9").hidden = m !== 9;
+    $("notes8").hidden = m !== 8; $("notes9").hidden = m !== 9;
+    $("mode8").setAttribute("aria-pressed", m === 8); $("mode9").setAttribute("aria-pressed", m === 9);
+    $("goalText").innerHTML = m === 8 ? "<strong>Storm finale, night city.</strong> Goal: the particle update under its 2.5 ms budget, so the GPU (14.5 ms) stays the slower side."
+      : "<strong>Storm finale, 144 Hz mode.</strong> Goal: the whole CPU frame under 6.94 ms (144 fps). The GPU takes 6.5 ms on the Performance preset.";
+    if (m === 8) render(); else render9();
+  }
+  $("mode8").addEventListener("click", () => setMode(8));
+  $("mode9").addEventListener("click", () => setMode(9));
+  for (const [id, v] of [["sMain", "main"], ["sSync", "sync"], ["sGraph", "graph"]]) $(id).addEventListener("click", () => { st9.mode = v; render9(); });
+  $("bOne").addEventListener("click", () => { st9.split = false; render9(); });
+  $("bSplit").addEventListener("click", () => { st9.split = true; render9(); });
+  $("pjobs").addEventListener("input", (e) => { st9.pi = +e.target.value; render9(); });
+
+  const STEPS9 = [
+    { t: "Before jobs: the end of Lesson 008", d: "Main only. Every system runs on the main thread; only the particles use the workers. CPU 13.10 ms, 76.3 fps. Cores busy: 19%. The budget for 144 fps is 6.94 ms.", s: { mode: "main", split: false, pi: 3 } },
+    { t: "Moved to jobs, Complete() at once", d: "Complete now, one job each. The work moved to Worker 1, but the main row is hatched: it waits. CPU 13.41 ms: 0.31 ms slower, 74.5 fps. Cores busy still 19%.", s: { mode: "sync", split: false, pi: 3 } },
+    { t: "Task graph: wait only for what you need", d: "Task graph, one job each. Particles, Audio and Physics now run next to AI and Animation. CPU 8.81 ms, 113.6 fps, cores busy 29%. Longest chain 8.81 ms: Gameplay → AI → Animation → Render prep.", s: { mode: "graph", split: false, pi: 3 } },
+    { t: "Batches, but still Complete() at once", d: "Complete now with Batches. Each big system fills the cores for a moment, then everyone waits for the next one. CPU 7.65 ms, 130.7 fps: better, still 0.71 ms over budget.", s: { mode: "sync", split: true, pi: 3 } },
+    { t: "Task graph and batches", d: "Both together. CPU 5.64 ms, 1.30 under budget. The GPU (6.5 ms) is the slower side: 153.8 fps. Cores busy 45%. Longest chain 4.36 ms, now through Particles.", s: { mode: "graph", split: true, pi: 3 } },
+    { t: "Too few particle jobs", d: "Particle jobs: 1. One worker runs all 2,000,000 particles for 8 ms while the others go idle. CPU 11.66 ms. Look at the job size test: 2 jobs give 7.66 ms, 4 or more fit the budget.", s: { mode: "graph", split: true, pi: 0 } },
+    { t: "Too many particle jobs", d: "Particle jobs: 16,384, about 120 particles each. Cores busy 68%, the highest yet, but CPU 9.80 ms: each job does 0.5 µs of work and pays 2 µs of overhead.", s: { mode: "graph", split: true, pi: 9 } },
+  ];
+  const steps9El = $("steps9");
+  STEPS9.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${STEPS.length + k}">Set up</button>`;
+    steps9El.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      Object.assign(st9, s.s);
+      setMode(9);
+      $("tl9").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  setMode(8);
   let lastW = 0;
-  new ResizeObserver(() => { const w = $("timeline").clientWidth + $("linebox").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("timeline"));
+  const ro = () => { const w = $("timeline").clientWidth + $("linebox").clientWidth + $("tl9").clientWidth + $("dag9").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; if (labMode === 8) render(); else render9(); } };
+  new ResizeObserver(ro).observe(document.querySelector(".wrap"));
 })();
 </script>

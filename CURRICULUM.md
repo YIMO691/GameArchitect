@@ -23,7 +23,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 006 | Branch prediction, SIMD and why "clever" code is often slow: the one `if` that cost 1.4 ms | ✅ |
 | 007 | Memory allocation, pools, arenas and garbage collection: the blood splash that froze the game every 3.7 seconds | ✅ |
 | 008 | Threads, cores, contention and false sharing: the 8-thread particle update that was only 2× faster | ✅ |
-| 009 | Job systems and task graphs | ⬜ |
+| 009 | Job systems and task graphs: the frame that moved to jobs and got slower | ✅ |
 | 010 | Review: Module 1 + mini-project (measure cache effects yourself) | ⬜ |
 
 ## Module 2 — Core architecture patterns
