@@ -29,7 +29,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 ## Module 2 — Core architecture patterns
 | # | Title | Status |
 |---|-------|--------|
-| 011 | The game loop: fixed vs variable timestep | ⬜ |
+| 011 | The game loop, fixed vs variable timestep: the ledge that 30 fps players could not reach | ✅ |
 | 012 | Entity models: inheritance → components → ECS | ⬜ |
 | 013 | ECS deep dive: archetypes vs sparse sets | ⬜ |
 | 014 | Events and messaging — and what they really cost | ⬜ |

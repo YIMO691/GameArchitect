@@ -1,0 +1,531 @@
+<title>Game Loop Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Jump chart on the left, readouts and controls on the right; frame strip and spiral test below; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --good-bg: #e3f4ea;
+  --bad: #c62f36;
+  --bad-bg: #fbe9ea;
+  --var: #eb6834;
+  --fix: #2a78d6;
+  --smooth: #1baf7a;
+  --floor: #c4ccd6;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --good-bg: #13301f; --bad: #ff6168; --bad-bg: #3a1a1d;
+    --var: #f07a48; --fix: #3987e5; --smooth: #22b585; --floor: #3a4655; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --good-bg: #13301f; --bad: #ff6168; --bad-bg: #3a1a1d;
+  --var: #f07a48; --fix: #3987e5; --smooth: #22b585; --floor: #3a4655; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--fix); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.chart { overflow: hidden; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart text, .spiral svg text { font-family: var(--f-mono); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+.coach { margin: 0; font-size: 14px; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; align-content: start; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-weight: 600; font-size: 14px; padding: 9px 4px; border: 0; background: transparent; color: var(--muted); cursor: pointer; min-height: 40px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; font-weight: 500; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+.toggles { display: grid; gap: 8px; font-size: 14px; }
+.toggles label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.toggles input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; flex: none; }
+.toggles small { display: block; color: var(--muted); font-size: 12px; }
+
+.two { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.cell { border: 1px solid var(--line); border-radius: 6px; padding: 6px 4px; display: grid; gap: 2px; text-align: center; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.cell .fn { font-size: 11px; color: var(--muted); }
+.cell .n { font-size: 18px; font-weight: 600; line-height: 1.2; }
+.cell .b { font-size: 11px; color: var(--muted); }
+.cell.step { border-color: var(--good); background: var(--good-bg); }
+.cell.step .n { color: var(--good); }
+.cell.frozen { border-color: var(--bad); background: var(--bad-bg); }
+.cell.frozen .n { color: var(--bad); }
+.cell.hitch { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.formula { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; overflow-x: auto; white-space: pre; line-height: 1.6; }
+.spiral svg { display: block; width: 100%; height: auto; }
+.mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.mini .stat .v { font-size: 20px; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.group-h { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; min-height: 36px; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/011-the-game-loop-fixed-vs-variable-timestep.md">Read Lesson 011 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 011 · Lesson 011 · simulation using the lesson's numbers</div>
+    <h1>Game Loop Lab</h1>
+    <p class="lede">One jump, three screens. Each dot is one frame the player sees. Change the screen rate and the loop, then watch the jump height, the floor and the frames that do not move.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Sky Hopper, level 3.</strong> Goal: the same jump on every screen, reaching the 1.55 m ledge, never falling through the floor, and no frozen frames.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Jump chart and controls">
+    <div class="panel">
+      <h2>The jump, frame by frame</h2>
+      <div class="chart" id="chart"></div>
+      <div class="legend" id="legend"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Jump peak</span><span class="v" id="sPeak">0</span><span class="s" id="sPeakS">physics height, metres</span></div>
+        <div class="stat"><span class="k">1.55 m ledge</span><span class="v" id="sLedge">–</span><span class="s" id="sLedgeS">–</span></div>
+        <div class="stat"><span class="k">Landing</span><span class="v" id="sLand">–</span><span class="s" id="sLandS">–</span></div>
+        <div class="stat"><span class="k">Frozen frames</span><span class="v" id="sFrozen">0</span><span class="s" id="sFrozenS">per second</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <span class="lbl"><span>Game loop</span><span class="mono" id="modeLabel"></span></span>
+          <div class="seg-ctl" role="group" aria-label="Game loop">
+            <button type="button" id="mVar" aria-pressed="true">Variable</button>
+            <button type="button" id="mFix" aria-pressed="false">Fixed</button>
+            <button type="button" id="mSmooth" aria-pressed="false">Fixed+smooth</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Screen</span><span class="mono" id="rateLabel"></span></span>
+          <div class="seg-ctl" role="group" aria-label="Screen rate">
+            <button type="button" id="r30" aria-pressed="false">30 fps</button>
+            <button type="button" id="r60" aria-pressed="true">60 Hz</button>
+            <button type="button" id="r144" aria-pressed="false">144 Hz</button>
+          </div>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="hitch"><span>Autosave hitch<small>At 0.5 s, one frame takes 250 ms</small></span></label>
+          <label><input type="checkbox" id="cap"><span>Max 4 steps per frame<small>Fixed loop only: drop the extra time instead of catching up</small></span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>Inside the loop</h2>
+      <p class="fine">The first 12 frames. Big number = physics steps run in that frame. Small number = time left in the bank (the accumulator) after the steps, in ms. Red = the picture did not move.</p>
+      <div class="strip" id="strip"></div>
+      <pre class="formula" id="loopInfo"></pre>
+    </div>
+    <div class="panel spiral">
+      <h2>Spiral of death test</h2>
+      <p class="fine">Fixed 60 Hz physics on a 60 Hz screen. Drawing costs 6 ms per frame. Drag the cost of one physics step. 16 frames after a big crate explosion:</p>
+      <div class="field-row">
+        <label for="cost"><span>One physics step costs</span><span class="mono" id="costLabel">2 ms</span></label>
+        <input type="range" id="cost" min="2" max="24" step="1" value="2">
+      </div>
+      <div id="spiralChart"></div>
+      <div class="mini">
+        <div class="stat"><span class="k">Frame 16</span><span class="v" id="spT">0</span><span class="s" id="spFps">ms</span></div>
+        <div class="stat"><span class="k">Steps in frame 16</span><span class="v" id="spN">0</span><span class="s">of 1/60 s each</span></div>
+        <div class="stat"><span class="k">Game speed</span><span class="v" id="spSpeed">0</span><span class="s">game time ÷ real time, frame 16</span></div>
+        <div class="stat"><span class="k">Verdict</span><span class="v" id="spVerdict">OK</span><span class="s" id="spVerdictS"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-h">Lesson 011: fixed vs variable timestep</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Step size changes the answer</h3><p>Physics in steps is an estimate. Peak = 1.667 − 5 × step. A variable step gives every screen a different game. A fixed step gives every screen the same game.</p></div>
+      <div class="note"><h3>Big steps skip things</h3><p>A collision check only sees where the player is after a step. One 0.25 s step moves 3.125 m and jumps over a 0.5 m floor. Small fixed steps can't.</p></div>
+      <div class="note"><h3>Fixed needs two guards</h3><p>Interpolation hides the frames with no new step, for up to one step of delay. A step cap stops the spiral of death, but the real fix is a step that costs far less than 16.67 ms.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. It uses the lesson's numbers: jump speed 10 m/s, gravity 30 m/s², semi-implicit Euler, a 0.5 m floor with a simple "where am I after the step" check, 60 Hz fixed step, 6 ms of drawing per frame. Time is counted in exact 1/720 s ticks, so 30, 60 and 144 Hz line up perfectly. Real frames jitter by a fraction of a millisecond, so a real 60 Hz game sometimes runs 0 or 2 steps in a frame.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const G = 30, V0 = 10, LEDGE = 1.55, FLOOR = 0.5;
+  const TPS = 720, DT = 12, HITCH_AT = 360, HITCH = 180, SPAN = 720, CAP = 4;
+  const st = { mode: "var", rate: 60, hitch: false, cap: false, cost: 2 };
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const f1 = (v) => v.toFixed(1), f2 = (v) => v.toFixed(2), f3 = (v) => v.toFixed(3);
+  const ms = (ticks) => (ticks * 1000) / TPS;
+
+  // ---------- physics: semi-implicit Euler + "where am I after the step" floor check ----------
+  function step(p, h) {
+    if (p.st !== "air") return;
+    const py = p.y;
+    p.v -= G * h;
+    p.y += p.v * h;
+    if (py >= 0 && p.y < -1e-9) {
+      if (p.y >= -FLOOR) { p.y = 0; p.v = 0; p.st = "landed"; }
+      else { p.st = "fell"; p.big = py - p.y; p.from = py; }
+    }
+    if (p.y > p.peak) p.peak = p.y;
+  }
+
+  // ---------- the game loop ----------
+  function sim(s, span = SPAN + (s.hitch ? HITCH : 0)) {
+    const P = TPS / s.rate;
+    const p = { y: 0, v: V0, st: "air", peak: 0 };
+    let prevY = 0, t = 0, acc = 0, hit = false, maxN = 0, dropped = 0, hitchInfo = null;
+    const frames = [{ t: 0, n: 0, acc: 0, y: 0, air: true }];
+    while (t < span) {
+      let d = P;
+      if (s.hitch && !hit && t >= HITCH_AT) { d = HITCH; hit = true; }
+      t += d;
+      let n;
+      if (s.mode === "var") {
+        prevY = p.y; step(p, d / TPS); n = 1;
+      } else {
+        acc += d; n = Math.floor(acc / DT);
+        let capped = false;
+        if (s.cap && n > CAP) { capped = true; dropped += (n - CAP) * DT; n = CAP; }
+        acc -= n * DT;
+        if (capped) acc = acc % DT;
+        for (let i = 0; i < n; i++) { prevY = p.y; step(p, DT / TPS); }
+      }
+      const y = s.mode === "smooth" ? prevY + (p.y - prevY) * (acc / DT) : p.y;
+      const fr = { t, n, acc, y, air: p.st === "air", hitch: d === HITCH, fell: p.st === "fell" };
+      if (fr.hitch) hitchInfo = { n, d, dropped: s.cap ? dropped : 0 };
+      frames.push(fr);
+      if (n > maxN) maxN = n;
+    }
+    return { frames, p, maxN, hitchInfo, P };
+  }
+  // frames per second with no new physics step (no hitch, steady state)
+  function frozenPerSecond(s) {
+    if (s.mode !== "fix") return 0;
+    const r = sim({ ...s, hitch: false }, TPS).frames.slice(1);
+    return r.filter((f) => f.n === 0).length;
+  }
+
+  // ---------- spiral of death ----------
+  function spiral(cost, cap) {
+    const R = 6, D = 1000 / 60;
+    let acc = 0, Tprev = D;
+    const out = [];
+    for (let k = 0; k < 16; k++) {
+      acc += Tprev;
+      let n = Math.floor(acc / D + 1e-9);
+      if (cap && n > CAP) { n = CAP; acc = acc % D; } else acc -= n * D;
+      const T = Math.max(D, R + n * cost);
+      out.push({ n, T });
+      Tprev = T;
+    }
+    return out;
+  }
+
+  // ---------- chart ----------
+  const MODE_COL = { var: "--var", fix: "--fix", smooth: "--smooth" };
+  let anim = null;
+  function chart(r) {
+    const box = $("chart").clientWidth || 640;
+    const W = Math.max(320, Math.min(680, Math.round(box))), narrow = W < 480;
+    const H = narrow ? 300 : 320, L = narrow ? 42 : 52, R = 12, top = 26, bot = H - 30;
+    const YMIN = -1.0, YMAX = 1.85;
+    const span = SPAN + (st.hitch ? HITCH : 0);
+    const X = (t) => L + (t / span) * (W - L - R);
+    const Y = (y) => top + ((YMAX - Math.max(YMIN, y)) / (YMAX - YMIN)) * (bot - top);
+    let g = "";
+    for (const yy of [0.5, 1.0, 1.5]) g += `<line x1="${L}" x2="${W - R}" y1="${Y(yy)}" y2="${Y(yy)}" style="stroke:var(--line)"/><text x="${L - 6}" y="${Y(yy) + 4}" text-anchor="end" style="fill:var(--muted)">${f1(yy)}</text>`;
+    g += `<text x="${L - 6}" y="${Y(0) + 4}" text-anchor="end" style="fill:var(--muted)">0 m</text>`;
+    // floor
+    g += `<rect x="${L}" y="${Y(0)}" width="${W - L - R}" height="${Y(-FLOOR) - Y(0)}" style="fill:var(--floor)"/>`;
+    g += `<text x="${W - R - 6}" y="${Y(-FLOOR / 2) + 4}" text-anchor="end" style="fill:var(--ink)">floor 0.5 m</text>`;
+    // ledge
+    g += `<line x1="${L}" x2="${W - R}" y1="${Y(LEDGE)}" y2="${Y(LEDGE)}" style="stroke:var(--good);stroke-width:2;stroke-dasharray:6 4"/>`;
+    g += `<text x="${W - R - 4}" y="${Y(LEDGE) - 6}" text-anchor="end" style="fill:var(--good);font-weight:600">${narrow ? "ledge" : "ledge 1.55 m"}</text>`;
+    // hitch band
+    if (st.hitch) {
+      const hf = r.frames.find((f) => f.hitch);
+      if (hf) {
+        const a = X(hf.t - HITCH), b = X(hf.t);
+        g += `<rect x="${a}" y="${top}" width="${b - a}" height="${bot - top}" style="fill:var(--accent);opacity:.12"/>`;
+        g += `<text x="${(a + b) / 2}" y="${top + 14}" text-anchor="middle" style="fill:var(--accent);font-weight:600">${narrow ? "250 ms" : "250 ms hitch"}</text>`;
+      }
+    }
+    // dots, one per displayed frame
+    const col = MODE_COL[st.mode];
+    const rad = st.rate === 144 ? (narrow ? 1.8 : 2.3) : st.rate === 60 ? (narrow ? 2.6 : 3.2) : (narrow ? 3.4 : 4.2);
+    let pts = "";
+    let prev = null;
+    for (const f of r.frames) {
+      const x = X(f.t), y = Y(f.y);
+      if (prev) pts += ` ${x},${y}`; else pts = `${x},${y}`;
+      prev = f;
+    }
+    g += `<polyline points="${pts}" style="fill:none;stroke:var(${col});stroke-width:1.2;opacity:.45"/>`;
+    for (let i = 0; i < r.frames.length; i++) {
+      const f = r.frames[i];
+      const frozen = st.mode === "fix" && i > 0 && f.n === 0 && f.air;
+      const c = f.fell ? "--bad" : frozen ? "--bad" : col;
+      g += `<circle cx="${X(f.t)}" cy="${Y(f.y)}" r="${rad}" style="fill:var(${c})"><title>t = ${f1(ms(f.t))} ms · drawn at ${f3(f.y)} m · ${f.n} step${f.n === 1 ? "" : "s"}</title></circle>`;
+    }
+    // peak marker
+    const pk = r.p.peak;
+    const pkF = r.frames.reduce((a, b) => (b.y > a.y ? b : a));
+    g += `<text x="${X(pkF.t)}" y="${Y(pk) + 24}" text-anchor="middle" style="fill:var(--ink);font-weight:600;paint-order:stroke;stroke:var(--panel);stroke-width:4px">peak ${f3(pk)} m</text>`;
+    if (r.p.st === "fell") {
+      const ff = r.frames.find((f) => f.fell);
+      g += `<text x="${Math.min(W - R - 120, X(ff.t) + 8)}" y="${Y(YMIN) - 6}" style="fill:var(--bad);font-weight:600">↓ fell to ${f1(r.p.y)} m</text>`;
+    }
+    // axis
+    g += `<line x1="${L}" x2="${W - R}" y1="${bot + 6}" y2="${bot + 6}" style="stroke:var(--line)"/>`;
+    for (let k = 0; k <= span; k += narrow ? 360 : 180) g += `<text x="${X(k)}" y="${bot + 22}" text-anchor="${k === 0 ? "start" : k >= span - 1 ? "end" : "middle"}" style="fill:var(--muted)">${f2(k / TPS)} s</text>`;
+    g += `<circle id="head" r="${rad + 3}" cx="-20" cy="-20" style="fill:none;stroke:var(--ink);stroke-width:2"/>`;
+    $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Jump height over time, one dot per displayed frame, with the 1.55 m ledge and the floor">${g}</svg>`;
+    anim = { X, Y, frames: r.frames, span };
+  }
+
+  function tick(now) {
+    if (anim) {
+      const loop = anim.span / TPS + 0.8;
+      const tau = ((now / 1000) % loop) * TPS;
+      let f = anim.frames[0];
+      for (const fr of anim.frames) { if (fr.t <= tau) f = fr; else break; }
+      const h = document.getElementById("head");
+      if (h) { h.setAttribute("cx", anim.X(f.t)); h.setAttribute("cy", anim.Y(f.y)); }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ---------- strip ----------
+  function strip(r) {
+    const fr = r.frames.slice(1, 13);
+    $("strip").innerHTML = fr.map((f, i) => {
+      const frozen = st.mode === "fix" && f.n === 0;
+      const cls = st.mode === "var" ? "" : f.n > 0 ? "step" : frozen ? "frozen" : "";
+      const bank = st.mode === "var" ? f1(ms(r.P)) + "ms" : f1(ms(f.acc));
+      return `<div class="cell ${cls}"><span class="fn">F${i + 1}</span><span class="n">${f.n}</span><span class="b">${st.mode === "var" ? "step " + bank : "bank " + bank}</span></div>`;
+    }).join("");
+    const P = ms(r.P);
+    let s = `Frame time    ${f2(P)} ms  (${st.rate === 30 ? "30 fps" : st.rate + " Hz"})\n`;
+    if (st.mode === "var") {
+      s += `Step          ${f2(P)} ms (= frame)\n`;
+      s += `Peak          1.667 − 5×${(P / 1000).toFixed(4)}\n              = ${f3(5 / 3 - 5 * P / 1000)} m\n`;
+    } else {
+      s += `Step          16.67 ms, always\n`;
+      s += `Steps/frame   ${f2(P / (1000 / 60))} on average\n`;
+      s += `Peak          1.667 − 5×0.0167\n              = 1.583 m\n`;
+    }
+    if (r.hitchInfo) {
+      const h = r.hitchInfo;
+      if (st.mode === "var") s += `Hitch frame   ONE 250 ms step`;
+      else s += `Hitch frame   ${h.n} steps${h.dropped > 0 ? `\n              ${f1(ms(h.dropped))} ms dropped` : ""}`;
+    } else s += `Most steps    ${r.maxN} in one frame`;
+    $("loopInfo").textContent = s;
+  }
+
+  // ---------- spiral chart ----------
+  function spiralView() {
+    const out = spiral(st.cost, st.cap);
+    const W = Math.max(300, Math.min(560, Math.round($("spiralChart").clientWidth || 520))), H = 220, L = 40, R = 8, top = 26, bot = H - 26, MAX = 200;
+    const bw = (W - L - R) / 16;
+    const Y = (v) => bot - (Math.min(v, MAX) / MAX) * (bot - top);
+    let g = "";
+    for (const v of [50, 100, 150, 200]) g += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--line)"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" style="fill:var(--muted)">${v}</text>`;
+    out.forEach((o, k) => {
+      const x = L + k * bw + 3, over = o.T > 1000 / 60 + 0.01;
+      g += `<rect x="${x}" y="${Y(o.T)}" width="${bw - 6}" height="${bot - Y(o.T)}" rx="2" style="fill:var(${over ? "--bad" : "--good"})"><title>Frame ${k + 1}: ${f1(o.T)} ms, ${o.n} steps</title></rect>`;
+      if (o.T > MAX) g += `<text x="${x + (bw - 6) / 2}" y="${top - 2}" text-anchor="middle" style="fill:var(--bad);font-size:10px">▲</text>`;
+      if (k % 3 === 0 || k === 15) g += `<text x="${x + (bw - 6) / 2}" y="${bot + 16}" text-anchor="middle" style="fill:var(--muted)">${k + 1}</text>`;
+    });
+    g += `<line x1="${L}" x2="${W - R}" y1="${Y(1000 / 60)}" y2="${Y(1000 / 60)}" style="stroke:var(--good);stroke-width:1.5;stroke-dasharray:5 4"/>`;
+    g += `<text x="${L - 6}" y="${Y(1000 / 60) + 4}" text-anchor="end" style="fill:var(--good);font-weight:600">16.7</text>`;
+    g += `<text x="${L}" y="${top - 12}" style="fill:var(--muted)">ms per frame · ▲ = off the chart</text>`;
+    $("spiralChart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Frame time for 16 frames">${g}</svg>`;
+    const last = out[15], first = out[0];
+    $("spT").textContent = f1(last.T);
+    $("spT").className = "v " + (last.T > 1000 / 60 + 0.01 ? "bad" : "good");
+    $("spFps").textContent = "ms · " + f1(1000 / last.T) + " fps";
+    $("spN").textContent = last.n;
+    const speed = (last.n * 1000 / 60) / last.T * 100;
+    $("spSpeed").textContent = f1(speed) + "%";
+    const growing = out[15].T > out[11].T + 0.5;
+    let v, vs;
+    if (growing) { v = "Spiral"; vs = "each frame owes more time than the last"; }
+    else if (last.T > 1000 / 60 + 0.01 && st.cap && last.n === CAP) { v = "Slow-mo"; vs = "capped: alive, but behind real time"; }
+    else if (last.T > 1000 / 60 + 0.01) { v = "Slow"; vs = "steady, but over 16.67 ms"; }
+    else { v = "OK"; vs = "one step per frame, fits"; }
+    $("spVerdict").textContent = v;
+    $("spVerdict").className = "v " + (v === "OK" ? "good" : "bad");
+    $("spVerdictS").textContent = vs;
+    $("costLabel").textContent = st.cost + " ms" + (st.cost * 1 > 1000 / 60 ? "  > 16.67!" : "");
+  }
+
+  // ---------- readouts ----------
+  function render() {
+    const r = sim(st);
+    chart(r);
+    strip(r);
+    spiralView();
+    const p = r.p;
+    $("legend").innerHTML = `<span><i style="background:var(${MODE_COL[st.mode]})"></i>${st.mode === "var" ? "variable step" : st.mode === "fix" ? "fixed step" : "fixed step, blended"}: one dot per frame</span>` + (st.mode === "fix" ? `<span><i style="background:var(--bad)"></i>frozen frame: no new step</span>` : "") + `<span><i style="background:var(--floor);border-radius:2px"></i>floor</span>`;
+    $("sPeak").textContent = f3(p.peak);
+    $("sPeakS").textContent = st.mode === "var" ? "metres · changes with the screen" : "metres · same on every screen";
+    const diff = (p.peak - LEDGE) * 100, made = p.peak >= LEDGE - 1e-9;
+    $("sLedge").textContent = made ? "Made it" : "Missed";
+    $("sLedge").className = "v " + (made ? "good" : "bad");
+    $("sLedgeS").textContent = (made ? "by " : "by ") + f1(Math.abs(diff)) + " cm";
+    const fell = p.st === "fell";
+    $("sLand").textContent = fell ? "Fell through" : "Landed";
+    $("sLand").className = "v " + (fell ? "bad" : "good");
+    $("sLandS").textContent = fell ? `one step moved ${f3(p.big)} m; floor is 0.5 m` : st.hitch ? `most steps in one frame: ${r.maxN}` : "on the floor at 0 m";
+    const fz = frozenPerSecond(st);
+    $("sFrozen").textContent = `${fz} / ${st.rate}`;
+    $("sFrozen").className = "v " + (fz ? "bad" : "good");
+    $("sFrozenS").textContent = fz ? `frames per second with no new step (${Math.round((fz / st.rate) * 100)}%)` : st.mode === "smooth" ? "every frame blends the last two steps" : "frames per second with no new step";
+    $("modeLabel").textContent = st.mode === "var" ? "step = frame time" : "step = 16.67 ms";
+    $("rateLabel").textContent = f2(1000 / st.rate) + " ms per frame";
+    for (const [id, v] of [["mVar", "var"], ["mFix", "fix"], ["mSmooth", "smooth"]]) $(id).setAttribute("aria-pressed", st.mode === v);
+    for (const [id, v] of [["r30", 30], ["r60", 60], ["r144", 144]]) $(id).setAttribute("aria-pressed", st.rate === v);
+    const goal = st.mode !== "var" && made && !fell && fz === 0;
+    $("goalPill").className = "pill " + (goal ? "ok" : "over");
+    $("goalPill").textContent = goal ? "Goal met" : "Not yet";
+
+    let c;
+    if (fell) c = `<span class="pill over">Tunneling</span> The 250 ms frame became one 0.25 s step. The player went from ${f3(p.from)} m to ${f1(p.y)} m in one move and the floor check never saw them inside the 0.5 m floor.`;
+    else if (st.mode === "var") c = `<span class="pill over">Variable step</span> At ${st.rate === 30 ? "30 fps" : st.rate + " Hz"} each step is ${f2(1000 / st.rate)} ms long, so the peak is ${f3(p.peak)} m. Change the screen and the jump changes.`;
+    else if (st.mode === "fix" && fz) c = `<span class="pill over">Judder</span> ${st.rate} frames but only 60 steps per second. ${fz} frames show the same position again (red dots). Try <strong>Fixed+smooth</strong>.`;
+    else if (st.mode === "smooth") c = `<span class="pill ok">Fixed + smooth</span> Physics still steps 16.67 ms. Each frame draws a blend of the last two steps, so the picture is up to 16.67 ms behind, but every frame moves.`;
+    else c = `<span class="pill ok">Fixed step</span> Physics always steps 16.67 ms: ${f2(60 / st.rate)} steps per frame on average. Peak ${f3(p.peak)} m on every screen.`;
+    if (st.hitch && !fell && st.mode !== "var" && r.hitchInfo) c += ` The hitch frame ran ${r.hitchInfo.n} small steps${r.hitchInfo.dropped ? ` and dropped ${f1(ms(r.hitchInfo.dropped))} ms, so the game fell a little behind real time` : ""}.`;
+    $("coach").innerHTML = c;
+  }
+
+  // ---------- controls ----------
+  for (const [id, v] of [["mVar", "var"], ["mFix", "fix"], ["mSmooth", "smooth"]]) $(id).addEventListener("click", () => { st.mode = v; render(); });
+  for (const [id, v] of [["r30", 30], ["r60", 60], ["r144", 144]]) $(id).addEventListener("click", () => { st.rate = v; render(); });
+  for (const k of ["hitch", "cap"]) $(k).addEventListener("change", (e) => { st[k] = e.target.checked; render(); });
+  $("cost").addEventListener("input", (e) => { st.cost = +e.target.value; render(); });
+  function apply(s) {
+    Object.assign(st, s);
+    $("hitch").checked = st.hitch; $("cap").checked = st.cap; $("cost").value = st.cost;
+    render();
+  }
+
+  // ---------- guided steps ----------
+  const base = { hitch: false, cap: false, cost: 2 };
+  const STEPS = [
+    { t: "The 30 fps phone", d: "Variable step at 30 fps. The peak is 1.500 m, so the 1.55 m ledge is missed by 5.0 cm. Now tap 60 Hz (1.583 m) and 144 Hz (1.632 m): same code, three jumps.", s: { ...base, mode: "var", rate: 30 }, el: "chart" },
+    { t: "The autosave hitch", d: "60 Hz with one 250 ms frame at 0.5 s. That frame becomes one 0.25 s step: the player moves 3.125 m, from 1.125 m to −2.0 m, and falls through the 0.5 m floor.", s: { ...base, mode: "var", rate: 60, hitch: true }, el: "chart" },
+    { t: "Fixed step + accumulator", d: "Same phone (30 fps), same hitch. Physics now always steps 16.67 ms: 2 steps per frame. Peak 1.583 m, ledge made by 3.3 cm. The hitch frame runs 15 small steps and the player lands.", s: { ...base, mode: "fix", rate: 30, hitch: true }, el: "chart" },
+    { t: "The 144 Hz judder", d: "Fixed step on the 144 Hz PC. The strip shows 0, 0, 1, 0, 1… steps per frame. 84 of 144 frames per second show no new step (58%): see the red dots.", s: { ...base, mode: "fix", rate: 144 }, el: "strip" },
+    { t: "Interpolate", d: "Fixed+smooth: each frame blends the last two steps by bank ÷ 16.67. Frozen frames: 0 / 144. Peak is still 1.583 m. Cost: the picture is up to 16.67 ms behind the physics.", s: { ...base, mode: "smooth", rate: 144 }, el: "chart" },
+    { t: "Spiral of death", d: "One step now costs 20 ms, more than the 16.67 ms it simulates. Each frame owes more steps than the last: frame 16 takes 686 ms and runs 34 steps.", s: { ...base, mode: "smooth", rate: 60, cost: 20 }, el: "spiralChart" },
+    { t: "Cap the steps", d: "Max 4 steps per frame. Frame time stops growing at 86 ms (11.6 fps) and the game runs at 77.5% speed, slow motion instead of a freeze. The real fix is a cheaper step: drag it to 4 ms and frame 16 is back to 16.67 ms.", s: { ...base, mode: "smooth", rate: 60, cost: 20, cap: true }, el: "spiralChart" },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $(s.el).scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  render();
+  if (!reduce) requestAnimationFrame(tick);
+  else if (anim) {
+    const pk = anim.frames.reduce((a, b) => (b.y > a.y ? b : a));
+    const h = document.getElementById("head");
+    if (h) { h.setAttribute("cx", anim.X(pk.t)); h.setAttribute("cy", anim.Y(pk.y)); }
+  }
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; chart(sim(st)); spiralView(); } }).observe($("chart"));
+})();
+</script>
