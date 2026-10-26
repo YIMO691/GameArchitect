@@ -31,7 +31,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 |---|-------|--------|
 | 011 | The game loop, fixed vs variable timestep: the ledge that 30 fps players could not reach | ✅ |
 | 012 | Entity models, inheritance → components → ECS: the gull that broke the class tree | ✅ |
-| 013 | ECS deep dive: archetypes vs sparse sets | ⬜ |
+| 013 | ECS deep dive, archetypes vs sparse sets: the storm that moved 2,400 fish per step | ✅ |
 | 014 | Events and messaging — and what they really cost | ⬜ |
 | 015 | Singletons, service locators and dependency injection | ⬜ |
 | 016 | State machines, hierarchical FSMs and behavior trees | ⬜ |

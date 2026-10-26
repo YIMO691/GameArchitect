@@ -152,10 +152,11 @@ input[type="range"]:disabled { opacity: 0.45; }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/012-entity-models-inheritance-components-ecs.md">Read Lesson 012 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/013-ecs-deep-dive-archetypes-vs-sparse-sets.md">Read Lesson 013 ↗</a>
     </div>
-    <div class="eyebrow">Lab 012 · Lesson 012 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 012 · Lessons 012–013 · simulation using the lesson's numbers</div>
     <h1>ECS Lab</h1>
-    <p class="lede">The Reef level: fish, birds, crabs and gulls on a 30 fps phone. Store the same critters three ways and watch how the CPU walks through memory, and what one physics step costs.</p>
+    <p class="lede">The Reef level: fish, birds, crabs and gulls on a 30 fps phone. Store the same critters three ways and watch how the CPU walks through memory, and what one physics step costs. Then (Lesson 013) bring a storm of status effects and choose where each component lives: archetype tables, sparse sets or a hybrid.</p>
   </header>
 
   <div class="goal">
@@ -180,6 +181,8 @@ input[type="range"]:disabled { opacity: 0.45; }
         <div class="stat"><span class="k">Per critter</span><span class="v" id="sPer">0</span><span class="s" id="sPerS">ns</span></div>
         <div class="stat"><span class="k">Work per step</span><span class="v" id="sCalls">0</span><span class="s" id="sCallsS">calls</span></div>
         <div class="stat"><span class="k">Loaded per step</span><span class="v" id="sBytes">0</span><span class="s" id="sBytesS">from memory</span></div>
+        <div class="stat"><span class="k">Entity moves</span><span class="v" id="sMoves">0</span><span class="s" id="sMovesS">per step</span></div>
+        <div class="stat"><span class="k">Storage</span><span class="v" id="sStore">0</span><span class="s" id="sStoreS">tables</span></div>
       </div>
 
       <div class="bar-wrap">
@@ -219,6 +222,21 @@ input[type="range"]:disabled { opacity: 0.45; }
             </div>
           </div>
         </div>
+        <div class="ecs-only" id="stormBox">
+          <p class="fine"><strong>Storm Season</strong> (Lesson 013, ECS only): four statuses, Stunned, Scared, Glowing and Hooked, come and go.</p>
+          <div class="field-row">
+            <label for="status"><span>Status adds + removes per step</span><span class="mono" id="statusLabel">0</span></label>
+            <input type="range" id="status" min="0" max="6000" step="400" value="0">
+          </div>
+          <div class="field-row">
+            <span class="lbl"><span>Where components live</span></span>
+            <div class="seg-ctl" role="group" aria-label="Component storage">
+              <button type="button" id="stTab" aria-pressed="true">Tables</button>
+              <button type="button" id="stSp" aria-pressed="false">Sparse sets</button>
+              <button type="button" id="stHy" aria-pressed="false">Hybrid</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -234,6 +252,8 @@ input[type="range"]:disabled { opacity: 0.45; }
       <div class="passes" id="passes"></div>
       <h3>Adding the Gull</h3>
       <div class="gull" id="gull"></div>
+      <h3>Adding Stunned to one fish</h3>
+      <div class="gull" id="stun"></div>
     </div>
   </section>
 
@@ -244,16 +264,20 @@ input[type="range"]:disabled { opacity: 0.45; }
       <h3>Lesson 012: inheritance → components → ECS</h3>
       <ol class="steps" id="steps"></ol>
     </div>
+    <div class="steps-group">
+      <h3>Lesson 013: archetype tables vs sparse sets</h3>
+      <ol class="steps" id="steps2"></ol>
+    </div>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
     <h2 id="whatH">What this shows</h2>
     <div class="notes">
       <div class="note"><h3>Components fix design, not speed</h3><p>The Gull became a prefab with no new class, but 11,000 engine calls and hops to the Transform made the step slower: 2.75 ms.</p></div>
-      <div class="note"><h3>ECS: columns and systems</h3><p>Each system reads a few packed arrays from start to end. No jumps, no per-critter call, nothing unused loaded: 10 ns per visit.</p></div>
-      <div class="note"><h3>ECS has its own bill</h3><p>Adding or removing a component moves the entity to another table. 1,600 tag changes cost 0.80 ms; a bool field costs almost nothing.</p></div>
+      <div class="note"><h3>ECS: columns and systems</h3><p>Each system reads a few packed arrays from start to end. No jumps, no per-critter call, nothing unused loaded: 10 ns per visit. 1,600 Splashing tag changes cost 0.80 ms; a bool field costs almost nothing.</p></div>
+      <div class="note"><h3>Tables vs sparse sets</h3><p>Archetype tables are fast to read (10 ns per visit) but slow to change: each add or remove moves the entity, 0.5 µs. Sparse sets change in 20 ns but join with lookups: 45 ns per visit. A hybrid keeps movement in tables and statuses in sparse sets: 0.21 ms in the storm.</p></div>
     </div>
-    <p class="fine">This lab is a simulation, not a measurement. Costs per update come from Lesson 012's phone numbers (approximate): fat base class 190 ns, component update 250 ns, ECS visit 10 ns, structural change 0.5 µs. The mix is always 40% fish, 30% birds, 20% crabs, 10% gulls. The memory view is a sketch: it is slowed down a lot, and array lengths are not to scale. Real engines differ in the details, not in the shape.</p>
+    <p class="fine">This lab is a simulation, not a measurement. Costs per update come from Lessons 012 and 013's phone numbers (approximate): fat base class 190 ns, component update 250 ns, ECS visit 10 ns (tables), 45 ns (sparse sets) or 15 ns (hybrid, with a Stunned check), table move 0.5 µs, sparse-set add or remove 20 ns. The mix is always 40% fish, 30% birds, 20% crabs, 10% gulls. The memory view is a sketch: it is slowed down a lot, and array lengths are not to scale. Real engines differ in the details, not in the shape.</p>
   </section>
 </div>
 
@@ -264,7 +288,11 @@ input[type="range"]:disabled { opacity: 0.45; }
   const BUDGET = 1.0, OTHER = 1.5;
   const COST = { inh: 190, comp: 250, ecs: 10 };     // ns per update or visit
   const TAG_NS = 500, FIELD_NS = 2;                   // per water-line crossing
-  const st = { model: "inh", n: 10000, churn: 0, store: "tag" };
+  const SPARSE_CHANGE_NS = 20;                        // sparse-set add or remove (Lesson 013)
+  const VISIT = { tables: 10, sparse: 45, hybrid: 15 };   // ns per ECS system visit, by storage
+  const BYTES = { tables: 32, sparse: 140, hybrid: 36 };  // bytes loaded per visit
+  const STORE_NAME = { tables: "archetype tables", sparse: "sparse sets", hybrid: "hybrid" };
+  const st = { model: "inh", n: 10000, churn: 0, store: "tag", storage: "tables", status: 0 };
 
   function model(s) {
     const n = s.n, fish = 0.4 * n, bird = 0.3 * n, crab = 0.2 * n, gull = 0.1 * n;
@@ -276,17 +304,31 @@ input[type="range"]:disabled { opacity: 0.45; }
       r.calls = fish + bird + crab + 2 * gull; r.move = (r.calls * COST.comp) / 1e6; r.bytes = r.calls * 2 * 64; r.callWord = "FixedUpdate() calls"; r.order = "jumping";
       r.rows = [[`Swimmer.FixedUpdate ×${fmtInt(fish + gull)}`, ((fish + gull) * COST.comp) / 1e6], [`Flyer.FixedUpdate   ×${fmtInt(bird + gull)}`, ((bird + gull) * COST.comp) / 1e6], [`Walker.FixedUpdate  ×${fmtInt(crab)}`, (crab * COST.comp) / 1e6]];
     } else {
-      r.calls = fish + bird + crab + 2 * gull; r.move = (r.calls * COST.ecs) / 1e6; r.bytes = r.calls * 32; r.callWord = "system visits"; r.order = "in order";
-      r.rows = [[`SwimSystem  ${fmtInt(fish + gull)} entities`, ((fish + gull) * COST.ecs) / 1e6], [`FlySystem   ${fmtInt(bird + gull)} entities`, ((bird + gull) * COST.ecs) / 1e6], [`WalkSystem  ${fmtInt(crab)} entities`, (crab * COST.ecs) / 1e6]];
+      const v = VISIT[s.storage];
+      r.calls = fish + bird + crab + 2 * gull; r.move = (r.calls * v) / 1e6; r.bytes = r.calls * BYTES[s.storage]; r.callWord = "system visits"; r.order = s.storage === "sparse" ? "jumping" : "in order";
+      r.rows = [[`SwimSystem  ${fmtInt(fish + gull)} entities`, ((fish + gull) * v) / 1e6], [`FlySystem   ${fmtInt(bird + gull)} entities`, ((bird + gull) * v) / 1e6], [`WalkSystem  ${fmtInt(crab)} entities`, (crab * v) / 1e6]];
     }
-    r.tag = s.model === "ecs" ? (s.churn * (s.store === "tag" ? TAG_NS : FIELD_NS)) / 1e6 : 0;
+    const ecs = s.model === "ecs";
+    r.changes = ecs ? (s.store === "tag" ? s.churn : 0) + s.status : 0;      // adds + removes of components
+    r.changeNs = s.storage === "tables" ? TAG_NS : SPARSE_CHANGE_NS;
+    r.moves = ecs && s.storage === "tables" ? r.changes : 0;                 // entities copied to another table
+    r.fieldWrites = ecs && s.store === "field" ? s.churn : 0;
+    r.chg = (r.changes * r.changeNs) / 1e6;
+    r.fld = (r.fieldWrites * FIELD_NS) / 1e6;
+    r.tag = r.chg + r.fld;
+    if (ecs) {
+      const tagT = s.store === "tag" && s.churn > 0 ? 1 : 0;
+      if (s.storage === "tables") { r.storeV = fmtInt(4 * (s.status > 0 ? 16 : 1) + tagT); r.storeS = "archetype tables"; }
+      else if (s.storage === "sparse") { r.storeV = String(10 + tagT); r.storeS = "sparse-set pools, 0 tables"; }
+      else { r.storeV = "4 + " + (4 + tagT); r.storeS = "tables + sparse-set pools"; }
+    } else { r.storeV = fmtInt(n); r.storeS = s.model === "inh" ? "objects on the heap" : "GameObjects"; }
     r.step = r.move + r.tag;
     r.frame = 2 * r.step;
     r.per = (r.step * 1e6) / n;
     return r;
   }
   const fmtInt = (v) => Math.round(v).toLocaleString("en-US");
-  const f2 = (v) => v.toFixed(2);
+  const f2 = (v) => (Math.round(v * 100 + 1e-7) / 100).toFixed(2);
   const fmtBytes = (b) => (b >= 1e6 ? (b / 1e6).toFixed(2) + " MB" : Math.round(b / 1e3) + " KB");
 
   // ---------- readouts ----------
@@ -301,6 +343,12 @@ input[type="range"]:disabled { opacity: 0.45; }
     $("sCallsS").textContent = m.callWord;
     $("sBytes").textContent = fmtBytes(m.bytes);
     $("sBytesS").textContent = "read " + m.order;
+    const ecsM = st.model === "ecs";
+    $("sMoves").textContent = ecsM ? fmtInt(m.moves) : "–";
+    $("sMoves").className = "v " + (ecsM ? (m.moves > 0 ? "bad" : "good") : "");
+    $("sMovesS").textContent = ecsM ? (m.moves > 0 ? "per step · copied to another table" : m.changes > 0 ? `per step · ${fmtInt(m.changes)} sparse-set changes, nothing moves` : "per step") : "ECS only";
+    $("sStore").textContent = m.storeV;
+    $("sStoreS").textContent = m.storeS;
 
     const maxMs = Math.max(3, Math.ceil(m.step * 1.15));
     $("segMove").style.left = "0%";
@@ -317,7 +365,10 @@ input[type="range"]:disabled { opacity: 0.45; }
     $("churn").disabled = st.model !== "ecs";
     $("nLabel").textContent = fmtInt(st.n);
     $("churnLabel").textContent = st.model === "ecs" ? fmtInt(st.churn) : "ECS only";
-    $("stageTag").textContent = { inh: "Fat base class", comp: "Components", ecs: "ECS" }[st.model];
+    $("status").disabled = st.model !== "ecs";
+    $("statusLabel").textContent = st.model === "ecs" ? fmtInt(st.status) : "ECS only";
+    for (const [id, v] of [["stTab", "tables"], ["stSp", "sparse"], ["stHy", "hybrid"]]) { $(id).setAttribute("aria-pressed", st.storage === v); $(id).disabled = st.model !== "ecs"; }
+    $("stageTag").textContent = st.model === "ecs" ? "ECS · " + STORE_NAME[st.storage] : { inh: "Fat base class", comp: "Components" }[st.model];
 
     const ok = st.model !== "inh" && m.step <= BUDGET + 1e-9;
     $("goalPill").className = "pill " + (ok ? "ok" : "over");
@@ -326,22 +377,26 @@ input[type="range"]:disabled { opacity: 0.45; }
     let coach;
     if (st.model === "inh") coach = `<span class="pill over">5 lines, 3 read</span> Every critter is one 320-byte object. The CPU reads 3 of its 5 lines, then jumps somewhere else for the next critter. Hatched lines are abilities this critter never uses.`;
     else if (st.model === "comp") coach = `<span class="pill over">1 call + 2 jumps</span> Each component is its own small object. The engine calls it (≈ 100 ns), then it hops to its Transform in another place. The Gull has two moving parts, so it costs two calls.`;
-    else coach = `<span class="pill ok">read in order</span> Each archetype table keeps its columns packed. A system sweeps the columns it needs from start to end. Health is never read, so it is never loaded.` + (m.tag > 0 && st.store === "tag" ? ` <span class="pill over">moves</span> Red arcs: each tag add or remove copies a fish to another table, 0.5 µs each.` : "");
+    else if (st.storage === "tables") coach = `<span class="pill ok">read in order</span> Each archetype table keeps its columns packed. A system sweeps the columns it needs from start to end. Health is never read, so it is never loaded.` + (m.moves > 0 ? ` <span class="pill over">moves</span> Red arcs: each add or remove copies an entity to another table, 0.5 µs each.` : "") + (st.status > 0 ? ` Four statuses × four kinds make 64 tables; only a few are drawn.` : "");
+    else if (st.storage === "sparse") coach = `<span class="pill over">1 walk + 2 jumps</span> Every component type has its own pool, each in its own order. A system walks one pool (green) and looks up Position and Velocity by entity ID (red): 45 ns per visit.` + (st.status > 0 ? ` <span class="pill ok">no moves</span> Status changes only touch the small status pools: 20 ns each.` : "");
+    else coach = `<span class="pill ok">read in order</span> Movement data stays in 4 packed tables. Statuses live in sparse-set pools, so adding one moves nothing. The price: each visit checks the Stunned index (orange), +5 ns.`;
     $("coach").innerHTML = coach;
 
     // capture
     const pad = (label, ms, extra = "") => label + " ".repeat(Math.max(1, 38 - label.replace(/<[^>]+>/g, "").length)) + f2(ms).padStart(5, " ") + " ms" + extra + "\n";
-    let cap = `<span class="dim">Reef · ${fmtInt(m.n)} critters · ${{ inh: "fat base class", comp: "components", ecs: "ECS" }[st.model]}</span>\n`;
+    let cap = `<span class="dim">Reef · ${fmtInt(m.n)} critters · ${st.model === "ecs" ? "ECS, " + STORE_NAME[st.storage] : { inh: "fat base class", comp: "components" }[st.model]}</span>\n`;
     cap += pad("FixedStep", OTHER + m.step);
     cap += pad("├─ Physics, other", OTHER);
     const label = st.model === "inh" ? "CritterManager.TickAll" : st.model === "comp" ? "FixedBehaviourUpdate" : "Critter systems";
     const mark = m.move <= BUDGET + 1e-9 ? `  <span class="ok">✅</span>` : `  <span class="warn">◀ over 1.0</span>`;
-    cap += pad(`${m.tag > 0 ? "├" : "└"}─ ${label}`, m.move, mark);
-    m.rows.forEach((r, i) => { cap += pad(`${m.tag > 0 ? "│" : " "}  ${i === m.rows.length - 1 ? "└" : "├"}─ ${r[0]}`, r[1]); });
-    if (m.tag > 0) {
-      cap += st.store === "tag" ? pad(`└─ <span class="warn">Structural changes ×${fmtInt(st.churn)}</span>`, m.tag, `  <span class="warn">◀ moves</span>`)
-                                : pad(`└─ Splash list appends ×${fmtInt(st.churn)}`, m.tag);
-    }
+    const tail = [];
+    if (m.changes > 0) tail.push(m.moves > 0
+      ? [`<span class="warn">Structural changes ×${fmtInt(m.changes)}</span>`, m.chg, `  <span class="warn">◀ moves</span>`]
+      : [`Sparse-set adds/removes ×${fmtInt(m.changes)}`, m.chg, ""]);
+    if (m.fieldWrites > 0) tail.push([`Splash list appends ×${fmtInt(m.fieldWrites)}`, m.fld, ""]);
+    cap += pad(`${tail.length ? "├" : "└"}─ ${label}`, m.move, mark);
+    m.rows.forEach((r, i) => { cap += pad(`${tail.length ? "│" : " "}  ${i === m.rows.length - 1 ? "└" : "├"}─ ${r[0]}`, r[1]); });
+    tail.forEach((t, i) => { cap += pad(`${i === tail.length - 1 ? "└" : "├"}─ ${t[0]}`, t[1], t[2]); });
     cap += `\n<span class="dim">Per phone frame (2 steps): ${f2(m.frame)} ms of critters</span>`;
     $("capture").innerHTML = cap;
 
@@ -349,12 +404,17 @@ input[type="range"]:disabled { opacity: 0.45; }
     const bills = {
       inh: [["3 jumping reads", 150, "var(--bad)"], ["Wrong guesses", 30, "var(--accent)"], ["Math", 10, "var(--good)"]],
       comp: [["Engine → C# call", 100, "var(--fly)"], ["2 jumping reads", 100, "var(--bad)"], ["Wrong guesses", 40, "var(--accent)"], ["Math", 10, "var(--good)"]],
-      ecs: [["Math + reads in order", 10, "var(--good)"]],
+      ecs: {
+        tables: [["Math + reads in order", 10, "var(--good)"]],
+        sparse: [["Walk one pool, in order", 10, "var(--good)"], ["Find Position (jump)", 15, "var(--bad)"], ["Find Velocity (jump)", 15, "var(--bad)"], ["Check Stunned", 5, "var(--accent)"]],
+        hybrid: [["Math + reads in order", 10, "var(--good)"], ["Check Stunned", 5, "var(--accent)"]],
+      }[st.storage],
     }[st.model];
     const total = bills.reduce((a, b) => a + b[1], 0);
     let html = bills.map((b) => `<div class="pass"><span>${b[0]}</span><span class="track"><span class="fill" style="width:${(b[1] / 260) * 100}%;background:${b[2]}"></span></span><span class="ms">${b[1]} ns</span></div>`).join("");
     html += `<div class="pass total"><span>${st.model === "inh" ? "Per critter" : st.model === "comp" ? "Per update" : "Per visit"}</span><span></span><span class="ms">${total} ns</span></div>`;
-    if (st.model === "ecs" && st.churn > 0) html += `<div class="pass"><span>${st.store === "tag" ? "Per tag change" : "Per field write"}</span><span class="track"><span class="fill" style="width:${st.store === "tag" ? 100 : (2 / 260) * 100}%;background:${st.store === "tag" ? "var(--bad)" : "var(--good)"}"></span></span><span class="ms">${st.store === "tag" ? "500" : "2"} ns</span></div>`;
+    if (m.changes > 0) { const ns = m.changeNs; html += `<div class="pass"><span>${m.moves > 0 ? "Per add or remove (a move)" : "Per add or remove"}</span><span class="track"><span class="fill" style="width:${Math.min(100, (ns / 260) * 100)}%;background:${m.moves > 0 ? "var(--bad)" : "var(--good)"}"></span></span><span class="ms">${ns} ns</span></div>`; }
+    if (m.fieldWrites > 0) html += `<div class="pass"><span>Per field write</span><span class="track"><span class="fill" style="width:${(2 / 260) * 100}%;background:var(--good)"></span></span><span class="ms">2 ns</span></div>`;
     $("passes").innerHTML = html;
 
     $("gull").innerHTML = {
@@ -363,19 +423,26 @@ input[type="range"]:disabled { opacity: 0.45; }
       ecs: `<p>New entity recipe: Position, Velocity, Flyer, Swimmer, Health.</p><p class="verdict" style="color:var(--good)">0 new classes, 0 new systems. FlySystem and SwimSystem pick it up.</p>`,
     }[st.model];
 
+    $("stun").innerHTML = st.model !== "ecs" ? `<p>Switch to ECS to see where a status lives.</p>` : {
+      tables: `<p>Move the fish to the <span class="mono">Fish + Stunned</span> table: copy its 40 B, fill the hole, update the index.</p><p class="verdict" style="color:var(--bad)">≈ 0.5 µs per add or remove. 4 statuses × 4 kinds = 64 tables.</p>`,
+      sparse: `<p>Append the fish to the Stunned pool and write one sparse slot. Nothing else moves.</p><p class="verdict" style="color:var(--good)">≈ 20 ns. But every system now looks up its components: 45 ns per visit.</p>`,
+      hybrid: `<p>Movement data stays in 4 tables. Stunned is a sparse set: append and write one slot.</p><p class="verdict" style="color:var(--good)">≈ 20 ns. Price: movement checks the Stunned index, +5 ns per visit.</p>`,
+    }[st.storage];
+
     $("legend").innerHTML = (st.model === "ecs"
-      ? [["--core", "Position"], ["--vel", "Velocity"], ["--walk", "Walker"], ["--fly", "Flyer"], ["--swim", "Swimmer"], ["--hp", "Health (never read)"]]
+      ? (st.storage === "sparse" ? [["--core", "Position pool"], ["--vel", "Velocity pool"], ["--walk", "Walker"], ["--fly", "Flyer"], ["--swim", "Swimmer"], ["--accent", "status pools"], ["--hp", "Health pool not drawn"]]
+        : [["--core", "Position"], ["--vel", "Velocity"], ["--walk", "Walker"], ["--fly", "Flyer"], ["--swim", "Swimmer"], ["--hp", "Health (never read)"]].concat(st.storage === "hybrid" ? [["--accent", "status pools"], ["--hatch", "Stunned index"]] : st.status > 0 ? [["--accent", "status data"]] : []))
       : st.model === "inh" ? [["--core", "shared lines (header, velocity …)"], ["--walk", "walk"], ["--fly", "fly"], ["--swim", "swim"], ["--hatch", "carried, unused"]]
       : [["--core", "Transform"], ["--walk", "Walker"], ["--fly", "Flyer"], ["--swim", "Swimmer"]]
     ).map(([c, t]) => `<span><i style="background:var(${c})"></i>${t}</span>`).join("") + `<span>each square = one 64-byte cache line</span>`;
 
-    if (layoutKey !== st.model + "|" + cols) buildLayout();
+    if (layoutKey !== lkey()) buildLayout();
   }
 
   // ---------- memory view ----------
   const cv = $("cv"), ctx = cv.getContext("2d"), stage = $("stage");
   const CELL = 14, ROWS = 12, TOP = 38, LBAND = 16;
-  let cols = 24, dpr = 1, cells = [], pos = [], visits = [], layoutKey = "", col = {}, arcs = [], labels = [], layoutTables = [];
+  let cols = 24, dpr = 1, cells = [], pos = [], visits = [], layoutKey = "", col = {}, arcs = [], labels = [], layoutTables = [], extraTables = [], statusSegs = [], flashes = [];
   let vi = 0, vt = 0, lastTs = 0, trail = [];
   function readColors() {
     const cs = getComputedStyle(document.documentElement);
@@ -395,10 +462,11 @@ input[type="range"]:disabled { opacity: 0.45; }
     const w = stage.clientWidth;
     cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + "px";
   }
+  const lkey = () => st.model + "|" + cols + "|" + (st.model === "ecs" ? st.storage + "|" + (st.status > 0) : "");
   function buildLayout() {
-    layoutKey = st.model + "|" + cols;
+    layoutKey = lkey();
     const r = rng(12);
-    cells = []; pos = []; visits = []; arcs = []; labels = []; trail = [];
+    cells = []; pos = []; visits = []; arcs = []; labels = []; trail = []; flashes = []; statusSegs = []; extraTables = []; layoutTables = [];
     const kinds = ["swim", "swim", "swim", "swim", "fly", "fly", "fly", "walk", "walk", "gull"];
     if (st.model !== "ecs") {
       const M = cols * ROWS;
@@ -434,39 +502,70 @@ input[type="range"]:disabled { opacity: 0.45; }
       // the engine walks its own list of components, not memory order
       for (let i = visits.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [visits[i], visits[j]] = [visits[j], visits[i]]; }
     } else {
-      // archetype tables: one table per exact set of components, columns packed one after another
+      // ECS. Each band is a labelled run of cells; segments in a band can be split by a one-cell gap.
       const u = Math.max(2, Math.floor(cols / 4));
-      const tables = [
-        { name: "Fish table", len: 4 * u, cols: ["core", "vel", "swim", "hp"] },
-        { name: "Bird table", len: 3 * u, cols: ["core", "vel", "fly", "hp"] },
-        { name: "Crab table", len: 2 * u, cols: ["core", "vel", "walk", "hp"] },
-        { name: "Gull table", len: u, cols: ["core", "vel", "fly", "swim", "hp"] },
-        { name: "Fish + Splashing table", len: u, cols: ["core", "vel", "swim", "hp"], splash: true },
-      ];
       let y = TOP, c = 0;
-      for (const t of tables) {
-        labels.push({ name: t.name, x: 8, y: y + 11, splash: !!t.splash });
+      const band = (name, segs, opts = {}) => {
+        labels.push({ name, x: 8, y: y + 11, splash: !!opts.splash, tone: opts.tone });
         y += LBAND;
-        t.start = {};
-        let k = 0;
-        for (const cn of t.cols) {
-          t.start[cn] = c;
-          for (let i = 0; i < t.len; i++, k++, c++) { cells[c] = cn; pos[c] = [8 + (k % cols) * CELL, y + Math.floor(k / cols) * CELL]; }
-        }
+        const starts = []; let k = 0;
+        segs.forEach((sg, si) => {
+          if (si > 0 && opts.gap) k++;
+          starts.push(c);
+          for (let i = 0; i < sg.len; i++, k++, c++) { cells[c] = sg.type; pos[c] = [8 + (k % cols) * CELL, y + Math.floor(k / cols) * CELL]; }
+        });
         y += Math.ceil(k / cols) * CELL + 4;
+        return starts;
+      };
+      const note = (name, tone) => { labels.push({ name, x: 8, y: y + 11, tone }); y += LBAND + 2; };
+      const table = (name, len, cn, opts) => { const s0 = band(name, cn.map((t) => ({ type: t, len })), opts); const t = { name, len, start: {} }; cn.forEach((n, i) => { if (!(n in t.start)) t.start[n] = s0[i]; }); return t; };
+      const sweep = (t, need, extra) => { for (let i = 0; i < t.len; i++) visits.push(Object.assign({ read: need.map((cn) => t.start[cn] + i), sweep: true }, extra ? extra() : {})); };
+      statusSegs = []; extraTables = []; layoutTables = [];
+      if (st.storage === "sparse") {
+        // one pool per component type, each in its own order
+        const walk = band("Walker pool", [{ type: "walk", len: 2 * u }])[0];
+        const fly = band("Flyer pool", [{ type: "fly", len: 4 * u }])[0];
+        const swim = band("Swimmer pool", [{ type: "swim", len: 5 * u }])[0];
+        const P0 = band("Position pool", [{ type: "core", len: 10 * u }])[0];
+        const V0 = band("Velocity pool", [{ type: "vel", len: 10 * u }])[0];
+        const ss = band("Status pools ×4 (Stunned, Scared …)", [0, 1, 2, 3].map(() => ({ type: "st", len: u })), { gap: true });
+        statusSegs = ss.map((s0) => ({ start: s0, len: u }));
+        setHeight(y + 6);
+        const join = (start, len) => { for (let i = 0; i < len; i++) { const a = start + i, p = P0 + Math.floor(r() * 10 * u), v = V0 + Math.floor(r() * 10 * u); visits.push({ read: [a, p, v], bad: [p, v], links: [[a, p], [a, v]], sweep: true }); } };
+        join(walk, 2 * u); join(fly, 4 * u); join(swim, 5 * u);
+      } else {
+        const fish = table("Fish table", 4 * u, ["core", "vel", "swim", "hp"]);
+        const bird = table("Bird table", 3 * u, ["core", "vel", "fly", "hp"]);
+        const crab = table("Crab table", 2 * u, ["core", "vel", "walk", "hp"]);
+        const gull = table("Gull table", u, ["core", "vel", "fly", "swim", "hp"]);
+        layoutTables = [fish, bird, crab, gull];
+        let idx0 = -1;
+        if (st.storage === "tables" && st.status > 0) {
+          const sl = Math.max(2, Math.floor(u / 2));
+          extraTables = [
+            table("Fish + Scared", sl, ["core", "vel", "swim", "hp", "st"], { tone: "bad" }),
+            table("Bird + Stunned", sl, ["core", "vel", "fly", "hp", "st"], { tone: "bad" }),
+            table("Fish + Scared + Glowing", sl, ["core", "vel", "swim", "hp", "st", "st"], { tone: "bad" }),
+          ];
+          note("… and 57 more small tables (64 in all)", "bad");
+        } else if (st.storage === "tables") {
+          layoutTables.push(table("Fish + Splashing table", u, ["core", "vel", "swim", "hp"], { splash: true }));
+        } else {
+          idx0 = band("Stunned: sparse index, one slot per entity", [{ type: "idx", len: cols }])[0];
+          const ss = band("Status pools ×4 (Stunned, Scared …)", [0, 1, 2, 3].map(() => ({ type: "st", len: u })), { gap: true });
+          statusSegs = ss.map((s0) => ({ start: s0, len: u }));
+        }
+        setHeight(y + 6);
+        const chk = idx0 >= 0 ? () => ({ check: idx0 + Math.floor(r() * cols) }) : null;
+        sweep(crab, ["core", "vel", "walk"], chk);
+        sweep(bird, ["core", "vel", "fly"], chk); sweep(gull, ["core", "vel", "fly"], chk);
+        sweep(fish, ["core", "vel", "swim"], chk); sweep(gull, ["core", "vel", "swim"], chk);
       }
-      setHeight(y + 6);
-      layoutTables = tables;
-      const sweep = (t, need) => { for (let i = 0; i < t.len; i++) visits.push({ read: need.map((cn) => t.start[cn] + i), sweep: true }); };
-      const [fish, bird, crab, gull] = tables;
-      sweep(crab, ["core", "vel", "walk"]);
-      sweep(bird, ["core", "vel", "fly"]); sweep(gull, ["core", "vel", "fly"]);
-      sweep(fish, ["core", "vel", "swim"]); sweep(gull, ["core", "vel", "swim"]);
     }
     vi = 0; vt = 0;
     draw();
   }
-  const msPerVisit = () => ({ inh: 380, comp: 500, ecs: 70 }[st.model]);
+  const msPerVisit = () => (st.model === "ecs" ? { tables: 70, sparse: 260, hybrid: 90 }[st.storage] : { inh: 380, comp: 500 }[st.model]);
   const xy = (c) => pos[c];
 
   function draw() {
@@ -482,13 +581,13 @@ input[type="range"]:disabled { opacity: 0.45; }
         ctx.moveTo(x + 2, y + CELL - 2); ctx.lineTo(x + CELL - 2, y + 2); ctx.moveTo(x + 2, y + CELL / 2); ctx.lineTo(x + CELL / 2, y + 2); ctx.moveTo(x + CELL / 2, y + CELL - 2); ctx.lineTo(x + CELL - 2, y + CELL / 2); ctx.stroke();
         continue;
       }
-      ctx.fillStyle = col[v] || col.core; ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
+      ctx.fillStyle = v === "st" ? col.accent : v === "idx" ? col.hatch : col[v] || col.core; ctx.fillRect(x + 1, y + 1, CELL - 2, CELL - 2);
     }
     // table labels for ECS
     ctx.font = "600 11px " + getComputedStyle(document.body).getPropertyValue("--f-mono");
     for (const l of labels) {
       const on = !l.splash || (st.churn > 0 && st.store === "tag");
-      ctx.fillStyle = l.splash ? (on ? col.bad : col.muted) : col.muted;
+      ctx.fillStyle = l.splash ? (on ? col.bad : col.muted) : l.tone === "bad" ? col.bad : col.muted;
       ctx.fillText(l.name + (l.splash && !on ? " (empty)" : ""), l.x, l.y);
     }
     // current read + trail
@@ -501,17 +600,27 @@ input[type="range"]:disabled { opacity: 0.45; }
       });
       ctx.globalAlpha = 1;
       if (st.model === "comp" && cur.read.length === 2) arc(cur.read[0], cur.read[1], col.bad, 2);
-      for (const c of cur.read) { const [x, y] = xy(c); ctx.strokeStyle = st.model === "ecs" ? col.good : col.bad; ctx.lineWidth = 2.4; ctx.strokeRect(x + 0.5, y + 0.5, CELL - 1, CELL - 1); }
+      if (cur.links) for (const [a, b] of cur.links) arc(a, b, col.bad, 1.8);
+      for (const c of cur.read) { const [x, y] = xy(c); ctx.strokeStyle = st.model === "ecs" && !(cur.bad && cur.bad.includes(c)) ? col.good : col.bad; ctx.lineWidth = 2.4; ctx.strokeRect(x + 0.5, y + 0.5, CELL - 1, CELL - 1); }
+      if (cur.check != null) { const [x, y] = xy(cur.check); ctx.strokeStyle = col.accent; ctx.lineWidth = 2.4; ctx.strokeRect(x + 0.5, y + 0.5, CELL - 1, CELL - 1); }
     }
     // structural change arcs (ECS + tag)
     const now = performance.now();
     arcs = arcs.filter((a) => now - a.t < 700);
     for (const a of arcs) { ctx.globalAlpha = 1 - (now - a.t) / 700; arc(a.from, a.to, col.bad, 1.6); }
+    // sparse-set changes: green box = append, purple arc = swap and pop
+    flashes = flashes.filter((f) => now - f.t < 600);
+    for (const f of flashes) {
+      ctx.globalAlpha = 1 - (now - f.t) / 600;
+      if (f.from != null) arc(f.from, f.cell, col.fly, 1.6);
+      const [x, y] = xy(f.cell); ctx.strokeStyle = f.from != null ? col.fly : col.good; ctx.lineWidth = 2.4; ctx.strokeRect(x + 0.5, y + 0.5, CELL - 1, CELL - 1);
+    }
     ctx.globalAlpha = 1;
     // header line
     ctx.fillStyle = col.ink; ctx.font = "600 12px " + getComputedStyle(document.body).getPropertyValue("--f-mono");
-    const txt = st.model === "inh" ? "reads 3 lines, then jumps" : st.model === "comp" ? "call → component → Transform" : "sweeps columns in order";
-    ctx.textAlign = "right"; ctx.fillText(txt, W - 8, 21); ctx.textAlign = "left";
+    const txt = st.model === "inh" ? "reads 3 lines, then jumps" : st.model === "comp" ? "call → component → Transform" : { tables: "sweeps columns in order", sparse: "walks one pool, looks up the rest", hybrid: "sweeps tables, checks Stunned" }[st.storage];
+    const tagW = $("stageTag").offsetWidth + 16;
+    if (ctx.measureText(txt).width + tagW + 8 <= W) { ctx.textAlign = "right"; ctx.fillText(txt, W - 8, 21); ctx.textAlign = "left"; }
   }
   function arc(a, b, color, w) {
     const [x1, y1] = xy(a), [x2, y2] = xy(b);
@@ -532,14 +641,25 @@ input[type="range"]:disabled { opacity: 0.45; }
         if (prev && nx && !nx.sweep) { trail.push({ from: prev.read[prev.read.length - 1], to: nx.read[0] }); if (trail.length > 4) trail.shift(); }
         if (vi === 0) trail = [];
       }
-      if (st.model === "ecs" && st.store === "tag" && st.churn > 0) {
-        tagAcc += (dt / 1000) * (st.churn / 1600) * 6;   // a few visible moves per second, more with more churn
+      const m = st.model === "ecs" ? model(st) : null;
+      if (m && m.changes > 0) {
+        tagAcc += (dt / 1000) * Math.min(5, m.changes / 1600) * 6;   // a few visible changes per second, more with more churn
         while (tagAcc >= 1) {
           tagAcc -= 1;
-          const [fish, , , , sp] = layoutTables;
-          const k = Math.floor(Math.random() * fish.len), j = Math.floor(Math.random() * sp.len);
-          if (Math.random() < 0.5) arcs.push({ from: fish.start.core + k, to: sp.start.core + j, t: performance.now() });
-          else arcs.push({ from: sp.start.core + j, to: fish.start.core + k, t: performance.now() });
+          const pick = (t) => t.start.core + Math.floor(Math.random() * t.len);
+          if (st.storage === "tables" && extraTables.length) {
+            const [fish, bird] = layoutTables, k = Math.floor(Math.random() * 3), ex = extraTables[k], from = k === 1 ? bird : fish;
+            if (Math.random() < 0.5) arcs.push({ from: pick(from), to: pick(ex), t: performance.now() });
+            else arcs.push({ from: pick(ex), to: pick(from), t: performance.now() });
+          } else if (st.storage === "tables" && layoutTables[4]) {
+            const fish = layoutTables[0], sp = layoutTables[4];
+            if (Math.random() < 0.5) arcs.push({ from: pick(fish), to: pick(sp), t: performance.now() });
+            else arcs.push({ from: pick(sp), to: pick(fish), t: performance.now() });
+          } else if (statusSegs.length) {
+            const sg = statusSegs[Math.floor(Math.random() * statusSegs.length)], last = sg.start + sg.len - 1;
+            if (Math.random() < 0.5) flashes.push({ cell: last, t: performance.now() });
+            else { const j = sg.start + Math.floor(Math.random() * (sg.len - 1)); flashes.push({ cell: j, from: last, t: performance.now() }); }
+          }
         }
       }
       draw();
@@ -550,8 +670,8 @@ input[type="range"]:disabled { opacity: 0.45; }
   // ---------- controls ----------
   function apply(s) {
     Object.assign(st, s);
-    $("nSlider").value = st.n; $("churn").value = st.churn;
-    trail = []; arcs = [];
+    $("nSlider").value = st.n; $("churn").value = st.churn; $("status").value = st.status;
+    trail = []; arcs = []; flashes = [];
     render(); draw();
   }
   $("mInh").addEventListener("click", () => apply({ model: "inh" }));
@@ -561,28 +681,41 @@ input[type="range"]:disabled { opacity: 0.45; }
   $("churn").addEventListener("input", (e) => apply({ churn: +e.target.value }));
   $("sTag").addEventListener("click", () => apply({ store: "tag" }));
   $("sField").addEventListener("click", () => apply({ store: "field" }));
+  $("status").addEventListener("input", (e) => apply({ status: +e.target.value }));
+  $("stTab").addEventListener("click", () => apply({ storage: "tables" }));
+  $("stSp").addEventListener("click", () => apply({ storage: "sparse" }));
+  $("stHy").addEventListener("click", () => apply({ storage: "hybrid" }));
 
   // ---------- guided steps ----------
   const STEPS = [
-    { t: "The fat base class", d: "10,000 critters, every ability pushed into Enemy. 1.90 ms per step: almost 2× the 1.0 ms budget, and 3.80 ms per phone frame. 190 ns per critter. Each critter is 5 lines; the CPU reads 3 and jumps on.", s: { model: "inh", n: 10000, churn: 0, store: "tag" } },
-    { t: "Components fix the design", d: "The Gull is a prefab now: 0 new classes. But there are 11,000 FixedUpdate calls at 250 ns: 2.75 ms per step, 275 ns per critter. Slower than before.", s: { model: "comp", n: 10000, churn: 0, store: "tag" } },
-    { t: "ECS: columns and systems", d: "Same 11,000 updates, now system visits at 10 ns: 0.11 ms per step, 0.22 ms per phone frame, 11 ns per critter. 352 KB read in order instead of 1.92 MB jumping. The goal turns green.", s: { model: "ecs", n: 10000, churn: 0, store: "tag" } },
-    { t: "Double the reef", d: "20,000 critters in ECS: 0.22 ms per step, still under budget. Now tap Inheritance: the same reef costs 3.80 ms per step.", s: { model: "ecs", n: 20000, churn: 0, store: "tag" } },
-    { t: "The Splashing tag", d: "Back to 10,000. Fish crossing the water line get a Splashing tag: 1,600 adds and removes per step at 0.5 µs = 0.80 ms. The step is 0.91 ms, 1.82 ms per frame. Watch the red arcs: fish moving between tables.", s: { model: "ecs", n: 10000, churn: 1600, store: "tag" } },
-    { t: "Make it a field", d: "Same 1,600 crossings, stored as a bool in Swimmer. Nothing moves; SwimSystem appends to a splash list. The step is back to 0.11 ms.", s: { model: "ecs", n: 10000, churn: 1600, store: "field" } },
+    { t: "The fat base class", d: "10,000 critters, every ability pushed into Enemy. 1.90 ms per step: almost 2× the 1.0 ms budget, and 3.80 ms per phone frame. 190 ns per critter. Each critter is 5 lines; the CPU reads 3 and jumps on.", s: { model: "inh", n: 10000, churn: 0, store: "tag", storage: "tables", status: 0 } },
+    { t: "Components fix the design", d: "The Gull is a prefab now: 0 new classes. But there are 11,000 FixedUpdate calls at 250 ns: 2.75 ms per step, 275 ns per critter. Slower than before.", s: { model: "comp", n: 10000, churn: 0, store: "tag", storage: "tables", status: 0 } },
+    { t: "ECS: columns and systems", d: "Same 11,000 updates, now system visits at 10 ns: 0.11 ms per step, 0.22 ms per phone frame, 11 ns per critter. 352 KB read in order instead of 1.92 MB jumping. The goal turns green.", s: { model: "ecs", n: 10000, churn: 0, store: "tag", storage: "tables", status: 0 } },
+    { t: "Double the reef", d: "20,000 critters in ECS: 0.22 ms per step, still under budget. Now tap Inheritance: the same reef costs 3.80 ms per step.", s: { model: "ecs", n: 20000, churn: 0, store: "tag", storage: "tables", status: 0 } },
+    { t: "The Splashing tag", d: "Back to 10,000. Fish crossing the water line get a Splashing tag: 1,600 adds and removes per step at 0.5 µs = 0.80 ms. The step is 0.91 ms, 1.82 ms per frame. Watch the red arcs: fish moving between tables.", s: { model: "ecs", n: 10000, churn: 1600, store: "tag", storage: "tables", status: 0 } },
+    { t: "Make it a field", d: "Same 1,600 crossings, stored as a bool in Swimmer. Nothing moves; SwimSystem appends to a splash list. The step is back to 0.11 ms.", s: { model: "ecs", n: 10000, churn: 1600, store: "field", storage: "tables", status: 0 } },
   ];
-  const stepsEl = $("steps");
-  STEPS.forEach((s, k) => {
+  const STEPS2 = [
+    { t: "The storm on archetype tables", d: "Storm Season: 2,400 status adds and removes per step. On archetype tables every one is a move, 0.5 µs: 1.20 ms. With movement, 1.31 ms per step, 2.62 ms per phone frame. Storage shows 64 tables. Watch the red arcs.", s: { model: "ecs", n: 10000, churn: 0, store: "field", storage: "tables", status: 2400 } },
+    { t: "Sparse sets everywhere", d: "Every component in its own pool. Changes drop to 20 ns: 0.05 ms, and 0 entity moves. But each visit now costs 45 ns: movement is 0.50 ms. Total 0.54 ms per step. Loaded per step jumps to 1.54 MB.", s: { model: "ecs", n: 10000, churn: 0, store: "field", storage: "sparse", status: 2400 } },
+    { t: "Double the reef on sparse sets", d: "20,000 critters, and the storm doubles to 4,800 changes. Movement is 0.99 ms, changes 0.10 ms: 1.09 ms per step. Over budget, and 2.17 ms per phone frame.", s: { model: "ecs", n: 20000, churn: 0, store: "field", storage: "sparse", status: 4800 } },
+    { t: "Hybrid: tables for movement, sparse sets for statuses", d: "Back to 10,000 and 2,400 changes. Movement stays in 4 tables (15 ns per visit with the Stunned check): 0.17 ms. Changes 0.05 ms. Total 0.21 ms per step, 0.43 ms per frame. Drag to 20,000 and the storm to 4,800: 0.43 ms.", s: { model: "ecs", n: 10000, churn: 0, store: "field", storage: "hybrid", status: 2400 } },
+  ];
+  const allLis = [];
+  const addSteps = (list, el, offset) => list.forEach((s, j) => {
+    const k = offset + j;
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
-    stepsEl.appendChild(li);
+    el.appendChild(li); allLis.push(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      allLis.forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
       apply(s.s);
       $("stage").scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "nearest" });
     });
   });
+  addSteps(STEPS, $("steps"), 0);
+  addSteps(STEPS2, $("steps2"), STEPS.length);
 
   // ---------- start ----------
   let lastW = 0;
