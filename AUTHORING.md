@@ -66,6 +66,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `008-jobs-lab` | 008, 009, 010 (challenge) |
 | `011-game-loop` | 011 |
 | `012-ecs-lab` | 012, 013 |
+| `014-events-lab` | 014 |
 | `024-draw-calls` | 024, 025, 027, 028 |
 | `048-netcode` | 048, 049 |
 

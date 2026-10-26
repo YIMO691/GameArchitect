@@ -1,0 +1,446 @@
+<title>Events Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Wiring view and step timeline on the left, readouts and controls on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300;
+  --stripe: #c9d7e8;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --stripe: #2b3a4d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --stripe: #2b3a4d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+.pill.warn { color: var(--accent); }
+
+.view svg { display: block; width: 100%; height: auto; }
+.view text { font-family: var(--f-body); font-size: 13px; }
+.view .mono-t { font-family: var(--f-mono); font-size: 12px; }
+.flow { stroke-dasharray: 6 5; animation: march 0.9s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -11; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .bug { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+@media (max-width: 520px) { .seg-ctl { grid-template-columns: repeat(2, 1fr); } }
+.seg-ctl button { font: inherit; font-weight: 600; font-size: 14px; padding: 9px 6px; min-height: 40px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+.toggles { display: grid; gap: 8px; font-size: 14px; }
+.toggles label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.toggles label.off { opacity: 0.5; cursor: default; }
+.toggles input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; flex: none; }
+.toggles small { display: block; color: var(--muted); font-size: 12px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(10.5px, 2.9vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .ok { color: var(--good); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+
+.two { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.passes { display: grid; gap: 8px; }
+.pass { display: grid; grid-template-columns: 8.5em minmax(0, 1fr) 5.6em; gap: 10px; align-items: center; font-size: 14px; }
+.pass .track { height: 14px; background: var(--field); border: 1px solid var(--line); border-radius: 3px; position: relative; overflow: hidden; }
+.pass .fill { position: absolute; inset: 0 auto 0 0; border-radius: 0 3px 3px 0; transition: width 0.25s ease; }
+.pass .ms { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.pass small { display: block; font-size: 11px; line-height: 1.2; color: var(--muted); }
+.pass.total { border-top: 1px solid var(--line); padding-top: 8px; font-weight: 600; }
+.formula { font-family: var(--f-mono); font-size: clamp(10.5px, 2.9vw, 13px); background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; overflow-x: auto; white-space: pre; line-height: 1.6; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.steps-group { display: grid; gap: 10px; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; min-height: 36px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+@media (prefers-reduced-motion: reduce) { .pass .fill { transition: none; } .flow { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/014-events-and-messaging.md">Read Lesson 014 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 014 · Lesson 014 · simulation using the lesson's numbers</div>
+    <h1>Events Lab</h1>
+    <p class="lede">Every catch in the Feeding Frenzy must reach five systems. Tell them with direct calls, an event bus, a typed bus or an event queue, and watch the wires, the garbage, the bugs and the step time against its 1.0 ms budget.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Feeding Frenzy, 30 fps phone.</strong> Goal at 600 catches per step: critters + events ≤ 1.0 ms, 0 B garbage, 0 double catches, events logged in order, and a new listener edits no sender.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Wiring view, step timeline and controls">
+    <div class="panel">
+      <h2>Who tells whom</h2>
+      <div class="view" id="wires"></div>
+      <h3>One physics step</h3>
+      <div class="view" id="timeline"></div>
+      <div class="legend" id="legend"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Critters + events</span><span class="v" id="sStep">0</span><span class="s" id="sStepS">ms per step · budget 1.0</span></div>
+        <div class="stat"><span class="k">Per catch</span><span class="v" id="sCatch">0</span><span class="s" id="sCatchS">ns</span></div>
+        <div class="stat"><span class="k">Garbage</span><span class="v" id="sGarb">0</span><span class="s" id="sGarbS">per frame</span></div>
+        <div class="stat"><span class="k">Links</span><span class="v" id="sLinks">0</span><span class="s" id="sLinksS">wires</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <span class="lbl"><span>How a catch is told</span></span>
+          <div class="seg-ctl" role="group" aria-label="Messaging design">
+            <button type="button" id="mDirect" aria-pressed="false">Direct calls</button>
+            <button type="button" id="mBus" aria-pressed="true">Event bus</button>
+            <button type="button" id="mTyped" aria-pressed="false">Typed bus</button>
+            <button type="button" id="mQueue" aria-pressed="false">Event queue</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="catches"><span>Catches per step</span><span class="mono" id="catchLabel">600</span></label>
+          <input type="range" id="catches" min="0" max="1200" step="20" value="600">
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="cascade" checked><span>Combo + achievements<small>Score publishes ComboChanged, Achievements publishes AchievementProgress: 3 events and 10 reactions per catch</small></span></label>
+          <label><input type="checkbox" id="haptics"><span>Add a sixth listener: Haptics<small>The phone buzzes on every catch</small></span></label>
+          <label id="claimL"><input type="checkbox" id="claim"><span>Gull claims the fish at once<small>Event queue only. Off: FishSystem removes the fish later, from the queue</small></span></label>
+          <label id="hudL"><input type="checkbox" id="hudFirst"><span>HUD runs before Score<small>Event queue only. A wrong system order</small></span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>What the profiler shows</h2>
+      <p class="fine">A Unity-style capture of one fixed step during the frenzy. "Physics, other" is the rest of the step from Lesson 013.</p>
+      <pre class="capture" id="capture"></pre>
+    </div>
+    <div class="panel">
+      <h2>The bill for one catch</h2>
+      <div class="passes" id="bill"></div>
+      <pre class="formula" id="formula"></pre>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the wiring, the step timeline and the four numbers. This replays the lesson's story.</p>
+    <div class="steps-group">
+      <h3>Lesson 014: direct calls, event bus, event queue</h3>
+      <ol class="steps" id="steps"></ol>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>The call is cheap, the place is not</h3><p>In direct calls and both buses, 900 of every catch's nanoseconds are cold reaction work. Only the queue makes it warm, by doing 600 of the same job in a row.</p></div>
+      <div class="note"><h3>Fewer wires, new costs</h3><p>A bus cuts 15 wires to 8. An object bus pays with boxing, list copies and garbage; every bus pays with nested cascades and a surprising order.</p></div>
+      <div class="note"><h3>Late is fine for news, not for decisions</h3><p>A queue delays reactions. A score number one step late is invisible. A fish that two gulls both catch is a bug: claim it now, tell others later.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. Costs come from Lesson 014 and are approximate phone numbers: cold reaction 90 ns, warm 15 ns; direct call 2 ns; object bus 120 ns per publish + 10 ns per handler and 88 B of garbage; typed bus 15 + 5 ns; queue 3 ns per append + 4 ns per read. Critter systems cost 0.21 ms (Lesson 013), the heap has 8 MB of free room, and a GC stop costs 12 ms. Real engines vary, but the shape is the same.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const BUDGET = 1.0, CRITTERS = 0.21, OTHER = 1.5, FREE = 8 * 1024 * 1024, GC_MS = 12, FPS = 30, CAP = 1024;
+  const COST = {                      // ns, approximate phone numbers from the lesson
+    direct: { post: 0, call: 2, work: 90, garb: 0, name: "direct calls" },
+    bus:    { post: 120, call: 10, work: 90, garb: 88, name: "event bus" },
+    typed:  { post: 15, call: 5, work: 90, garb: 0, name: "typed bus" },
+    queue:  { post: 3, call: 4, work: 15, garb: 0, name: "event queue" },
+  };
+  const st = { mode: "bus", n: 600, cascade: true, haptics: false, claim: false, hudFirst: false };
+
+  function model(s) {
+    const c = COST[s.mode], L = 5 + (s.haptics ? 1 : 0);
+    const E = s.cascade ? 3 : 1, R = L + (s.cascade ? 5 : 0);
+    const per = E * c.post + R * (c.call + c.work);
+    const ev = (s.n * per) / 1e6;
+    const r = { c, L, E, R, per, ev, total: CRITTERS + ev };
+    r.postMs = (s.n * E * c.post) / 1e6; r.callMs = (s.n * R * c.call) / 1e6; r.workMs = (s.n * R * c.work) / 1e6;
+    r.garbStep = s.n * E * c.garb; r.garbFrame = 2 * r.garbStep;
+    r.gcFrames = r.garbFrame > 0 ? FREE / r.garbFrame : Infinity;
+    r.links = s.mode === "direct" ? 3 * L : 3 + L;
+    r.edits = s.mode === "direct" ? 3 : 0;
+    r.doubles = s.mode === "queue" && !s.claim ? Math.round(s.n / 40) : 0;
+    r.late = s.mode === "queue" && s.hudFirst && s.cascade;
+    r.nested = s.mode !== "queue" && s.cascade;
+    return r;
+  }
+  const fmtInt = (v) => Math.round(v).toLocaleString("en-US");
+  const f2 = (v) => (Math.round(v * 100 + 1e-7) / 100).toFixed(2);
+  const kb = (b) => (b / 1024 >= 100 ? Math.round(b / 1024) : (b / 1024).toFixed(1)) + " KB";
+  const css = (n) => `var(${n})`;
+
+  // ---------- wiring view ----------
+  function wires(m) {
+    const W = Math.max(300, Math.min(640, Math.round($("wires").clientWidth || 600)));
+    const senders = ["🐦 Gull", "🦤 Pelican", "🎣 Hook"];
+    const lis = ["Score", "Audio", "Splash VFX", "Quests", "Analytics"].concat(st.haptics ? ["📳 Haptics"] : []);
+    const rowH = 36, top = 14, H = top + 6 * rowH + 14;
+    const sw = Math.round(W * 0.26), lw = Math.round(W * 0.27), lx = W - lw - 2;
+    const ly = (i) => top + i * rowH, sy = (i) => top + (i + 1.5) * rowH - 2;
+    const mode = st.mode, col = mode === "direct" ? "--bad" : mode === "queue" ? "--good" : "--cpu";
+    let g = "";
+    const line = (x1, y1, x2, y2, extra = "") => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${st.n > 0 ? "flow" : ""}" style="stroke:${css(col)};stroke-width:1.6${extra}"/>`;
+    if (mode === "direct") {
+      for (let s = 0; s < 3; s++) for (let i = 0; i < lis.length; i++) g += line(2 + sw, sy(s), lx, ly(i) + 14);
+    } else {
+      const hx = Math.round(W * 0.40), hw = Math.round(W * 0.2), hy = top + 4, hh = 5 * rowH - 6;
+      for (let s = 0; s < 3; s++) g += line(2 + sw, sy(s), hx, sy(s));
+      for (let i = 0; i < lis.length; i++) g += line(hx + hw, ly(i) + 14, lx, ly(i) + 14);
+      g += `<rect x="${hx}" y="${hy}" width="${hw}" height="${hh}" rx="8" style="fill:var(--field);stroke:${css(col)};stroke-width:1.5"/>`;
+      const cx = hx + hw / 2;
+      if (mode === "queue") {
+        const fill = Math.min(1, (st.n * (st.cascade ? 1 : 1)) / CAP), bh = hh - 70;
+        g += `<text x="${cx}" y="${hy + 20}" text-anchor="middle" style="fill:var(--ink);font-weight:600">Queue</text>`;
+        g += `<rect x="${cx - 12}" y="${hy + 30}" width="24" height="${bh}" rx="3" style="fill:var(--panel);stroke:var(--line)"/>`;
+        g += `<rect x="${cx - 12}" y="${hy + 30 + bh * (1 - fill)}" width="24" height="${bh * fill}" rx="3" style="fill:var(--good);opacity:.8"/>`;
+        g += `<text x="${cx}" y="${hy + hh - 24}" text-anchor="middle" class="mono-t" style="fill:var(--ink)">${fmtInt(st.n)}</text>`;
+        g += `<text x="${cx}" y="${hy + hh - 9}" text-anchor="middle" class="mono-t" style="fill:var(--muted)">/ ${fmtInt(CAP)}</text>`;
+      } else {
+        g += `<text x="${cx}" y="${hy + hh / 2 - 6}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${mode === "bus" ? "Bus" : "Typed"}</text>`;
+        g += `<text x="${cx}" y="${hy + hh / 2 + 12}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${mode === "bus" ? "object" : "bus"}</text>`;
+        if (mode === "bus" && m.garbFrame > 0) g += `<text x="${cx}" y="${hy + hh - 26}" text-anchor="middle" class="mono-t" style="fill:var(--bad)">+${kb(m.garbStep)}</text><text x="${cx}" y="${hy + hh - 11}" text-anchor="middle" class="mono-t" style="fill:var(--bad)">per step</text>`;
+      }
+    }
+    for (let s = 0; s < 3; s++) g += `<rect x="2" y="${sy(s) - 15}" width="${sw}" height="30" rx="6" style="fill:var(--panel);stroke:var(--p1);stroke-width:1.5"/><text x="${2 + sw / 2}" y="${sy(s) + 5}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${senders[s]}</text>`;
+    lis.forEach((n, i) => {
+      const hap = n.includes("Haptics");
+      g += `<rect x="${lx}" y="${ly(i)}" width="${lw}" height="28" rx="6" style="fill:var(--panel);stroke:${hap ? css(col) : "var(--line)"};stroke-width:1.5${hap ? ";stroke-dasharray:5 4" : ""}"/><text x="${lx + lw / 2}" y="${ly(i) + 19}" text-anchor="middle" style="fill:var(--ink)">${n}</text>`;
+    });
+    const msg = mode === "direct" ? `3 × ${m.L} = ${m.links} wires · new listener: edit 3 senders` : `3 + ${m.L} = ${m.links} links · new listener: edit 0 senders`;
+    g += `<text x="2" y="${H - 6}" style="fill:${css(mode === "direct" ? "--bad" : "--good")};font-weight:600;font-size:${W < 420 ? 12 : 13}px">${msg}</text>`;
+    $("wires").innerHTML = `<svg viewBox="0 0 ${W} ${H + 8}" role="img" aria-label="Senders, listeners and the links between them">${g}</svg>`;
+  }
+
+  // ---------- step timeline ----------
+  function timeline(m) {
+    const W = Math.max(300, Math.min(640, Math.round($("timeline").clientWidth || 600)));
+    const narrow = W < 420, H = 108, L = 4, R = narrow ? 58 : 70, top = 22, bh = 34;
+    const span = Math.max(1.2, Math.ceil((m.total + 0.15) * 5) / 5), X = (v) => L + (v / span) * (W - L - R);
+    let g = `<defs><pattern id="cold" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" style="fill:var(--stripe)"/><rect width="6" height="10" style="fill:var(--bad)"/></pattern></defs>`;
+    const tick = narrow ? 0.4 : 0.2;
+    for (let v = 0; v <= span + 1e-9; v += tick) {
+      g += `<line x1="${X(v)}" x2="${X(v)}" y1="${top - 4}" y2="${top + bh + 6}" style="stroke:var(--line)"/>`;
+      const last = v + tick > span + 1e-9;
+      g += `<text x="${X(v)}" y="${top + bh + 22}" text-anchor="${v === 0 ? "start" : last ? "end" : "middle"}" class="mono-t" style="fill:var(--muted)">${+v.toFixed(1)}${last ? " ms" : ""}</text>`;
+    }
+    const q = st.mode === "queue";
+    const blue = q ? CRITTERS + m.postMs : CRITTERS;
+    g += `<rect x="${X(0)}" y="${top}" width="${Math.max(1, X(blue) - X(0))}" height="${bh}" rx="3" style="fill:var(--p1)"><title>Critter systems ${f2(blue)} ms</title></rect>`;
+    const bw = X(CRITTERS) - X(0), blab = bw > 110 ? "critters 0.21" : bw > 36 ? "0.21" : "";
+    if (blab) g += `<text x="${(X(0) + X(CRITTERS)) / 2}" y="${top + bh / 2 + 5}" text-anchor="middle" class="mono-t" style="fill:#fff;font-weight:600">${blab}</text>`;
+    if (m.ev > 0) {
+      const a = blue, b = m.total;
+      g += `<rect x="${X(a)}" y="${top}" width="${Math.max(1, X(b) - X(a))}" height="${bh}" rx="2" style="fill:${q ? "var(--p3)" : "url(#cold)"}"><title>${q ? "Readers, warm" : "Reactions inside the gull loop, cold"}: ${f2(b - a)} ms</title></rect>`;
+    }
+    const over = m.total > BUDGET + 1e-9;
+    g += `<line x1="${X(BUDGET)}" x2="${X(BUDGET)}" y1="${top - 14}" y2="${top + bh + 8}" style="stroke:var(--good);stroke-width:2.5"/>`;
+    g += `<text x="${X(BUDGET) - 4}" y="${top - 6}" text-anchor="end" class="mono-t" style="fill:var(--good);font-weight:600">budget</text>`;
+    g += `<text x="${X(m.total) + 6}" y="${top + bh / 2 + 5}" class="mono-t" style="fill:${css(over ? "--bad" : "--good")};font-weight:600">${f2(m.total)}${over ? " ✗" : " ✓"}</text>`;
+    $("timeline").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="One physics step: critter systems and event work against the 1.0 ms budget">${g}</svg>`;
+    $("legend").innerHTML = `<span><i style="background:var(--p1)"></i>critter systems${q ? " + appends" : ""}</span>` + (q ? `<span><i style="background:var(--p3)"></i>readers, one system at a time (warm)</span>` : `<span><i style="background:repeating-linear-gradient(90deg,var(--bad) 0 6px,var(--stripe) 6px 10px)"></i>reactions mixed into the gull loop (cold)</span>`);
+  }
+
+  // ---------- readouts ----------
+  function render() {
+    const m = model(st);
+    wires(m); timeline(m);
+    const over = m.total > BUDGET + 1e-9;
+    $("sStep").textContent = f2(m.total); $("sStep").className = "v " + (over ? "bad" : "good");
+    $("sStepS").textContent = over ? `ms per step · ${f2(m.total - BUDGET)} over 1.0` : `ms per step · budget 1.0`;
+    $("sCatch").textContent = fmtInt(m.per); $("sCatch").className = "v";
+    $("sCatchS").textContent = `ns · ${m.E} event${m.E > 1 ? "s" : ""}, ${m.R} reactions`;
+    $("sGarb").textContent = m.garbFrame > 0 ? kb(m.garbFrame) : "0 B"; $("sGarb").className = "v " + (m.garbFrame > 0 ? "bad" : "good");
+    $("sGarbS").textContent = m.garbFrame > 0 ? `per frame · ${GC_MS} ms GC every ${Math.floor(m.gcFrames)} frames (${(m.gcFrames / FPS).toFixed(1)} s)` : "per frame · no GC from events";
+    $("sLinks").textContent = m.links; $("sLinks").className = "v " + (m.edits ? "bad" : "good");
+    $("sLinksS").textContent = st.mode === "direct" ? "wires · add a listener: edit 3 files" : "links · add a listener: edit 0 senders";
+    $("catchLabel").textContent = fmtInt(st.n);
+    for (const [id, v] of [["mDirect", "direct"], ["mBus", "bus"], ["mTyped", "typed"], ["mQueue", "queue"]]) $(id).setAttribute("aria-pressed", st.mode === v);
+    const q = st.mode === "queue";
+    $("claim").disabled = !q; $("hudFirst").disabled = !q;
+    $("claimL").classList.toggle("off", !q); $("hudL").classList.toggle("off", !q);
+
+    const goal = st.n >= 600 && !over && m.garbFrame === 0 && m.doubles === 0 && !m.nested && m.edits === 0;
+    $("goalPill").className = "pill " + (goal ? "ok" : st.n < 600 ? "warn" : "over");
+    $("goalPill").textContent = goal ? "Goal met" : st.n < 600 ? "Test scene: try 600" : over ? "Over budget" : m.garbFrame ? "Makes garbage" : m.doubles ? "Double catches" : m.edits ? "Too many wires" : m.nested ? "Order bug" : "Not yet";
+
+    // coach
+    let c = "";
+    if (st.mode === "direct") c = `Every sender calls every listener: ${m.links} wires. The call is only ${m.c.call} ns; the reaction work is ${m.c.work} ns because each system's data is cold.`;
+    else if (st.mode === "bus") c = `Each publish boxes the event, looks up the type and copies the list: ${m.c.post} ns and ${m.c.garb} B of garbage. All ${m.R} reactions run at once, inside the gull loop.`;
+    else if (st.mode === "typed") c = `No boxing and no garbage. But the reactions still run one catch at a time, inside the gull loop: ${fmtInt(m.R * m.c.work)} of the ${fmtInt(m.per)} ns are cold work.`;
+    else c = `Senders append ${m.E === 3 ? "3 structs" : "a struct"} per catch (${m.c.post} ns each). Later, each system reads the whole queue in a row, so its data stays warm: ${m.c.work} ns per reaction instead of 90.`;
+    if (m.nested) c += ` <span class="bug">Order bug:</span> the nested ${st.mode === "direct" ? "calls" : "publishes"} make Analytics log the progress before the catch.`;
+    if (m.doubles) c += ` <span class="bug">Bug: ${m.doubles} double catches per step.</span> Two gulls both see a free fish, because FishSystem only removes it later.`;
+    if (q && st.claim) c += ` The gull claims the fish at once (TryClaim), so double catches: 0.`;
+    if (m.late) c += ` HUD runs before Score, so it sees an empty ComboChanged queue: the combo shows 1 step late (16.67 ms). Invisible for a number on screen.`;
+    $("coach").innerHTML = c;
+
+    // capture
+    const row = (label, ms, extra = "") => label + " ".repeat(Math.max(1, 36 - label.replace(/<[^>]+>/g, "").length)) + f2(ms).padStart(5, " ") + " ms" + extra + "\n";
+    const pubs = st.n * m.E, hand = st.n * m.R;
+    let cap = `<span class="dim">Frenzy · ${fmtInt(st.n)} catches · ${m.c.name}</span>\n`;
+    cap += row("FixedStep", OTHER + m.total);
+    cap += row("├─ Physics, other", OTHER);
+    cap += row("└─ Critter systems", m.total, over ? `  <span class="warn">◀ budget 1.0</span>` : `  <span class="ok">✓</span>`);
+    cap += row("   ├─ Swim, Fly, Walk, statuses", CRITTERS);
+    if (st.mode === "direct") cap += row(`   └─ Catch reactions ×${fmtInt(hand)}`, m.ev, "  GC Alloc 0 B");
+    else if (st.mode === "bus" || st.mode === "typed") {
+      cap += row(`   └─ ${st.mode === "bus" ? "EventBus" : "TypedBus"}.Publish ×${fmtInt(pubs)}`, m.ev, m.garbStep ? `  <span class="warn">GC Alloc ${kb(m.garbStep)}</span>` : "  GC Alloc 0 B");
+      cap += row(`      ├─ ${st.mode === "bus" ? "box, look up, copy" : "publish"} ×${fmtInt(pubs)}`, m.postMs);
+      cap += row(`      └─ handlers ×${fmtInt(hand)}`, m.callMs + m.workMs);
+    } else {
+      cap += row(`   ├─ EventQueue.Add ×${fmtInt(pubs)}`, m.postMs, "  GC Alloc 0 B");
+      const sys = [["Score", 1], ["Achievement", st.cascade ? 1 : 0], ["Hud", st.cascade ? 2 : 0], ["Audio", st.cascade ? 2 : 1], ["SplashVfx", 1], ["Quest", 1], ["Analytics", st.cascade ? 2 : 1]].concat(st.haptics ? [["Haptics", 1]] : []).filter((x) => x[1] > 0);
+      if (st.hudFirst && st.cascade) { const h = sys.findIndex((x) => x[0] === "Hud"); sys.unshift(sys.splice(h, 1)[0]); }
+      cap += row(`   └─ Readers, in order ×${sys.length}`, m.callMs + m.workMs);
+      sys.forEach(([n, k], i) => { cap += row(`      ${i === sys.length - 1 ? "└" : "├"}─ ${n}System`, (st.n * k * (m.c.call + m.c.work)) / 1e6); });
+    }
+    if (m.garbFrame > 0) cap += `<span class="warn">GC.Collect  ${GC_MS} ms, every ${Math.floor(m.gcFrames)} frames (${(m.gcFrames / FPS).toFixed(1)} s)  ◀ freeze</span>\n`;
+    if (m.doubles) cap += `<span class="warn">Fish caught twice: ${m.doubles} per step</span>\n`;
+    $("capture").innerHTML = cap;
+
+    // bill for one catch
+    const parts = [
+      { n: "Posting events", s: `${m.E} × ${m.c.post} ns`, v: m.E * m.c.post, c: "--cpu" },
+      { n: st.mode === "queue" ? "Reading" : "Calling", s: `${m.R} × ${m.c.call} ns`, v: m.R * m.c.call, c: "--muted" },
+      { n: st.mode === "queue" ? "Work, warm" : "Work, cold", s: `${m.R} × ${m.c.work} ns`, v: m.R * m.c.work, c: st.mode === "queue" ? "--p3" : "--bad" },
+    ];
+    const maxV = 1100;
+    $("bill").innerHTML = parts.map((p) => `<div class="pass"><span>${p.n}<small>${p.s}</small></span><span class="track"><span class="fill" style="width:${Math.min(100, (p.v / maxV) * 100)}%;background:var(${p.c})"></span></span><span class="ms">${fmtInt(p.v)} ns</span></div>`).join("")
+      + `<div class="pass total"><span>One catch</span><span></span><span class="ms">${fmtInt(m.per)} ns</span></div>`;
+    $("formula").textContent =
+      `${m.E} × ${m.c.post} + ${m.R} × (${m.c.call} + ${m.c.work}) = ${fmtInt(m.per)} ns\n` +
+      `× ${fmtInt(st.n)} catches  = ${f2(m.ev)} ms\n` +
+      `+ critters 0.21  = ${f2(m.total)} ms per step\n` +
+      (m.garbFrame ? `Garbage: 2 × ${fmtInt(st.n)} × ${m.E} × ${m.c.garb} B\n       = ${fmtInt(m.garbFrame)} B per frame` : `Garbage: 0 B per frame`);
+  }
+
+  // ---------- controls ----------
+  for (const [id, v] of [["mDirect", "direct"], ["mBus", "bus"], ["mTyped", "typed"], ["mQueue", "queue"]]) $(id).addEventListener("click", () => { st.mode = v; render(); });
+  $("catches").addEventListener("input", (e) => { st.n = +e.target.value; render(); });
+  for (const k of ["cascade", "haptics", "claim", "hudFirst"]) $(k).addEventListener("change", (e) => { st[k] = e.target.checked; render(); });
+  function apply(s) {
+    Object.assign(st, s);
+    $("catches").value = st.n;
+    for (const k of ["cascade", "haptics", "claim", "hudFirst"]) $(k).checked = st[k];
+    render();
+  }
+
+  // ---------- guided steps ----------
+  const base = { n: 600, cascade: true, haptics: false, claim: false, hudFirst: false };
+  const STEPS = [
+    { t: "The test scene", d: "Event bus, 20 catches per step. 0.24 ms per step and 10.3 KB of garbage per frame: a GC about every 26 s. Nobody notices.", s: { ...base, mode: "bus", n: 20 } },
+    { t: "Direct calls in the frenzy", d: "600 catches. Each costs 920 ns: the call is 2 ns, the cold reaction work 90 ns, ten times. 0.76 ms per step: it fits. But look at the 15 red wires.", s: { ...base, mode: "direct" } },
+    { t: "The designer wants Haptics", d: "One more listener: 18 wires, and 3 sender files to edit. 0.82 ms per step. The goal pill says why direct calls fail: too many wires.", s: { ...base, mode: "direct", haptics: true } },
+    { t: "Switch to the event bus", d: "8 links, no sender edits. But 1,360 ns per catch: 1.03 ms per step ❌. And 309 KB of garbage per frame: a 12 ms GC every 26 frames, 0.9 s.", s: { ...base, mode: "bus" } },
+    { t: "Try a typed bus", d: "No boxing, no list copy: 995 ns per catch, 0.81 ms, 0 B. It fits, but the bill shows 900 ns of cold work per catch, and the goal pill still says \"Order bug\": cascades run nested.", s: { ...base, mode: "typed" } },
+    { t: "The event queue", d: "199 ns per catch: 0.33 ms per step, 0 B. But FishSystem removes fish later, from the queue: 15 double catches per step ❌.", s: { ...base, mode: "queue" } },
+    { t: "Claim now, tell later", d: "The gull claims the fish at once. Double catches: 0. Goal met. Now tick \"HUD runs before Score\": the combo shows 1 step late (16.67 ms), and nothing else changes.", s: { ...base, mode: "queue", claim: true } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $("wires").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("wires").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; const m = model(st); wires(m); timeline(m); } }).observe($("wires"));
+})();
+</script>
