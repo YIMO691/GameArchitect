@@ -33,7 +33,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 012 | Entity models, inheritance → components → ECS: the gull that broke the class tree | ✅ |
 | 013 | ECS deep dive, archetypes vs sparse sets: the storm that moved 2,400 fish per step | ✅ |
 | 014 | Events and messaging, and what they really cost: the feeding frenzy that broke the event bus | ✅ |
-| 015 | Singletons, service locators and dependency injection | ⬜ |
+| 015 | Singletons, service locators and dependency injection: the high score that reset to zero | ✅ |
 | 016 | State machines, hierarchical FSMs and behavior trees | ⬜ |
 | 017 | Command pattern: input, undo, replays | ⬜ |
 | 018 | Layered engine architecture and dependency rules | ⬜ |

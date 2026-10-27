@@ -131,6 +131,13 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <ul><li>Coupling: wires vs links</li><li>Boxing, list copies and garbage</li><li>Cascades and re-entrancy</li><li>Cold vs warm reaction work</li><li>Queues: delay, order and claiming</li></ul>
       <span class="go">Open lab →</span>
     </a>
+    <a class="card" href="015-services-lab/index.html">
+      <div class="meta"><span class="tag live">live</span><span>Lesson 015</span><span>simulation</span></div>
+      <h3>Services Lab</h3>
+      <p>The Reef's gull needs five helpers and the score needs the save system. Get them through singletons (1 bad cold start in 25, tests take 4 minutes), a service locator (0.12 ms of lookups per step, crashes on a missing fake) or dependency injection (0 bad starts, 40 tests in 20 ms).</p>
+      <ul><li>Hidden vs visible dependencies</li><li>Initialization order: who wakes first</li><li>Unit tests with fakes vs loading the scene</li><li>Lookups in a hot loop vs cached fields</li><li>Composition root and lifetimes</li></ul>
+      <span class="go">Open lab →</span>
+    </a>
   </section>
 
   <section class="panel" aria-labelledby="planH">
@@ -147,6 +154,7 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
           <tr><td>Jobs Lab</td><td class="mono">008 · 009 · 010</td><td>Threads, locks and false sharing; then job systems, task graphs and job size. Both lessons are live, plus the Module 1 challenge.</td></tr>
           <tr><td>ECS Lab</td><td class="mono">012 · 013</td><td>Inheritance vs components vs ECS and the cost of tags; then archetype tables vs sparse sets vs hybrid storage. Both lessons are live.</td></tr>
           <tr><td>Events Lab</td><td class="mono">014</td><td>Direct calls vs event bus vs typed bus vs event queue in the Feeding Frenzy: wires, garbage, cold vs warm work, and the bugs of nesting and delay. Live.</td></tr>
+          <tr><td>Services Lab</td><td class="mono">015</td><td>Singletons vs service locator vs dependency injection in the Reef: hidden helpers, start-up order, test time and lookup cost. Live.</td></tr>
           <tr><td>Draw Call &amp; Overdraw Lab</td><td class="mono">024 · 025 · 027</td><td>Batching, instancing, transparency and culling.</td></tr>
           <tr><td>Netcode Lab</td><td class="mono">048 · 049</td><td>Lag, interpolation, prediction and rollback with a fake network.</td></tr>
         </tbody>

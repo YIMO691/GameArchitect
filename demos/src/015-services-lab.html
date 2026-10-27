@@ -1,0 +1,443 @@
+<title>Services Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Dependency view and cold starts on the left, readouts and controls on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300;
+  --stripe: #c9d7e8;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --stripe: #2b3a4d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --stripe: #2b3a4d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+.pill.warn { color: var(--accent); }
+
+.view svg { display: block; width: 100%; height: auto; }
+.view text { font-family: var(--f-body); font-size: 13px; }
+.view .mono-t { font-family: var(--f-mono); font-size: 12px; }
+.flow { stroke-dasharray: 6 5; animation: march 0.9s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -11; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .bug { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-weight: 600; font-size: 14px; padding: 9px 6px; min-height: 40px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+.toggles { display: grid; gap: 8px; font-size: 14px; }
+.toggles label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.toggles label.off { opacity: 0.5; cursor: default; }
+.toggles input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; flex: none; }
+.toggles small { display: block; color: var(--muted); font-size: 12px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(10.5px, 2.9vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .ok { color: var(--good); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+
+.two { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.passes { display: grid; gap: 8px; }
+.pass { display: grid; grid-template-columns: 8.5em minmax(0, 1fr) 5.6em; gap: 10px; align-items: center; font-size: 14px; }
+.pass .track { height: 14px; background: var(--field); border: 1px solid var(--line); border-radius: 3px; position: relative; overflow: hidden; }
+.pass .fill { position: absolute; inset: 0 auto 0 0; border-radius: 0 3px 3px 0; transition: width 0.25s ease; }
+.pass .ms { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.pass small { display: block; font-size: 11px; line-height: 1.2; color: var(--muted); }
+.pass.total { border-top: 1px solid var(--line); padding-top: 8px; font-weight: 600; }
+.formula { font-family: var(--f-mono); font-size: clamp(10.5px, 2.9vw, 13px); background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; overflow-x: auto; white-space: pre; line-height: 1.6; }
+
+.tests { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); gap: 4px; }
+.tests span { aspect-ratio: 1; border-radius: 3px; background: var(--good); }
+.tests span.flaky { background: var(--accent); }
+.tests span.err { background: var(--bad); }
+.tests span.skip { background: var(--field); border: 1px dashed var(--line); }
+.tests span.slow { background: var(--good); opacity: .45; }
+.runline { font-size: 14px; margin: 0; }
+.runline .bug { color: var(--bad); font-weight: 600; }
+.runline .ok { color: var(--good); font-weight: 600; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.steps-group { display: grid; gap: 10px; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; min-height: 36px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+@media (prefers-reduced-motion: reduce) { .pass .fill { transition: none; } .flow { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/015-singletons-service-locators-dependency-injection.md">Read Lesson 015 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 015 · Lesson 015 · simulation using the lesson's numbers</div>
+    <h1>Services Lab</h1>
+    <p class="lede">The gull needs five helpers, and the score needs the save system. Get them through singletons, a service locator or dependency injection, and watch the hidden helpers, the 25 cold starts, the 40 gull tests and the step time.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Sky Hopper's Reef, 30 fps phone.</strong> Goal at 1,000+ gulls: critters ≤ 1.0 ms with no lookups in the loop, 0 hidden helpers, 0 bad cold starts with no hand-kept order list, and 40 gull tests that run in under 1 s and catch a missing fake before they run.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Dependency view, cold starts and controls">
+    <div class="panel">
+      <h2>Who gives the gull its helpers</h2>
+      <div class="view" id="deps"></div>
+      <h3>25 cold starts on Android</h3>
+      <div class="view" id="boots"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Critter step</span><span class="v" id="sStep">0</span><span class="s" id="sStepS">ms · budget 1.0</span></div>
+        <div class="stat"><span class="k">Hidden helpers</span><span class="v" id="sHidden">0</span><span class="s" id="sHiddenS">of 5</span></div>
+        <div class="stat"><span class="k">Bad cold starts</span><span class="v" id="sBoots">0</span><span class="s" id="sBootsS">of 25</span></div>
+        <div class="stat"><span class="k">40 gull tests</span><span class="v" id="sTests">0</span><span class="s" id="sTestsS">per run</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <span class="lbl"><span>How a system gets its helpers</span></span>
+          <div class="seg-ctl" role="group" aria-label="Design">
+            <button type="button" id="mSingle" aria-pressed="true">Singletons</button>
+            <button type="button" id="mLocator" aria-pressed="false">Service locator</button>
+            <button type="button" id="mDi" aria-pressed="false">Injection</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="gulls"><span>Gulls</span><span class="mono" id="gullLabel">1,000</span></label>
+          <input type="range" id="gulls" min="0" max="5000" step="250" value="1000">
+        </div>
+        <div class="toggles">
+          <label id="seoL"><input type="checkbox" id="seo"><span>Script Execution Order: SaveSystem first<small>Singletons only. A hand-kept list in Project Settings</small></span></label>
+          <label id="loopL"><input type="checkbox" id="inLoop" checked><span>Look up inside the gull loop<small>Service locator only. Off: look up once in OnCreate and keep a field</small></span></label>
+          <label id="forgetL"><input type="checkbox" id="forget"><span>A test forgets one fake (IRandom)<small>Locator and injection. Someone added a sixth helper last night</small></span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>What the profiler shows</h2>
+      <p class="fine">A Unity-style capture of one fixed step, plus the one-time cost at scene load. "Swim, Fly, Walk, events" is the 0.33 ms from Lesson 014; it stays fixed in this lab.</p>
+      <pre class="capture" id="capture"></pre>
+    </div>
+    <div class="panel">
+      <h2>Test Runner: 40 gull tests</h2>
+      <div class="tests" id="tests" aria-label="40 gull tests"></div>
+      <p class="runline" id="runline"></p>
+      <div class="legend"><span><i style="background:var(--good)"></i>pass</span><span><i style="background:var(--accent)"></i>flaky</span><span><i style="background:var(--bad)"></i>error</span><span><i style="background:var(--field);border:1px dashed var(--line)"></i>not run</span></div>
+      <pre class="formula" id="formula"></pre>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the helper lines, the 25 cold starts, the 40 tests and the four numbers. This replays the lesson's story.</p>
+    <div class="steps-group">
+      <h3>Lesson 015: singletons, service locator, dependency injection</h3>
+      <ol class="steps" id="steps"></ol>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Singletons are fast, not safe</h3><p>A static field costs about 1 ns. The bill comes elsewhere: helpers you can't see, a start-up order left to luck, and tests that need the whole Reef.</p></div>
+      <div class="note"><h3>A phone book is not a fix</h3><p>A locator lets tests use fakes, but the helpers stay hidden, a missing fake crashes at run time, and asking inside a loop costs 40 ns per question.</p></div>
+      <div class="note"><h3>Injection moves the wiring to one place</h3><p>Constructors list every helper. The container builds them in dependency order. A forgotten fake is a compile error. The price: about 2 ms at load and setup code.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. Costs come from Lesson 015 and are approximate phone numbers: a static or cached field read 1 ns; a locator Get&lt;T&gt;() 40 ns (dictionary lookup 35 + cast 5); 3 helper uses per gull per step; the rest of the critter step fixed at 0.33 ms; a PlayMode test that loads the Reef 6 s; a test with fakes 0.5 ms; a container build of 2 ms at load. The 1-in-25 bad start stands for an Awake order Unity doesn't promise; on a real device it depends on the build and the scene.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const BUDGET = 1.0, BASE = 0.33, OTHER = 1.5, USES = 3, TESTS = 40, BOOTS = 25, BAD_BOOT = 17;
+  const FLAKY = [9, 22, 31];                       // 1-based test numbers that fail at random with shared GameRandom
+  const st = { mode: "single", gulls: 1000, seo: false, inLoop: true, forget: false };
+  const HELPERS = ["FishIndex", "Ocean", "GameRandom", "EventQueues", "GameClock"];
+
+  function model(s) {
+    const lookup = s.mode === "locator" && s.inLoop;
+    const ns = lookup ? 40 : 1;
+    const uses = s.gulls * USES;
+    const access = (uses * ns) / 1e6;
+    const r = { lookup, ns, uses, access, total: BASE + access };
+    r.hidden = s.mode === "di" ? 0 : 5;
+    r.bad = s.mode === "single" && !s.seo ? 1 : 0;
+    r.handOrder = (s.mode === "single" && s.seo) || s.mode === "locator";
+    r.load = s.mode === "di" ? 2.0 : 0;
+    if (s.mode === "single") { r.tests = "slow"; r.testMs = TESTS * 6000; r.flaky = FLAKY.length; r.errors = 0; r.run = TESTS; }
+    else if (s.forget && s.mode === "locator") { r.tests = "runtime"; r.testMs = TESTS * 0.5; r.flaky = 0; r.errors = TESTS; r.run = TESTS; }
+    else if (s.forget && s.mode === "di") { r.tests = "compile"; r.testMs = 0; r.flaky = 0; r.errors = 0; r.run = 0; }
+    else { r.tests = "fast"; r.testMs = TESTS * 0.5; r.flaky = 0; r.errors = 0; r.run = TESTS; }
+    return r;
+  }
+  const fmtInt = (v) => Math.round(v).toLocaleString("en-US");
+  const f2 = (v) => (Math.round(v * 100 + 1e-7) / 100).toFixed(2);
+  const f3 = (v) => (Math.round(v * 1000 + 1e-7) / 1000).toFixed(3);
+  const testTime = (ms) => (ms >= 60000 ? (ms / 60000).toFixed(1) + " min" : ms >= 1000 ? (ms / 1000).toFixed(1) + " s" : fmtInt(ms) + " ms");
+
+  // ---------- dependency view ----------
+  function deps(m) {
+    const W = Math.max(300, Math.min(640, Math.round($("deps").clientWidth || 600)));
+    const narrow = W < 440;
+    const rowH = 38, top = 10, H = top + 6 * rowH + 30;
+    const lw = Math.round(W * (narrow ? 0.34 : 0.3)), hx = W - Math.round(W * (narrow ? 0.31 : 0.26)) - 2, hw = W - hx - 2;
+    const hy = (i) => top + i * rowH;
+    const gy = top + 0.5 * rowH, gh = 4 * rowH - 2;        // gull box spans helper rows 0..4
+    const sy = hy(5), sh = 30;
+    const mode = st.mode;
+    const col = mode === "di" ? "--good" : mode === "locator" ? "--cpu" : "--muted";
+    const dash = mode === "di" ? "" : ";stroke-dasharray:5 4";
+    let g = `<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" style="fill:var(${col})"/></marker></defs>`;
+    const line = (x1, y1, x2, y2, extra = "") => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:var(${col});stroke-width:1.6${dash}${extra}" marker-end="url(#arr)"/>`;
+    const gx2 = 2 + lw;
+    if (mode === "locator") {
+      const bx = Math.round(W * (narrow ? 0.43 : 0.42)), bw = Math.round(W * (narrow ? 0.16 : 0.16)), by = top + 4, bh = 6 * rowH - 8;
+      g += line(gx2, gy + gh / 2, bx - 2, gy + gh / 2, st.inLoop ? "" : ";opacity:.6");
+      g += line(gx2, sy + sh / 2, bx - 2, sy + sh / 2);
+      for (let i = 0; i < 6; i++) g += line(bx + bw, hy(i) + 15, hx - 2, hy(i) + 15);
+      g += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="8" style="fill:var(--field);stroke:var(--cpu);stroke-width:1.5"/>`;
+      g += `<text x="${bx + bw / 2}" y="${by + bh / 2 - 8}" text-anchor="middle" style="fill:var(--ink);font-weight:600">📒</text>`;
+      g += `<text x="${bx + bw / 2}" y="${by + bh / 2 + 12}" text-anchor="middle" style="fill:var(--ink);font-weight:600;font-size:${narrow ? 11 : 13}px">Services</text>`;
+      if (st.inLoop && st.gulls > 0) g += `<text x="${bx + bw / 2}" y="${by + bh - 26}" text-anchor="middle" class="mono-t" style="fill:var(--bad);font-size:11px">×${fmtInt(m.uses)}</text><text x="${bx + bw / 2}" y="${by + bh - 12}" text-anchor="middle" class="mono-t" style="fill:var(--bad);font-size:11px">/ step</text>`;
+    } else {
+      for (let i = 0; i < 5; i++) g += line(gx2, gy + 18 + i * ((gh - 36) / 4), hx - 2, hy(i) + 15);
+      g += line(gx2, sy + sh / 2, hx - 2, hy(5) + 15);
+    }
+    // gull box
+    const gc = mode === "di" ? "--good" : "--bad";
+    g += `<rect x="2" y="${gy}" width="${lw}" height="${gh}" rx="8" style="fill:var(--panel);stroke:var(${gc});stroke-width:1.6"/>`;
+    g += `<text x="${2 + lw / 2}" y="${gy + gh / 2 - 10}" text-anchor="middle" style="fill:var(--ink);font-weight:600;font-size:${narrow ? 12 : 13}px">🐦 GullDive</text>`;
+    const sub = mode === "di" ? ["constructor:", "5 helpers"] : ["header:", "0 helpers"];
+    sub.forEach((s, k) => { g += `<text x="${2 + lw / 2}" y="${gy + gh / 2 + 10 + k * 15}" text-anchor="middle" class="mono-t" style="fill:var(${gc});font-size:11px">${s}</text>`; });
+    // score box
+    g += `<rect x="2" y="${sy}" width="${lw}" height="${sh}" rx="6" style="fill:var(--panel);stroke:var(${m.bad ? "--bad" : "--line"});stroke-width:1.5"/>`;
+    g += `<text x="${2 + lw / 2}" y="${sy + 20}" text-anchor="middle" style="fill:var(--ink);font-size:${narrow ? 12 : 13}px">🏆 Score</text>`;
+    // helpers
+    HELPERS.concat(["💾 SaveSystem"]).forEach((n, i) => {
+      g += `<rect x="${hx}" y="${hy(i)}" width="${hw}" height="30" rx="6" style="fill:var(--panel);stroke:var(${mode === "di" ? "--good" : "--line"});stroke-width:1.5"/>`;
+      g += `<text x="${hx + hw / 2}" y="${hy(i) + 20}" text-anchor="middle" style="fill:var(--ink);font-size:${narrow ? 11.5 : 13}px">${n}</text>`;
+    });
+    const how = mode === "single" ? "dashed = .Instance, found by reading the body" : mode === "locator" ? (st.inLoop ? "dashed = Get<T>(), asked inside the loop" : "dashed = Get<T>(), asked once in OnCreate") : "solid = handed in through the constructor";
+    g += `<text x="2" y="${H - 6}" style="fill:var(${mode === "di" ? "--good" : "--muted"});font-weight:600;font-size:${narrow ? 11.5 : 13}px">${how.replace("<", "&lt;").replace(">", "&gt;")}</text>`;
+    $("deps").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="GullDiveSystem, Score and their helpers">${g}</svg>`;
+  }
+
+  // ---------- 25 cold starts ----------
+  function boots(m) {
+    const W = Math.max(300, Math.min(640, Math.round($("boots").clientWidth || 600)));
+    const cell = (W - 4) / BOOTS, rr = Math.min(9, cell / 2 - 1.5), H = 48;
+    let g = "";
+    for (let i = 1; i <= BOOTS; i++) {
+      const bad = m.bad && i === BAD_BOOT;
+      const cx = 2 + (i - 0.5) * cell;
+      g += `<circle cx="${cx}" cy="14" r="${rr}" style="fill:var(${bad ? "--bad" : "--good"})"><title>Start ${i}: ${bad ? "ScoreManager woke first, high score 0" : "high score 12,480"}</title></circle>`;
+      if (i === 1 || i === BOOTS || bad) g += `<text x="${cx}" y="40" text-anchor="${i === 1 ? "start" : i === BOOTS ? "end" : "middle"}" class="mono-t" style="fill:var(${bad ? "--bad" : "--muted"});font-size:11px">#${i}</text>`;
+    }
+    $("boots").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="25 cold starts, ${m.bad} bad">${g}</svg>`;
+  }
+
+  // ---------- render ----------
+  function render() {
+    const m = model(st);
+    deps(m); boots(m);
+    const over = m.total > BUDGET + 1e-9;
+    $("sStep").textContent = f2(m.total); $("sStep").className = "v " + (over ? "bad" : "good");
+    $("sStepS").textContent = `ms · budget 1.0 · helpers ${f3(m.access)}`;
+    $("sHidden").textContent = m.hidden; $("sHidden").className = "v " + (m.hidden ? "bad" : "good");
+    $("sHiddenS").textContent = m.hidden ? "of 5 · found by reading the body" : "of 5 · all 5 in the constructor";
+    $("sBoots").textContent = m.bad; $("sBoots").className = "v " + (m.bad ? "bad" : "good");
+    $("sBootsS").textContent = m.bad ? `of ${BOOTS} · start #${BAD_BOOT} lost the high score` : m.handOrder ? `of ${BOOTS} · order kept by hand` : `of ${BOOTS} · order from constructors`;
+    const tv = $("sTests");
+    if (m.tests === "compile") { tv.textContent = "0 run"; tv.className = "v good"; $("sTestsS").textContent = "1 compile error, caught at once"; }
+    else if (m.tests === "runtime") { tv.textContent = "40 ✗"; tv.className = "v bad"; $("sTestsS").textContent = "errors at run time"; }
+    else { tv.textContent = testTime(m.testMs); tv.className = "v " + (m.testMs > 1000 ? "bad" : "good"); $("sTestsS").textContent = m.flaky ? `per run · ${m.flaky} flaky` : "per run · all pass"; }
+    $("gullLabel").textContent = fmtInt(st.gulls);
+    for (const [id, v] of [["mSingle", "single"], ["mLocator", "locator"], ["mDi", "di"]]) $(id).setAttribute("aria-pressed", st.mode === v);
+    $("seo").disabled = st.mode !== "single"; $("seoL").classList.toggle("off", st.mode !== "single");
+    $("inLoop").disabled = st.mode !== "locator"; $("loopL").classList.toggle("off", st.mode !== "locator");
+    $("forget").disabled = st.mode === "single"; $("forgetL").classList.toggle("off", st.mode === "single");
+
+    const goal = st.gulls >= 1000 && !over && !m.lookup && m.hidden === 0 && m.bad === 0 && !m.handOrder && m.tests === "fast";
+    const pill = $("goalPill");
+    pill.className = "pill " + (goal ? "ok" : st.gulls < 1000 ? "warn" : "over");
+    pill.textContent = goal ? "Goal met" : st.gulls < 1000 ? "Try 1,000+ gulls" : over ? "Over budget" : m.bad ? "High score lost" : m.tests === "slow" ? "Tests too slow" : m.tests === "runtime" ? "Tests crash" : m.tests === "compile" ? "Fix the compile error" : m.lookup ? "Lookups in the loop" : m.hidden ? "Hidden helpers" : m.handOrder ? "Order kept by hand" : "Not yet";
+
+    // coach
+    let c = "";
+    if (st.mode === "single") {
+      c = `Each helper is a static field: ${fmtInt(m.uses)} uses × 1 ns = ${f3(m.access)} ms. Fast. But GullDive's header shows 0 helpers, and every test must load the whole Reef (6 s).`;
+      c += m.bad ? ` <span class="bug">Start #${BAD_BOOT}:</span> ScoreManager woke before SaveSystem, read a high score of 0, and later saved 3,150 over 12,480.` : ` Script Execution Order forces SaveSystem first: 0 bad starts, but only while someone keeps that list.`;
+    } else if (st.mode === "locator") {
+      c = m.lookup ? `Every gull asks the phone book 3 times per step: ${fmtInt(m.uses)} × 40 ns = ${f2(m.access)} ms, for answers that never change.` : `Looked up once and kept in fields: ${fmtInt(m.uses)} × 1 ns = ${f3(m.access)} ms.`;
+      c += ` The bootstrap registers SaveSystem before Score by hand, so starts are fine. The helpers are still hidden: search for Get&lt;.`;
+      if (m.tests === "runtime") c += ` <span class="bug">IRandom was never registered:</span> all 40 tests throw KeyNotFoundException when they run.`;
+    } else {
+      c = `GullDive receives its 5 helpers in its constructor and keeps them in fields: ${f3(m.access)} ms. The container builds SaveSystem before ScoreService because ScoreService's constructor needs it. Cost: ${m.load.toFixed(1)} ms once, at scene load.`;
+      if (m.tests === "compile") c += ` The test calls the old constructor, so it <strong>does not compile</strong>: you find out in seconds, before any test runs.`;
+    }
+    $("coach").innerHTML = c;
+
+    // capture
+    const row = (label, ms, extra = "", dec = 2) => label + " ".repeat(Math.max(1, 36 - label.replace(/<[^>]+>/g, "").length)) + (dec === 3 ? f3(ms) : f2(ms)).padStart(5, " ") + " ms" + extra + "\n";
+    const name = st.mode === "single" ? "singletons" : st.mode === "locator" ? (m.lookup ? "locator, lookups in loop" : "locator, cached") : "injection";
+    let cap = `<span class="dim">Reef · ${fmtInt(st.gulls)} gulls · ${name}</span>\n`;
+    cap += row("FixedStep", OTHER + m.total);
+    cap += row("├─ Physics, other", OTHER);
+    cap += row("└─ Critter systems", m.total, over ? `  <span class="warn">◀ budget 1.0</span>` : `  <span class="ok">✓</span>`);
+    cap += row("   ├─ Swim, Fly, Walk, events", BASE);
+    if (m.lookup) cap += row(`   └─ Services.Get<T> ×${fmtInt(m.uses)}`, m.access, `  <span class="warn">◀ 40 ns each</span>`).replace("<T>", "&lt;T&gt;");
+    else cap += row(`   └─ helper fields ×${fmtInt(m.uses)}`, m.access, "  1 ns each", 3);
+    cap += `\n<span class="dim">Scene load, once</span>\n`;
+    if (st.mode === "di") cap += row("LifetimeScope.Build (24 types)", m.load, "", 2);
+    else if (st.mode === "locator") cap += row("Bootstrap.Register ×24", 0.0, "  order by hand");
+    else cap += row("Awake ×24", 0.0, m.bad ? `  <span class="warn">order by luck</span>` : "  order by settings list");
+    $("capture").innerHTML = cap;
+
+    // tests
+    let dots = "";
+    for (let i = 1; i <= TESTS; i++) {
+      let cls = "";
+      if (m.tests === "compile") cls = "skip";
+      else if (m.tests === "runtime") cls = "err";
+      else if (m.tests === "slow") cls = FLAKY.includes(i) ? "flaky" : "slow";
+      dots += `<span class="${cls}" title="Test ${i}"></span>`;
+    }
+    $("tests").innerHTML = dots;
+    let rl = "";
+    if (m.tests === "slow") rl = `<span class="bug">PlayMode: each test loads the Reef.</span> 40 run in ${testTime(m.testMs)}; ${m.flaky} fail at random because GameRandom.Instance is shared between tests.`;
+    else if (m.tests === "runtime") rl = `<span class="bug">40 errors at run time:</span> KeyNotFoundException: IRandom. The code compiled fine.`;
+    else if (m.tests === "compile") rl = `<span class="ok">Caught before running:</span> error CS7036, no argument given for 'rng' in GullDiveSystem's constructor. 0 tests run.`;
+    else rl = `<span class="ok">EditMode with fakes:</span> 40 pass in ${testTime(m.testMs)}. No scene, no shared state.`;
+    $("runline").innerHTML = rl;
+    $("formula").textContent =
+      `Helpers: ${fmtInt(st.gulls)} gulls × 3 × ${m.ns} ns = ${m.lookup ? f2(m.access) : f3(m.access)} ms\n` +
+      `Step:    0.33 + ${m.lookup ? f2(m.access) : f3(m.access)} = ${f2(m.total)} ms per step\n` +
+      (m.tests === "slow" ? `Tests:   40 × 6 s = 240 s = 4.0 min` : m.tests === "compile" ? `Tests:   0 run, 1 compile error` : m.tests === "runtime" ? `Tests:   40 run, 40 errors (IRandom missing)` : `Tests:   40 × 0.5 ms = 20 ms`);
+  }
+
+  // ---------- controls ----------
+  for (const [id, v] of [["mSingle", "single"], ["mLocator", "locator"], ["mDi", "di"]]) $(id).addEventListener("click", () => { st.mode = v; render(); });
+  $("gulls").addEventListener("input", (e) => { st.gulls = +e.target.value; render(); });
+  for (const k of ["seo", "inLoop", "forget"]) $(k).addEventListener("change", (e) => { st[k] = e.target.checked; render(); });
+  function apply(s) {
+    Object.assign(st, s);
+    $("gulls").value = st.gulls;
+    for (const k of ["seo", "inLoop", "forget"]) $(k).checked = st[k];
+    render();
+  }
+
+  // ---------- guided steps ----------
+  const base = { gulls: 1000, seo: false, inLoop: true, forget: false };
+  const STEPS = [
+    { t: "Singletons in the Reef", d: "1,000 gulls, 3 helpers each: 3,000 × 1 ns = 0.003 ms, so the step stays at 0.33 ms. But 5 hidden helpers, start #17 loses the high score (1 of 25), and the 40 tests take 4.0 min with 3 flaky.", s: { ...base, mode: "single" } },
+    { t: "Fix the order by hand", d: "Script Execution Order puts SaveSystem first: 0 of 25 bad starts. The tests still take 4.0 min, and the goal pill now says the tests are too slow.", s: { ...base, mode: "single", seo: true } },
+    { t: "A phone book, asked in the loop", d: "Service locator. Tests use fakes: 40 pass in 20 ms. But 3,000 Get<T>() calls × 40 ns = 0.12 ms: the step grows to 0.45 ms. Still 5 hidden helpers.", s: { ...base, mode: "locator" } },
+    { t: "Someone forgot a fake", d: "A sixth helper, IRandom, was added last night. The tests compile, then all 40 throw KeyNotFoundException at run time.", s: { ...base, mode: "locator", forget: true } },
+    { t: "5,000 gulls, then cache", d: "15,000 lookups × 40 ns = 0.60 ms: the step is 0.93 ms, almost the whole budget. Now untick \"Look up inside the gull loop\": 0.015 ms, and the step drops to 0.35 ms.", s: { ...base, mode: "locator", gulls: 5000 } },
+    { t: "Dependency injection", d: "Back to 1,000 gulls. 0 hidden helpers, 0 bad starts from constructor order, 40 tests in 20 ms, step 0.33 ms. Cost: 2.0 ms once, at scene load. Goal met.", s: { ...base, mode: "di" } },
+    { t: "Forget a fake, with injection", d: "The same missing IRandom is now a compile error. 0 tests run, and you know in seconds which test to fix.", s: { ...base, mode: "di", forget: true } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d.replace("<T>", "&lt;T&gt;")}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $("deps").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("deps").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; const m = model(st); deps(m); boots(m); } }).observe($("deps"));
+})();
+</script>
