@@ -1,0 +1,622 @@
+<title>Gull Brain Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Brain picture and sample gulls on the left, readouts and controls on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300;
+  --stripe: #c9d7e8;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --stripe: #2b3a4d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --stripe: #2b3a4d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+.pill.warn { color: var(--accent); }
+
+.view svg { display: block; width: 100%; height: auto; }
+#reef { display: block; width: 100%; height: 210px; border: 1px solid var(--line); border-radius: 8px; }
+.view text { font-family: var(--f-body); font-size: 13px; }
+.view .mono-t { font-family: var(--f-mono); font-size: 12px; }
+.flow { stroke-dasharray: 6 5; animation: march 0.9s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -11; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .bug { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-weight: 600; font-size: 14px; padding: 9px 6px; min-height: 40px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+.toggles { display: grid; gap: 8px; font-size: 14px; }
+.toggles label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.toggles label.off { opacity: 0.5; cursor: default; }
+.toggles input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; flex: none; }
+.toggles small { display: block; color: var(--muted); font-size: 12px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(10.5px, 2.9vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .ok { color: var(--good); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+
+.two { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.passes { display: grid; gap: 8px; }
+.pass { display: grid; grid-template-columns: 8.5em minmax(0, 1fr) 5.6em; gap: 10px; align-items: center; font-size: 14px; }
+.pass .track { height: 14px; background: var(--field); border: 1px solid var(--line); border-radius: 3px; position: relative; overflow: hidden; }
+.pass .fill { position: absolute; inset: 0 auto 0 0; border-radius: 0 3px 3px 0; transition: width 0.25s ease; }
+.pass .ms { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.pass small { display: block; font-size: 11px; line-height: 1.2; color: var(--muted); }
+.pass.total { border-top: 1px solid var(--line); padding-top: 8px; font-weight: 600; }
+.formula { font-family: var(--f-mono); font-size: clamp(10.5px, 2.9vw, 13px); background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; overflow-x: auto; white-space: pre; line-height: 1.6; }
+
+.runline { font-size: 14px; margin: 0; }
+.runline .bug { color: var(--bad); font-weight: 600; }
+.runline .ok { color: var(--good); font-weight: 600; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.steps-group { display: grid; gap: 10px; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; min-height: 36px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+@media (prefers-reduced-motion: reduce) { .pass .fill { transition: none; } .flow { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/016-state-machines-hfsm-behavior-trees.md">Read Lesson 016 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 016 · Lesson 016 · simulation using the lesson's numbers</div>
+    <h1>Gull Brain Lab</h1>
+    <p class="lede">The Reef's gulls must circle, dive, carry, eat, rest and flee, and later shelter from storms and get stunned. Give them a brain made of flags, a state machine, a hierarchical state machine or a behavior tree, and watch the stuck gulls, the arrows you must write by hand and the step time.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Sky Hopper's Reef, 30 fps phone.</strong> Goal at 1,000+ gulls with storm and stun added: 0 wrong gulls, critters ≤ 1.0 ms per step, and a new behaviour (Steal) costs at most 3 edits.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Gull brain, sample gulls and controls">
+    <div class="panel">
+      <h2 id="brainH">The gull's brain</h2>
+      <div class="view" id="brain"></div>
+      <p class="fine" id="brainNote"></p>
+      <h3 id="reefH">40 sample gulls</h3>
+      <canvas id="reef" height="210" aria-label="40 sample gulls over the Reef"></canvas>
+      <div class="legend" id="legend"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Critter step</span><span class="v" id="sStep">0</span><span class="s" id="sStepS">ms · budget 1.0</span></div>
+        <div class="stat"><span class="k">Wrong gulls</span><span class="v" id="sWrong">0</span><span class="s" id="sWrongS"></span></div>
+        <div class="stat"><span class="k">Arrows by hand</span><span class="v" id="sArrows">0</span><span class="s" id="sArrowsS"></span></div>
+        <div class="stat"><span class="k">Add "Steal"</span><span class="v" id="sSteal">0</span><span class="s" id="sStealS"></span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <span class="lbl"><span>The gull's brain is made of</span></span>
+          <div class="seg-ctl" role="group" aria-label="Brain design">
+            <button type="button" id="mFlags" aria-pressed="true">Flags</button>
+            <button type="button" id="mFsm" aria-pressed="false">FSM</button>
+            <button type="button" id="mHfsm" aria-pressed="false">HFSM</button>
+            <button type="button" id="mTree" aria-pressed="false">Tree</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="gulls"><span>Gulls</span><span class="mono" id="gullLabel">1,000</span></label>
+          <input type="range" id="gulls" min="0" max="5000" step="250" value="1000">
+        </div>
+        <div class="toggles">
+          <label id="featL"><input type="checkbox" id="feat"><span>Storm and stun added<small>Two new interrupts: Shelter (storm) and Stunned (hit by the hook)</small></span></label>
+          <label id="forgotL"><input type="checkbox" id="forgot"><span>Forgot one arrow: Carry → Shelter<small>FSM only, with storm and stun. One missing line in 27</small></span></label>
+          <label id="bbL"><input type="checkbox" id="bb"><span>Blackboard: sense once per step<small>Tree only. Off: each condition node searches the world itself (300 ns)</small></span></label>
+          <label id="resumeL"><input type="checkbox" id="resume"><span>Resume the running action<small>Tree only. Off: every gull walks the tree from the root every step</small></span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>What the profiler shows</h2>
+      <p class="fine">A Unity-style capture of one fixed step. "Swim, Fly, Walk, events" is the 0.33 ms from Lessons 014 and 015; it stays fixed in this lab.</p>
+      <pre class="capture" id="capture"></pre>
+    </div>
+    <div class="panel">
+      <h2>The designer asks for "Steal"</h2>
+      <p class="fine">A gull with no fish nearby may rob a gull that has one. What must you write to add it?</p>
+      <pre class="formula" id="formula"></pre>
+      <p class="runline" id="stealLine"></p>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the brain picture, the sample gulls and the four numbers. This replays the lesson's story.</p>
+    <div class="steps-group">
+      <h3>Lesson 016: flags, state machines, hierarchical state machines, behavior trees</h3>
+      <ol class="steps" id="steps"></ol>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Flags allow impossible gulls</h3><p>5 booleans make 32 combinations, and only 6 mean something. One missed "isDiving = false" left 46 of 1,000 gulls hovering forever. A state machine can only be in one state.</p></div>
+      <div class="note"><h3>Group the interrupts</h3><p>A flat state machine needs an arrow from every state to every interrupt: 27 arrows, and one forgotten arrow means 120 gulls fly through the storm. A hierarchical one writes each interrupt once: 13 arrows.</p></div>
+      <div class="note"><h3>Trees decide, but cost more</h3><p>A behavior tree turns priorities into the order of its branches, so Steal is 1 new branch. Walking it from the root with world searches inside costs 1.21 ms. A blackboard and resuming the running action bring it to 0.61 ms.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. Costs come from Lesson 016 and are approximate phone numbers: brain per gull 4 ns (flags), 6 ns (FSM), 12 ns (HFSM); a tree node 20 ns; a world search inside a condition 300 ns; one batched sensing pass 150 ns per gull; a tree from the root visits 14 nodes on average (10 without storm and stun) and about 2 world searches; a resumed gull visits 4 nodes (2 without storm and stun) and 1 search; 75% of gulls are in the middle of an action. Swim, Fly, Walk and events stay at 0.33 ms. Stuck and wrong gulls (4.6% with flags, 12% carrying when the storm hits) come from the lesson's playtests. The 40 sample gulls are drawn from a simple timed script, not a real AI.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const BUDGET = 1.0, BASE = 0.33, OTHER = 1.5;
+  const st = { mode: "flags", gulls: 1000, feat: false, forgot: false, bb: false, resume: false };
+  const RUNNING = 0.75, NODE = 20, QUERY = 300, SENSE = 150;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+
+  // states: order used by the matrix
+  const S6 = ["Circle", "Dive", "Carry", "Eat", "Rest", "Flee"];
+  const S8 = S6.concat(["Shelter", "Stun"]);
+  function flatArrows(feat, forgot) {
+    const a = [["Circle", "Dive"], ["Dive", "Carry"], ["Dive", "Circle"], ["Carry", "Eat"], ["Eat", "Rest"], ["Rest", "Circle"]].map((x) => x.concat("feed"));
+    for (const s of ["Circle", "Dive", "Carry", "Eat", "Rest"]) a.push([s, "Flee", "flee"]);
+    a.push(["Flee", "Circle", "flee"]);
+    if (feat) {
+      for (const s of ["Circle", "Dive", "Carry", "Eat", "Rest", "Flee"]) if (!(forgot && s === "Carry")) a.push([s, "Shelter", "shelter"]);
+      a.push(["Shelter", "Circle", "shelter"]);
+      for (const s of ["Circle", "Dive", "Carry", "Eat", "Rest", "Flee", "Shelter"]) a.push([s, "Stun", "stun"]);
+      a.push(["Stun", "Circle", "stun"]);
+    }
+    return a;
+  }
+
+  function model(s) {
+    const g = s.gulls, r = {};
+    const forgot = s.mode === "fsm" && s.feat && s.forgot;
+    r.forgot = forgot;
+    r.sense = 0; r.brain = 0; r.query = 0;
+    if (s.mode === "flags") { r.brainNs = 4; r.brain = g * 4 / 1e6; r.sense = g * SENSE / 1e6; }
+    else if (s.mode === "fsm") { r.brainNs = 6; r.brain = g * 6 / 1e6; r.sense = g * SENSE / 1e6; }
+    else if (s.mode === "hfsm") { r.brainNs = 12; r.brain = g * 12 / 1e6; r.sense = g * SENSE / 1e6; }
+    else {
+      const rootN = s.feat ? 14 : 10, runN = s.feat ? 4 : 2;
+      const nodes = s.resume ? RUNNING * runN + (1 - RUNNING) * rootN : rootN;
+      const queries = s.bb ? 0 : (s.resume ? RUNNING * 1 + (1 - RUNNING) * 2 : 2);
+      r.nodes = nodes; r.queries = queries; r.rootN = rootN; r.runN = runN;
+      r.brain = g * nodes * NODE / 1e6;
+      r.query = g * queries * QUERY / 1e6;
+      r.sense = s.bb ? g * SENSE / 1e6 : 0;
+      r.brainNs = nodes * NODE;
+    }
+    r.total = BASE + r.sense + r.brain + r.query;
+    r.wrong = s.mode === "flags" ? Math.round(g * 0.046) : forgot ? Math.round(g * 0.12) : 0;
+    r.nFlags = s.feat ? 7 : 5;
+    r.combos = 2 ** r.nFlags; r.legal = r.nFlags + 1;
+    r.arrows = s.mode === "fsm" ? flatArrows(s.feat, forgot).length : s.mode === "hfsm" ? (s.feat ? 13 : 8) : 0;
+    r.branches = s.feat ? 7 : 5;
+    r.steal = s.mode === "flags" ? 1 : s.mode === "fsm" ? (s.feat ? 6 : 4) : s.mode === "hfsm" ? 3 : 1;
+    return r;
+  }
+  const fmtInt = (v) => Math.round(v).toLocaleString("en-US");
+  const f2 = (v) => (Math.round(v * 100 + 1e-7) / 100).toFixed(2);
+  const f3 = (v) => (Math.round(v * 1000 + 1e-7) / 1000).toFixed(3);
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const STATE_COL = { Circle: "--p1", Dive: "--p3", Carry: "--p4", Eat: "--p2", Rest: "--muted", Flee: "--cpu", Shelter: "--p5", Stun: "--ink" };
+  const GROUP_COL = { feed: "--p1", flee: "--cpu", shelter: "--p5", stun: "--p2" };
+
+  // ---------- brain view ----------
+  const note = (h) => { $("brainNote").innerHTML = h; };
+  function viewW() { return Math.max(300, Math.min(640, Math.round($("brain").clientWidth || 600))); }
+  function drawFlags(m) {
+    const W = viewW(), n = m.nFlags, total = m.combos, cols = 16, rows = total / cols;
+    const names = ["Dive", "Carry", "Eat", "Rest", "Flee", "Shelter", "Stun"].slice(0, n);
+    const cw = (W - 4) / cols, ch = Math.min(cw, n === 5 ? 34 : 22), top = 4;
+    let g = "";
+    for (let c = 0; c < total; c++) {
+      const bits = []; for (let b = 0; b < n; b++) if (c & (1 << b)) bits.push(names[b]);
+      const legal = bits.length <= 1, stuck = bits.length === 2 && bits.includes("Dive") && bits.includes("Flee");
+      const x = 2 + (c % cols) * cw, y = top + Math.floor(c / cols) * ch;
+      const fill = stuck ? "--bad" : legal ? "--good" : "--field";
+      const stroke = legal || stuck ? fill : "--bad";
+      g += `<rect x="${x + 1.5}" y="${y + 1.5}" width="${cw - 3}" height="${ch - 3}" rx="3" style="fill:var(${fill});stroke:var(${stroke});stroke-width:1;${legal || stuck ? "" : "stroke-opacity:.45"}"><title>${bits.length ? bits.join(" + ") : "all false = Circle"}${legal ? " (legal)" : stuck ? " (the hovering gull)" : " (impossible)"}</title></rect>`;
+    }
+    const gy = top + rows * ch + 4;
+    note(`<strong>${n} flags → 2^${n} = ${total} combinations.</strong> <span style="color:var(--good)">Green: ${m.legal} legal.</span> <span style="color:var(--bad)">Pale red: ${total - m.legal} impossible. Solid red: isDiving + isFleeing, climb −6 + 6 = 0 m/s.</span>`);
+    $("brain").innerHTML = `<svg viewBox="0 0 ${W} ${gy}" role="img" aria-label="${total} flag combinations, ${m.legal} legal">${g}</svg>`;
+    $("brainH").textContent = "The gull's brain: flags";
+  }
+  function drawMatrix(m) {
+    const W = viewW(), S = st.feat ? S8 : S6, n = S.length, narrow = W < 440;
+    const lab = narrow ? 52 : 64, cell = Math.min(38, (W - lab - 6) / n), top = 22;
+    const arrows = flatArrows(st.feat, false), have = new Set(flatArrows(st.feat, m.forgot).map((a) => a[0] + ">" + a[1]));
+    let g = `<text x="2" y="14" class="mono-t" style="fill:var(--muted)">from ↓  to →</text>`;
+    S.forEach((s, i) => {
+      g += `<text x="${lab + i * cell + cell / 2}" y="${top + 2}" text-anchor="end" transform="rotate(-50 ${lab + i * cell + cell / 2} ${top + 2})" style="fill:var(--ink);font-size:${narrow ? 10.5 : 12}px" dy="-2">${s}</text>`;
+    });
+    const y0 = top + 46;
+    S.forEach((s, r) => {
+      g += `<text x="${lab - 6}" y="${y0 + r * cell + cell / 2 + 4}" text-anchor="end" style="fill:var(--ink);font-size:${narrow ? 10.5 : 12}px">${s}</text>`;
+      S.forEach((t, c) => {
+        const x = lab + c * cell, y = y0 + r * cell;
+        const a = arrows.find((q) => q[0] === s && q[1] === t);
+        let style = "fill:var(--field);stroke:var(--line)";
+        if (a && have.has(s + ">" + t)) style = `fill:var(${GROUP_COL[a[2]]});stroke:var(--panel)`;
+        else if (a) style = "fill:none;stroke:var(--bad);stroke-width:2;stroke-dasharray:4 3";
+        if (r === c) style = "fill:var(--line);stroke:var(--line);opacity:.5";
+        g += `<rect x="${x + 1}" y="${y + 1}" width="${cell - 2}" height="${cell - 2}" rx="3" style="${style}"><title>${s} → ${t}${a ? (have.has(s + ">" + t) ? "" : " (forgotten!)") : ""}</title></rect>`;
+        if (a && !have.has(s + ">" + t)) g += `<text x="${x + cell / 2}" y="${y + cell / 2 + 5}" text-anchor="middle" style="fill:var(--bad);font-weight:700">!</text>`;
+      });
+    });
+    const yb = y0 + n * cell + 4;
+    const parts = st.feat ? `6 feeding + 6 Flee + ${m.forgot ? 6 : 7} Shelter + 8 Stun` : "6 feeding + 6 Flee";
+    note(`<strong>${m.arrows} arrows written by hand</strong> (row = from, column = to): ${parts}.${m.forgot ? ' <span style="color:var(--bad)">Dashed red: the forgotten Carry → Shelter.</span>' : ""}`);
+    $("brain").innerHTML = `<svg viewBox="0 0 ${W} ${yb}" role="img" aria-label="Transition matrix, ${m.arrows} arrows">${g}</svg>`;
+    $("brainH").textContent = "The gull's brain: flat state machine";
+  }
+  function drawHfsm(m) {
+    const W = viewW(), narrow = W < 440, fs = narrow ? 10.5 : 12;
+    let g = "";
+    // left: inner Feeding 5x5
+    const inner = ["Circle", "Dive", "Carry", "Eat", "Rest"], ia = [["Circle", "Dive"], ["Dive", "Carry"], ["Dive", "Circle"], ["Carry", "Eat"], ["Eat", "Rest"], ["Rest", "Circle"]];
+    const half = (W - 12) / 2, lab = narrow ? 44 : 52, cell = Math.min(30, (half - lab - 4) / 5), top = 18;
+    g += `<text x="2" y="12" style="fill:var(--ink);font-weight:600;font-size:${fs}px">Inside Feeding: 6</text>`;
+    const y0 = top + 40;
+    inner.forEach((s, i) => { g += `<text x="${lab + i * cell + cell / 2}" y="${y0 - 6}" text-anchor="start" transform="rotate(-55 ${lab + i * cell + cell / 2} ${y0 - 6})" style="fill:var(--ink);font-size:${fs}px">${s}</text>`; });
+    inner.forEach((s, r) => {
+      g += `<text x="${lab - 5}" y="${y0 + r * cell + cell / 2 + 4}" text-anchor="end" style="fill:var(--ink);font-size:${fs}px">${s}</text>`;
+      inner.forEach((t, c) => {
+        const on = ia.some((q) => q[0] === s && q[1] === t);
+        const style = r === c ? "fill:var(--line);opacity:.5" : on ? "fill:var(--p1);stroke:var(--panel)" : "fill:var(--field);stroke:var(--line)";
+        g += `<rect x="${lab + c * cell + 1}" y="${y0 + r * cell + 1}" width="${cell - 2}" height="${cell - 2}" rx="3" style="${style}"/>`;
+      });
+    });
+    // right: top level
+    const T = st.feat ? ["Feeding", "Flee", "Shelter", "Stun"] : ["Feeding", "Flee"];
+    const ox = half + 12, lab2 = narrow ? 50 : 60, cell2 = Math.min(38, (W - ox - lab2 - 4) / 4);
+    g += `<text x="${ox}" y="12" style="fill:var(--ink);font-weight:600;font-size:${fs}px">Top level: ${st.feat ? 7 : 2}</text>`;
+    T.forEach((s, i) => { g += `<text x="${ox + lab2 + i * cell2 + cell2 / 2}" y="${y0 - 6}" text-anchor="start" transform="rotate(-55 ${ox + lab2 + i * cell2 + cell2 / 2} ${y0 - 6})" style="fill:var(--ink);font-size:${fs}px">${s}</text>`; });
+    const top2 = [["Feeding", "Flee", "--cpu"], ["Flee", "Feeding", "--cpu"], ["Feeding", "Shelter", "--p5"], ["Flee", "Shelter", "--p5"], ["Shelter", "Feeding", "--p5"], ["Stun", "Feeding", "--p2"]];
+    T.forEach((s, r) => {
+      g += `<text x="${ox + lab2 - 5}" y="${y0 + r * cell2 + cell2 / 2 + 4}" text-anchor="end" style="fill:var(--ink);font-size:${fs}px">${s}</text>`;
+      T.forEach((t, c) => {
+        if (st.feat && t === "Stun" && r < 3) return;
+        const a = top2.find((q) => q[0] === s && q[1] === t);
+        const style = r === c ? "fill:var(--line);opacity:.5" : a ? `fill:var(${a[2]});stroke:var(--panel)` : "fill:var(--field);stroke:var(--line)";
+        g += `<rect x="${ox + lab2 + c * cell2 + 1}" y="${y0 + r * cell2 + 1}" width="${cell2 - 2}" height="${cell2 - 2}" rx="3" style="${style}"/>`;
+      });
+    });
+    if (st.feat) {
+      const x = ox + lab2 + 3 * cell2 + 1;
+      g += `<rect x="${x}" y="${y0 + 1}" width="${cell2 - 2}" height="${3 * cell2 - 2}" rx="3" style="fill:var(--p2);stroke:var(--panel)"><title>Awake → Stun: one arrow for Feeding, Flee and Shelter</title></rect>`;
+      g += `<text x="${x + cell2 / 2 - 1}" y="${y0 + 1.5 * cell2 + 4}" text-anchor="middle" style="fill:var(--panel);font-weight:700;font-size:${fs}px">1</text>`;
+    }
+    const yb = y0 + Math.max(5 * cell, T.length * cell2) + 4;
+    note(`<strong>${m.arrows} arrows written by hand:</strong> ${st.feat ? "6 inside Feeding + 7 at the top level. The tall cell is one arrow, Awake → Stun, for Feeding, Flee and Shelter." : "6 inside Feeding + 2 at the top level."}`);
+    $("brain").innerHTML = `<svg viewBox="0 0 ${W} ${yb}" role="img" aria-label="Hierarchical state machine, ${m.arrows} arrows">${g}</svg>`;
+    $("brainH").textContent = "The gull's brain: hierarchical state machine";
+  }
+  function drawTree(m) {
+    const W = viewW(), narrow = W < 440, fs = narrow ? 11 : 12.5, rowH = narrow ? 30 : 32;
+    const rows = [];
+    if (st.feat) { rows.push(["Stunned?", null, "Stagger", "i"]); rows.push(["Storm?", null, "Shelter", "i"]); }
+    rows.push(["Pelican near?", null, "Flee", "i"], ["Has fish?", null, "Eat", "n"], [narrow ? "Fish ≤ 12 m?" : "Free fish ≤ 12 m?", "Water ≥ 1.5 m?", "Dive", "d"], ["Tired?", null, "Rest", "n"], [null, null, "Circle", "n"]);
+    const resume = st.resume;
+    let g = `<rect x="2" y="2" width="${narrow ? 40 : 46}" height="24" rx="5" style="fill:var(${resume ? "--field" : "--accent"});stroke:var(--accent)"/><text x="${narrow ? 22 : 25}" y="19" text-anchor="middle" style="fill:var(${resume ? "--ink" : "--panel"});font-weight:700">?</text>`;
+    g += `<text x="${narrow ? 50 : 56}" y="19" style="fill:var(--muted);font-size:${fs}px">Selector: first branch that works wins</text>`;
+    let visited = resume ? 0 : 1, done = false;
+    const pill = (x, y, w, txt, on, kind) => {
+      const col = kind === "act" ? "--good" : "--p1";
+      return `<rect x="${x}" y="${y}" width="${w}" height="${rowH - 8}" rx="${kind === "act" ? 4 : 11}" style="fill:var(${on ? (kind === "act" ? "--good" : "--accent") : "--field"});stroke:var(${on ? (kind === "act" ? "--good" : "--accent") : "--line"})"/>` +
+        `<text x="${x + w / 2}" y="${y + rowH / 2}" text-anchor="middle" style="fill:var(${on ? "--panel" : "--ink"});font-size:${fs}px;${kind === "act" ? "font-weight:600" : ""}">${txt}</text>`;
+    };
+    const cw = narrow ? 96 : 132, aw = narrow ? 58 : 76, cw2 = narrow ? 92 : 120;
+    rows.forEach((r, i) => {
+      const y = 34 + i * rowH, x0 = narrow ? 14 : 18;
+      g += `<line x1="${x0}" y1="${y - 4}" x2="${x0}" y2="${y + rowH / 2 - 4}" style="stroke:var(--line)"/><line x1="${x0}" y1="${y + rowH / 2 - 4}" x2="${x0 + 10}" y2="${y + rowH / 2 - 4}" style="stroke:var(--line)"/>`;
+      let x = x0 + 14;
+      // sequence marker
+      const seqOn = !resume && !done;
+      g += `<text x="${x}" y="${y + rowH / 2}" style="fill:var(${seqOn ? "--accent" : "--muted"});font-weight:700">→</text>`;
+      x += 16;
+      let onCond1 = false, onCond2 = false, onAct = false;
+      if (!resume) {
+        if (!done) {
+          visited += 1; // sequence
+          if (r[0]) { onCond1 = true; visited++; }
+          if (r[3] === "d") { if (r[1]) { onCond2 = true; visited++; } onAct = true; visited++; done = true; }
+        }
+      } else {
+        if (r[3] === "i") { onCond1 = true; visited++; }
+        if (r[3] === "d") { onAct = true; visited++; }
+      }
+      if (r[0]) { g += pill(x, y, cw, r[0], onCond1, "cond"); x += cw + 6; }
+      if (r[1]) { g += pill(x, y, cw2, r[1], onCond2, "cond"); x += cw2 + 6; }
+      if (x + aw > W - 2) x = W - 2 - aw;
+      g += pill(x, y, aw, r[2] + (r[3] === "d" ? " ▶" : ""), onAct, "act");
+    });
+    const yb = 34 + rows.length * rowH;
+    note(`<strong>A gull mid-dive visits ${visited} nodes</strong> ${resume ? "(resume: only the guards, then the running action)" : "(from the root)"}. ${rows.length} branches. Average per gull: ${resume ? `0.75 × ${m.runN} + 0.25 × ${m.rootN} = ${m.nodes.toFixed(1)}` : m.rootN} nodes.`);
+    $("brain").innerHTML = `<svg viewBox="0 0 ${W} ${yb}" role="img" aria-label="Behavior tree with ${rows.length} branches">${g}</svg>`;
+    $("brainH").textContent = "The gull's brain: behavior tree";
+  }
+
+  // ---------- 40 sample gulls ----------
+  const N = 40, CYCLE = 8, PEL = 9, STORM = 12;
+  const STUCK = [7, 29];                       // 4.6% of 40 ≈ 2
+  const WRONG = [12, 18, 24, 30, 37];           // 12% of 40 ≈ 5
+  const reef = $("reef"), ctx = reef.getContext("2d");
+  let t0 = performance.now(), frozenT = 3.6;
+  function phaseOf(i) { return ((i * 0.6180339) % 1) * CYCLE; }
+  function gullState(i, t, W, H) {
+    const water = H * 0.72, hi = H * 0.2;
+    const hx = (i + 0.5) / N * W;
+    const p = (t + phaseOf(i)) % CYCLE;
+    let s, x = hx, y;
+    if (p < 3) { s = "Circle"; x = hx + Math.sin((p / 3) * Math.PI * 2 + i) * 10; y = hi + 14 * Math.sin(i * 1.3) + 14; }
+    else if (p < 4) { s = "Dive"; const k = p - 3; y = hi + 28 + (water - hi - 32) * k; }
+    else if (p < 5.5) { s = "Carry"; const k = (p - 4) / 1.5; y = water - 4 - (water - hi - 10) * k * 0.7; }
+    else if (p < 7) { s = "Eat"; y = hi + 30 + (i % 3) * 8; }
+    else { s = "Rest"; y = water - 5; }
+    const flags = st.mode === "flags";
+    if (flags && STUCK.includes(i)) return { s: "Stuck", x: hx, y: water - 10 };
+    // storm
+    if (st.feat) {
+      const sp = t % STORM;
+      if (sp > 7 && sp < 10.5) {
+        // 12% of 40 = 5 sample gulls were carrying when the storm hit
+        if (r_forgot() && WRONG.includes(i)) return { s: "Wrong", x: hx + Math.sin(t * 1.7 + i) * 12, y: H * 0.3 + (i % 4) * 9 };
+        const k = Math.min(1, (sp - 7) / 0.8);
+        return { s: "Shelter", x: hx + (12 + (i % 6) * 9 - hx) * k, y: y + (H * 0.42 + (i % 5) * 8 - y) * k };
+      }
+    }
+    // pelican
+    const pp = t % PEL;
+    if (pp < 3) {
+      const px = W + 30 - (pp / 3) * (W + 60);
+      if (Math.abs(px - x) < 46) return { s: "Flee", x: x + (x < px ? -14 : 14), y: Math.max(10, y - 30) };
+    }
+    return { s, x, y };
+  }
+  function r_forgot() { return st.mode === "fsm" && st.feat && st.forgot; }
+  function drawReef(t) {
+    const dpr = window.devicePixelRatio || 1, W = Math.max(280, reef.clientWidth), H = 210;
+    if (reef.width !== Math.round(W * dpr)) { reef.width = Math.round(W * dpr); reef.height = Math.round(H * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const water = H * 0.72;
+    ctx.fillStyle = css("--field"); ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = css("--stripe"); ctx.fillRect(0, water, W, H - water);
+    // cliff
+    ctx.fillStyle = css("--line"); ctx.beginPath(); ctx.moveTo(0, H * 0.34); ctx.lineTo(62, H * 0.38); ctx.lineTo(74, water); ctx.lineTo(0, water); ctx.closePath(); ctx.fill();
+    if (st.feat) {
+      const sp = t % STORM;
+      if (sp > 7 && sp < 10.5) {
+        ctx.save(); ctx.globalAlpha = 0.18; ctx.fillStyle = css("--ink"); ctx.fillRect(0, 0, W, water); ctx.restore();
+        ctx.strokeStyle = css("--p1"); ctx.globalAlpha = 0.6; ctx.lineWidth = 1;
+        for (let k = 0; k < 40; k++) { const rx = (k * 53 + t * 140) % W, ry = (k * 37 + t * 260) % water; ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx - 4, ry + 10); ctx.stroke(); }
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = css("--ink"); ctx.font = "600 12px " + css("--f-body"); ctx.fillText("⛈ storm", W - 70, 16);
+      }
+    }
+    const pp = t % PEL;
+    if (pp < 3) {
+      const px = W + 30 - (pp / 3) * (W + 60), py = H * 0.38;
+      ctx.fillStyle = css("--muted"); ctx.beginPath(); ctx.ellipse(px, py, 16, 8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(px - 26, py - 2, 12, 4);
+      ctx.fillStyle = css("--ink"); ctx.font = "11px " + css("--f-body"); ctx.fillText("pelican", px - 18, py - 12);
+    }
+    for (let i = 0; i < N; i++) {
+      const g = gullState(i, t, W, H);
+      const col = g.s === "Stuck" || g.s === "Wrong" ? css("--bad") : css(STATE_COL[g.s] || "--ink");
+      ctx.strokeStyle = col; ctx.lineWidth = g.s === "Stuck" || g.s === "Wrong" ? 2.6 : 2;
+      const flap = reduce.matches ? 0 : Math.sin(t * 9 + i) * 2;
+      ctx.beginPath(); ctx.moveTo(g.x - 6, g.y - 2 + flap); ctx.lineTo(g.x, g.y + 2); ctx.lineTo(g.x + 6, g.y - 2 + flap); ctx.stroke();
+      if (g.s === "Carry" || g.s === "Wrong") { ctx.fillStyle = css("--p4"); ctx.fillRect(g.x - 1.5, g.y + 3, 3, 4); }
+      if (g.s === "Stuck") { ctx.fillStyle = css("--bad"); ctx.font = "700 11px " + css("--f-body"); ctx.fillText("?", g.x - 3, g.y - 8); }
+    }
+  }
+  function loop() {
+    const t = (performance.now() - t0) / 1000;
+    drawReef(t);
+    if (!reduce.matches) requestAnimationFrame(loop);
+  }
+
+  function legend() {
+    const items = [["Circle", "--p1"], ["Dive", "--p3"], ["Carry", "--p4"], ["Eat", "--p2"], ["Rest", "--muted"], ["Flee", "--cpu"]];
+    if (st.feat) items.push(["Shelter", "--p5"]);
+    items.push([st.mode === "flags" ? "stuck (Dive + Flee)" : "wrong", "--bad"]);
+    $("legend").innerHTML = items.map(([n, c]) => `<span><i style="background:var(${c})"></i>${n}</span>`).join("");
+  }
+
+  // ---------- render ----------
+  function render() {
+    const m = model(st);
+    if (st.mode === "flags") drawFlags(m); else if (st.mode === "fsm") drawMatrix(m); else if (st.mode === "hfsm") drawHfsm(m); else drawTree(m);
+    legend();
+    $("reefH").textContent = `40 sample gulls · each stands for ${fmtInt(st.gulls / 40)}`;
+    if (reduce.matches) drawReef(frozenT);
+    const over = m.total > BUDGET + 1e-9;
+    $("sStep").textContent = f2(m.total); $("sStep").className = "v " + (over ? "bad" : "good");
+    $("sStepS").textContent = over ? "ms · over the 1.0 budget" : "ms · budget 1.0";
+    $("sWrong").textContent = fmtInt(m.wrong); $("sWrong").className = "v " + (m.wrong ? "bad" : "good");
+    $("sWrongS").textContent = st.mode === "flags" ? `stuck hovering · ${m.combos} combos, ${m.legal} legal` : m.forgot ? "carry a fish through the storm" : st.mode === "tree" ? "one running action" : "one state at a time";
+    const av = $("sArrows");
+    if (st.mode === "flags") { av.textContent = "—"; av.className = "v bad"; $("sArrowsS").textContent = "rules hide in if statements"; }
+    else if (st.mode === "tree") { av.textContent = "0"; av.className = "v good"; $("sArrowsS").textContent = `${m.branches} branches, in priority order`; }
+    else { av.textContent = m.arrows; av.className = "v " + (m.arrows > 20 ? "bad" : "good"); $("sArrowsS").textContent = st.mode === "hfsm" ? "interrupts written once" : m.forgot ? "1 missing, no error" : "every one by hand"; }
+    const sv = $("sSteal");
+    if (st.mode === "flags") { sv.textContent = "+1 flag"; sv.className = "v bad"; $("sStealS").textContent = `${m.combos * 2} combos, ${m.legal + 1} legal`; }
+    else if (st.mode === "tree") { sv.textContent = "1"; sv.className = "v good"; $("sStealS").textContent = "new branch"; }
+    else { sv.textContent = m.steal; sv.className = "v " + (m.steal > 3 ? "bad" : "good"); $("sStealS").textContent = "new arrows"; }
+    $("gullLabel").textContent = fmtInt(st.gulls);
+    for (const [id, v] of [["mFlags", "flags"], ["mFsm", "fsm"], ["mHfsm", "hfsm"], ["mTree", "tree"]]) $(id).setAttribute("aria-pressed", st.mode === v);
+    const en = { forgot: st.mode === "fsm" && st.feat, bb: st.mode === "tree", resume: st.mode === "tree" };
+    for (const k of ["forgot", "bb", "resume"]) { $(k).disabled = !en[k]; $(k + "L").classList.toggle("off", !en[k]); }
+
+    const goal = st.gulls >= 1000 && st.feat && !over && m.wrong === 0 && st.mode !== "flags" && m.steal <= 3;
+    const pill = $("goalPill");
+    pill.className = "pill " + (goal ? "ok" : st.gulls < 1000 || !st.feat ? "warn" : "over");
+    pill.textContent = goal ? "Goal met" : st.gulls < 1000 ? "Try 1,000+ gulls" : m.wrong ? "Wrong gulls" : !st.feat ? "Add storm and stun" : over ? "Over budget" : m.steal > 3 ? "Steal costs too many edits" : "Not yet";
+
+    // coach
+    let c = "";
+    if (st.mode === "flags") c = `Five booleans: isDiving, isCarrying, isEating, isResting, isFleeing${st.feat ? ", plus isSheltering and isStunned" : ""}. When a pelican scares a diving gull, the code sets isFleeing but forgets isDiving. <span class="bug">Dive pulls down, Flee pulls up:</span> ${fmtInt(m.wrong)} gulls hover 1 m above the water forever. Cheap (${m.brainNs} ns a gull), but wrong.`;
+    else if (st.mode === "fsm") c = m.forgot ? `One enum, one state at a time. But the Carry → Shelter arrow is missing, and nothing warns you. <span class="bug">${fmtInt(m.wrong)} gulls</span> were carrying a fish when the storm hit, so they keep flying in it.` : `One enum, one state at a time: 0 stuck gulls. Exit(Dive) always clears the dive. Each interrupt needs an arrow from every state: ${m.arrows} arrows so far.`;
+    else if (st.mode === "hfsm") c = `Circle, Dive, Carry, Eat and Rest live inside a parent state, Feeding. Flee${st.feat ? ", Shelter and Stun are" : " is"} written once, on the parent, and every child gets ${st.feat ? "them" : "it"}: ${m.arrows} arrows. Two switch levels: ${m.brainNs} ns a gull.`;
+    else {
+      c = `No arrows: the branches are the designer's priority list. `;
+      c += st.bb ? `A Sense system finds pelicans and fish for all gulls once (${f2(m.sense)} ms); conditions just read the blackboard. ` : `<span class="bug">Each condition searches the world itself:</span> about ${m.queries.toFixed(m.queries % 1 ? 2 : 0)} searches × 300 ns per gull = ${f2(m.query)} ms. `;
+      c += st.resume ? `Gulls in the middle of an action check only the guards and continue: ${m.nodes.toFixed(1)} nodes on average.` : `Every gull walks from the root every step: ${m.rootN} nodes × 20 ns.`;
+    }
+    $("coach").innerHTML = c;
+
+    // capture
+    const row = (label, ms, extra = "", dec = 2) => label + " ".repeat(Math.max(1, 36 - label.length)) + (dec === 3 ? f3(ms) : f2(ms)).padStart(5, " ") + " ms" + extra + "\n";
+    const name = { flags: "flags", fsm: "flat FSM", hfsm: "hierarchical FSM", tree: "behavior tree" }[st.mode];
+    let cap = `<span class="dim">Reef · ${fmtInt(st.gulls)} gulls · ${name}</span>\n`;
+    cap += row("FixedStep", OTHER + m.total);
+    cap += row("├─ Physics, other", OTHER);
+    cap += row("└─ Critter systems", m.total, over ? `  <span class="warn">◀ budget 1.0</span>` : `  <span class="ok">✓</span>`);
+    cap += row("   ├─ Swim, Fly, Walk, events", BASE);
+    if (st.mode !== "tree" || st.bb) cap += row("   ├─ GullSense (batched, grid)", m.sense, "  150 ns a gull");
+    if (st.mode === "tree") {
+      cap += row(`   └─ GullBrainTree.Tick ×${fmtInt(st.gulls)}`, m.brain + m.query, m.query ? `  <span class="warn">◀</span>` : "");
+      cap += row(`      ${m.query ? "├─" : "└─"} nodes (${m.nodes.toFixed(1)} × 20 ns)`, m.brain);
+      if (m.query) cap += row(`      └─ Physics.Overlap in conditions`, m.query, `  <span class="warn">◀ 300 ns each</span>`);
+    } else cap += row(`   └─ GullBrain ×${fmtInt(st.gulls)}`, m.brain, `  ${m.brainNs} ns a gull`, 3);
+    $("capture").innerHTML = cap;
+
+    // steal panel
+    let fm = "";
+    if (st.mode === "flags") fm = `Add isStealing:\n  ${m.nFlags} → ${m.nFlags + 1} flags\n  2^${m.nFlags + 1} = ${m.combos * 2} combinations, ${m.legal + 1} legal\n  + an "if" in every place that clears flags`;
+    else if (st.mode === "fsm") fm = `Steal's own arrows:\n  Circle → Steal, Steal → Circle, Steal → Carry   3\nInterrupt arrows out of Steal:\n  Steal → Flee${st.feat ? ", Steal → Shelter, Steal → Stun" : ""}   ${st.feat ? 3 : 1}\nTotal                                          ${m.steal}`;
+    else if (st.mode === "hfsm") fm = `Put Steal inside Feeding:\n  Circle → Steal, Steal → Circle, Steal → Carry   3\nInterrupts: inherited from Feeding            0\nTotal                                          3`;
+    else fm = `Insert one branch above "Tired?":\n  → [Gull with fish near?] [Steal]\n  1 branch, 3 nodes, 0 arrows\nIts priority = its place in the list`;
+    $("formula").textContent = fm;
+    $("stealLine").innerHTML = st.mode === "flags" ? `<span class="bug">The number of impossible gulls doubles again.</span>` : m.steal > 3 ? `<span class="bug">Every interrupt needs a new arrow</span> from the new state. Forget one, and no compiler tells you.` : `<span class="ok">New behaviour, no new interrupt arrows.</span>`;
+  }
+
+  // ---------- controls ----------
+  for (const [id, v] of [["mFlags", "flags"], ["mFsm", "fsm"], ["mHfsm", "hfsm"], ["mTree", "tree"]]) $(id).addEventListener("click", () => { st.mode = v; render(); });
+  $("gulls").addEventListener("input", (e) => { st.gulls = +e.target.value; render(); });
+  for (const k of ["feat", "forgot", "bb", "resume"]) $(k).addEventListener("change", (e) => { st[k] = e.target.checked; render(); });
+  function apply(s) {
+    Object.assign(st, s);
+    $("gulls").value = st.gulls;
+    for (const k of ["feat", "forgot", "bb", "resume"]) $(k).checked = st[k];
+    render();
+  }
+
+  // ---------- guided steps ----------
+  const base = { gulls: 1000, feat: false, forgot: false, bb: false, resume: false };
+  const STEPS = [
+    { t: "Flag soup", d: "Five booleans, 1,000 gulls. 32 combinations, only 6 legal. 46 gulls are stuck hovering (Dive + Flee). The step is cheap: 0.48 ms.", s: { ...base, mode: "flags" } },
+    { t: "One state at a time", d: "A flat state machine: 0 wrong gulls, 12 arrows written by hand, 0.49 ms. Adding Steal costs 4 arrows.", s: { ...base, mode: "fsm" } },
+    { t: "Storm and stun arrive", d: "Two more interrupts. Every state needs an arrow to each: 27 arrows. Adding Steal now costs 6.", s: { ...base, mode: "fsm", feat: true } },
+    { t: "One forgotten arrow", d: "Carry → Shelter is missing: 26 arrows, no error. 120 gulls carry their fish through the storm. Watch the red gulls when the storm comes.", s: { ...base, mode: "fsm", feat: true, forgot: true } },
+    { t: "Group them: hierarchical", d: "Feeding becomes a parent state. Each interrupt is written once: 13 arrows, 0 wrong gulls, 0.49 ms. Steal costs 3 arrows. Goal met.", s: { ...base, mode: "hfsm", feat: true } },
+    { t: "A behavior tree, the easy way", d: "7 branches in priority order; Steal is 1 branch. But every gull walks from the root (14 nodes) and searches the world in its conditions: 1.21 ms, over budget.", s: { ...base, mode: "tree", feat: true } },
+    { t: "Blackboard, then resume", d: "Sense once per step for all gulls: 0.76 ms, inside the budget. Now tick \"Resume the running action\": 6.5 nodes on average, 0.61 ms, with more room to spare.", s: { ...base, mode: "tree", feat: true, bb: true } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $("brain").scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  render();
+  if (!reduce.matches) requestAnimationFrame(loop); else drawReef(frozenT);
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("brain").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("brain"));
+})();
+</script>
