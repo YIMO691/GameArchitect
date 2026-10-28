@@ -1,0 +1,53 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='580' viewBox='0 0 860 580' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='579' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='38' font-size='20' font-weight='700' fill='#1f2328'>Sky Hopper's 10 modules on 6 layers</text>
+<text x='24' y='60' font-size='13' fill='#57606a'>Rule: arrows point down. Normal arrows (they do point down) are not drawn. These four are the problem.</text>
+<defs>
+<marker id='r' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto'><path d='M0 0 L10 5 L0 10 z' fill='#cf222e'/></marker>
+<marker id='o' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='7' markerHeight='7' orient='auto'><path d='M0 0 L10 5 L0 10 z' fill='#bc4c00'/></marker>
+</defs>
+<rect x='24' y='80' width='812' height='70' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='38' y='120' font-size='14' font-weight='600' fill='#57606a'>5 · App</text>
+<rect x='24' y='150' width='812' height='70' fill='#ffffff' stroke='#d0d7de'/>
+<text x='38' y='190' font-size='14' font-weight='600' fill='#57606a'>4 · Presentation</text>
+<rect x='24' y='220' width='812' height='70' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='38' y='260' font-size='14' font-weight='600' fill='#57606a'>3 · Gameplay</text>
+<rect x='24' y='290' width='812' height='70' fill='#ffffff' stroke='#d0d7de'/>
+<text x='38' y='330' font-size='14' font-weight='600' fill='#57606a'>2 · Engine services</text>
+<rect x='24' y='360' width='812' height='70' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='38' y='400' font-size='14' font-weight='600' fill='#57606a'>1 · Platform</text>
+<rect x='24' y='430' width='812' height='70' fill='#ffffff' stroke='#d0d7de'/>
+<text x='38' y='470' font-size='14' font-weight='600' fill='#57606a'>0 · Core</text>
+<rect x='265.0' y='95.0' width='130' height='40' rx='8' fill='#eef3f9' stroke='#4e79a7' stroke-width='1.5'/>
+<text x='330' y='120' font-size='14' font-weight='600' text-anchor='middle' fill='#1f2328'>Boot</text>
+<rect x='495.0' y='95.0' width='130' height='40' rx='8' fill='#eef3f9' stroke='#4e79a7' stroke-width='1.5'/>
+<text x='560' y='120' font-size='14' font-weight='600' text-anchor='middle' fill='#1f2328'>Tools</text>
+<rect x='265.0' y='165.0' width='130' height='40' rx='8' fill='#eef3f9' stroke='#4e79a7' stroke-width='1.5'/>
+<text x='330' y='190' font-size='14' font-weight='600' text-anchor='middle' fill='#1f2328'>HUD</text>
+<rect x='495.0' y='165.0' width='130' height='40' rx='8' fill='#eef3f9' stroke='#4e79a7' stroke-width='1.5'/>
+<text x='560' y='190' font-size='14' font-weight='600' text-anchor='middle' fill='#1f2328'>UI</text>
+<rect x='380.0' y='235.0' width='130' height='40' rx='8' fill='#fff8c5' stroke='#9a6700' stroke-width='1.5'/>
+<text x='445' y='260' font-size='14' font-weight='600' text-anchor='middle' fill='#1f2328'>Simulation</text>
+<rect x='205.0' y='305.0' width='130' height='40' rx='8' fill='#eef3f9' stroke='#4e79a7' stroke-width='1.5'/>
+<text x='270' y='330' font-size='14' font-weight='600' text-anchor='middle' fill='#1f2328'>Physics</text>
+<rect x='380.0' y='305.0' width='130' height='40' rx='8' fill='#eef3f9' stroke='#4e79a7' stroke-width='1.5'/>
+<text x='445' y='330' font-size='14' font-weight='600' text-anchor='middle' fill='#1f2328'>Render</text>
+<rect x='575.0' y='305.0' width='130' height='40' rx='8' fill='#eef3f9' stroke='#4e79a7' stroke-width='1.5'/>
+<text x='640' y='330' font-size='14' font-weight='600' text-anchor='middle' fill='#1f2328'>Audio</text>
+<rect x='380.0' y='375.0' width='130' height='40' rx='8' fill='#eef3f9' stroke='#4e79a7' stroke-width='1.5'/>
+<text x='445' y='400' font-size='14' font-weight='600' text-anchor='middle' fill='#1f2328'>Platform</text>
+<rect x='380.0' y='445.0' width='130' height='40' rx='8' fill='#eef3f9' stroke='#4e79a7' stroke-width='1.5'/>
+<text x='445' y='470' font-size='14' font-weight='600' text-anchor='middle' fill='#1f2328'>Core</text>
+<path d='M405 234 C 395 218, 382 204, 372 190' fill='none' stroke='#cf222e' stroke-width='3' marker-end='url(#r)'/>
+<text x='168' y='214' font-size='13' font-weight='700' fill='#cf222e'>① tension bar</text>
+<path d='M300 305 C 320 280, 350 262, 380 255' fill='none' stroke='#cf222e' stroke-width='3' marker-end='url(#r)'/>
+<text x='196' y='276' font-size='13' font-weight='700' fill='#cf222e'>③ caught</text>
+<path d='M510 465 C 790 465, 790 170, 632 170' fill='none' stroke='#cf222e' stroke-width='3' marker-end='url(#r)'/>
+<text x='768' y='330' font-size='13' font-weight='700' fill='#cf222e' text-anchor='middle'>② save</text>
+<text x='768' y='346' font-size='13' font-weight='700' fill='#cf222e' text-anchor='middle'>popup</text>
+<path d='M510 248 C 560 255, 600 270, 625 303' fill='none' stroke='#bc4c00' stroke-width='3' stroke-dasharray='7 5' marker-end='url(#o)'/>
+<text x='575' y='250' font-size='13' font-weight='700' fill='#bc4c00'>④ squawk</text>
+<line x1='40' y1='528' x2='80' y2='528' stroke='#cf222e' stroke-width='3'/><text x='90' y='533' font-size='13' fill='#1f2328'>points up: breaks the layer rule, makes a cycle</text>
+<line x1='450' y1='528' x2='490' y2='528' stroke='#bc4c00' stroke-width='3' stroke-dasharray='7 5'/><text x='500' y='533' font-size='13' fill='#1f2328'>points down, but the simulation may not use Audio</text>
+<text x='40' y='558' font-size='13' fill='#57606a'>Yellow box: the simulation. It must run on a server with no screen and no speakers (Step 5).</text>
+</svg>

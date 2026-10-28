@@ -1,0 +1,524 @@
+<title>Layers Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Layer graph on the left, readouts and controls on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300;
+  --stripe: #c9d7e8;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --stripe: #2b3a4d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --stripe: #2b3a4d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+.pill.warn { color: var(--accent); }
+
+.view svg { display: block; width: 100%; height: auto; }
+.view text { font-family: var(--f-body); font-size: 13px; }
+.view .mono-t { font-family: var(--f-mono); font-size: 12px; }
+.flow { stroke-dasharray: 6 5; animation: march 0.9s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -11; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .bug { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-weight: 600; font-size: 14px; padding: 9px 6px; min-height: 40px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+.toggles { display: grid; gap: 8px; font-size: 14px; }
+.toggles label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.toggles label.off { opacity: 0.5; cursor: default; }
+.toggles input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; flex: none; }
+.toggles small { display: block; color: var(--muted); font-size: 12px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(10.5px, 2.9vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .ok { color: var(--good); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+
+.two { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.passes { display: grid; gap: 8px; }
+.pass { display: grid; grid-template-columns: 8.5em minmax(0, 1fr) 5.6em; gap: 10px; align-items: center; font-size: 14px; }
+.pass .track { height: 14px; background: var(--field); border: 1px solid var(--line); border-radius: 3px; position: relative; overflow: hidden; }
+.pass .fill { position: absolute; inset: 0 auto 0 0; border-radius: 0 3px 3px 0; transition: width 0.25s ease; }
+.pass .ms { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.pass small { display: block; font-size: 11px; line-height: 1.2; color: var(--muted); }
+.pass.total { border-top: 1px solid var(--line); padding-top: 8px; font-weight: 600; }
+.formula { font-family: var(--f-mono); font-size: clamp(10.5px, 2.9vw, 13px); background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; overflow-x: auto; white-space: pre; line-height: 1.6; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.steps-group { display: grid; gap: 10px; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; min-height: 36px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+@media (prefers-reduced-motion: reduce) { .pass .fill { transition: none; } .flow { animation: none; } }
+:root { --hl: #fde7c4; --band: #f3f6fa; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --hl: #4a3410; --band: #121921; } }
+:root[data-theme="dark"] { --hl: #4a3410; --band: #121921; }
+.seg-ctl.n2 { grid-template-columns: repeat(2, 1fr); }
+.seg-ctl.n5 { grid-template-columns: repeat(5, 1fr); }
+.seg-ctl.n5 button { font-size: 12px; padding: 8px 2px; min-height: 38px; border-top: 1px solid var(--line); }
+.seg-ctl.n5 button:nth-child(-n+5) { border-top: 0; }
+.toggles .num { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-family: var(--f-mono); font-size: 11px; font-weight: 600; color: var(--panel); background: var(--bad); margin-right: 4px; vertical-align: 1px; }
+.toggles .num.banned { background: var(--p2); }
+.toggles .num.ci { background: var(--good); }
+.verdict { font-size: 14px; margin: 0; }
+.verdict .bug { color: var(--bad); font-weight: 600; }
+.verdict .ok { color: var(--good); font-weight: 600; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/018-layered-architecture-and-dependency-rules.md">Read Lesson 018 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 018 · Lesson 018 · simulation using the lesson's numbers</div>
+    <h1>Layers Lab</h1>
+    <p class="lede">Sky Hopper's code in 10 modules on 6 layers. Pick a module to edit and watch which assemblies recompile. Then cut the bad arrows and watch the tangle fall apart, the wait drop and the replay server start.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Sky Hopper, 8 programmers, 60 edits a day each.</strong> Goal: no tangles, a HUD edit under 15 s, the replay runner builds with no GPU, and the layer check runs on every pull request with nothing to report.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Layer graph and controls">
+    <div class="panel">
+      <h2>Who uses whom</h2>
+      <div class="view" id="graph"></div>
+      <div class="legend">
+        <span><i style="background:var(--hl);border:2px solid var(--accent)"></i>recompiles after the edit</span>
+        <span><i style="background:var(--panel);border:2px dashed var(--cpu)"></i>in a tangle</span>
+        <span><i style="background:var(--bad)"></i>arrow points up</span>
+        <span><i style="background:var(--p2)"></i>down, but banned for the simulation</span>
+      </div>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Wait for this edit</span><span class="v" id="sWait">0</span><span class="s" id="sWaitS">s</span></div>
+        <div class="stat"><span class="k">Average edit</span><span class="v" id="sAvg">0</span><span class="s" id="sAvgS">s</span></div>
+        <div class="stat"><span class="k">Biggest tangle</span><span class="v" id="sTangle">0</span><span class="s" id="sTangleS">modules</span></div>
+        <div class="stat"><span class="k">Replay server</span><span class="v" id="sServer">✗</span><span class="s" id="sServerS"></span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <span class="lbl"><span>Build the code as</span></span>
+          <div class="seg-ctl n2" role="group" aria-label="Assemblies">
+            <button type="button" id="mOne" aria-pressed="true">One assembly</button>
+            <button type="button" id="mSplit" aria-pressed="false">One per module</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Edit a file in</span><span class="mono" id="editLabel">HUD</span></span>
+          <div class="seg-ctl n5" role="group" aria-label="Module to edit" id="editBtns"></div>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="fix2"><span><span class="num">2</span>SaveFile reports through ISaveProgress<small>Fixes Core → UI. Core owns the interface, UI implements it, Boot wires them</small></span></label>
+          <label><input type="checkbox" id="fix1"><span><span class="num">1</span>HUD reads the hook's tension<small>Fixes Simulation → HUD. The HUD reads once per frame</small></span></label>
+          <label><input type="checkbox" id="fix3"><span><span class="num">3</span>Physics writes a contact queue<small>Fixes Physics → Simulation. 600 contacts × 12 B per step</small></span></label>
+          <label><input type="checkbox" id="fix4"><span><span class="num banned">4</span>Simulation posts sound cues<small>Fixes Simulation → Audio. The HUD plays them once per frame</small></span></label>
+          <label><input type="checkbox" id="hack"><span><span class="num banned">5</span>New code: Simulation asks the camera<small>Adds Simulation → Render, to skip fish that are off screen</small></span></label>
+          <label><input type="checkbox" id="ci"><span><span class="num ci">✓</span>Layer check in CI<small>A test compares every reference with the rule table, on every pull request</small></span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>Editor log</h2>
+      <p class="fine">What Unity rebuilds after the edit. Times are the compile seconds from the lesson, plus a 6 s domain reload.</p>
+      <pre class="capture" id="capture"></pre>
+      <h3>Average over a day</h3>
+      <pre class="formula" id="formula"></pre>
+    </div>
+    <div class="panel">
+      <h2>Nightly replay test</h2>
+      <p class="fine">The Linux build server has no GPU and no sound card. The runner loads the simulation and everything it depends on.</p>
+      <pre class="capture" id="server"></pre>
+      <h2>Layer check (CI)</h2>
+      <pre class="capture" id="check"></pre>
+      <p class="verdict" id="verdict"></p>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the graph, the four numbers and the two logs. This replays the lesson's story.</p>
+    <div class="steps-group">
+      <h3>Lesson 018: layers and dependency rules</h3>
+      <ol class="steps" id="steps"></ol>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>A tangle builds as one</h3><p>Unity can't split modules that depend on each other in a circle. Three upward arrows, led by Core → UI, tied 8 modules together, so 10 assemblies still waited 48 s for a HUD edit.</p></div>
+      <div class="note"><h3>Down arrows, short waits</h3><p>An edit rebuilds its module and everything above it. With no upward arrows a HUD edit is 12 s. Core is at the bottom, so a Core edit is always 48 s: keep it small.</p></div>
+      <div class="note"><h3>Layers plus an allow-list</h3><p>Simulation → Audio and Simulation → Render point down, but they stop the simulation running headless. Only a machine check catches the next one on the day it is written.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. Compile times are the lesson's approximate editor-log numbers (Core 3, Platform 3, Physics 4, Render 7, Audio 2, Simulation 9, HUD 5, UI 5, Tools 3, Boot 1 s) plus a fixed 6 s reload. The day's edits are 30% HUD, 30% Simulation, 15% UI, 10% Tools, 5% Render, 5% Core, 3% Physics and 2% Audio. The lab adds the times up; real Unity compiles some assemblies in parallel and its reload grows with the amount of code, so real waits differ a little.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const RELOAD = 6, EDITS = 60, PEOPLE = 8, HUD_BUDGET = 15, REPLAY_S = 76, REPLAYS = 20;
+  const MODS = [
+    { id: "Core", layer: 0, x: 0.5, c: 3 },
+    { id: "Platform", layer: 1, x: 0.5, c: 3 },
+    { id: "Physics", layer: 2, x: 0.17, c: 4 },
+    { id: "Render", layer: 2, x: 0.5, c: 7 },
+    { id: "Audio", layer: 2, x: 0.83, c: 2 },
+    { id: "Simulation", layer: 3, x: 0.5, c: 9 },
+    { id: "HUD", layer: 4, x: 0.28, c: 5 },
+    { id: "UI", layer: 4, x: 0.72, c: 5 },
+    { id: "Boot", layer: 5, x: 0.28, c: 1 },
+    { id: "Tools", layer: 5, x: 0.72, c: 3 },
+  ];
+  const M = Object.fromEntries(MODS.map((m) => [m.id, m]));
+  const LAYERS = ["Core", "Platform", "Engine services", "Gameplay", "Presentation", "App"];
+  const CLEAN = [
+    ["Platform", "Core"], ["Physics", "Core"], ["Render", "Core"], ["Render", "Platform"], ["Audio", "Core"], ["Audio", "Platform"],
+    ["Simulation", "Core"], ["Simulation", "Physics"],
+    ["HUD", "Simulation"], ["HUD", "Render"], ["HUD", "Audio"], ["HUD", "Core"],
+    ["UI", "Simulation"], ["UI", "Render"], ["UI", "Platform"], ["UI", "Core"],
+    ["Tools", "Simulation"], ["Tools", "Render"], ["Tools", "UI"], ["Tools", "Platform"], ["Tools", "Core"],
+    ["Boot", "Core"], ["Boot", "Platform"], ["Boot", "Physics"], ["Boot", "Render"], ["Boot", "Audio"], ["Boot", "Simulation"], ["Boot", "HUD"], ["Boot", "UI"],
+  ];
+  const BAD = [
+    { n: 1, from: "Simulation", to: "HUD", fix: "fix1", what: "tension bar", code: "HudView.Instance.SetLineTension(t)" },
+    { n: 2, from: "Core", to: "UI", fix: "fix2", what: "save popup", code: "UIPopup.Show(\"Saving…\")" },
+    { n: 3, from: "Physics", to: "Simulation", fix: "fix3", what: "caught", code: "FishSystem.Instance.Caught(id)" },
+    { n: 4, from: "Simulation", to: "Audio", fix: "fix4", what: "squawk", code: "AudioManager.Instance.Play(\"squawk\")" },
+    { n: 5, from: "Simulation", to: "Render", fix: "hack", what: "camera", code: "CameraRig.Instance.IsVisible(pos)", added: true },
+  ];
+  const ALLOW = { Simulation: ["Core", "Physics"], Physics: ["Core"] };
+  const WEIGHTS = { HUD: 30, Simulation: 30, UI: 15, Tools: 10, Render: 5, Core: 5, Physics: 3, Audio: 2 };
+  const EDIT_ORDER = ["HUD", "Simulation", "UI", "Tools", "Render", "Core", "Physics", "Audio", "Platform", "Boot"];
+  const st = { split: false, edit: "HUD", fix1: false, fix2: false, fix3: false, fix4: false, hack: false, ci: false };
+
+  const activeBad = (s) => BAD.filter((b) => (b.added ? s[b.fix] : !s[b.fix]));
+  function edges(s) { return CLEAN.concat(activeBad(s).map((b) => [b.from, b.to])); }
+  function reachAll(es) {
+    const out = {}; for (const m of MODS) out[m.id] = [];
+    for (const [a, b] of es) out[a].push(b);
+    const R = {};
+    for (const m of MODS) {
+      const seen = new Set(), stack = [m.id];
+      while (stack.length) { const x = stack.pop(); for (const y of out[x]) if (!seen.has(y)) { seen.add(y); stack.push(y); } }
+      R[m.id] = seen;
+    }
+    return R;
+  }
+  function model(s) {
+    const es = edges(s), R = reachAll(es);
+    const scc = {};
+    for (const m of MODS) scc[m.id] = MODS.filter((n) => n.id === m.id || (R[m.id].has(n.id) && R[n.id].has(m.id))).map((n) => n.id);
+    let big = 0; const tangled = new Set();
+    for (const m of MODS) if (scc[m.id].length > 1) { tangled.add(m.id); big = Math.max(big, scc[m.id].length); }
+    const total = MODS.reduce((t, m) => t + m.c, 0);
+    function rebuild(id) {
+      if (!s.split) return MODS.map((m) => m.id);
+      const S = scc[id];
+      return MODS.filter((n) => S.includes(n.id) || S.some((x) => R[n.id].has(x))).map((n) => n.id);
+    }
+    const wait = (id) => rebuild(id).reduce((t, x) => t + M[x].c, 0) + RELOAD;
+    let avg = 0; for (const k in WEIGHTS) avg += (WEIGHTS[k] * wait(k)) / 100;
+    const assemblies = s.split ? new Set(MODS.map((m) => scc[m.id].slice().sort().join("+"))).size : 1;
+    // replay runner: simulation and what it reaches
+    const needs = s.split ? ["Simulation", ...MODS.filter((m) => R.Simulation.has(m.id)).map((m) => m.id)] : MODS.map((m) => m.id);
+    const gpu = needs.some((x) => x === "Render" || x === "HUD" || x === "UI");
+    const sound = needs.includes("Audio");
+    const serverOk = !gpu && !sound;
+    // rule check
+    const viol = [];
+    for (const [a, b] of es) {
+      if (M[b].layer > M[a].layer) viol.push({ a, b, why: "points up: layer " + M[a].layer + " → layer " + M[b].layer });
+      else if (ALLOW[a] && !ALLOW[a].includes(b)) viol.push({ a, b, why: a + " may use: " + ALLOW[a].join(", ") });
+    }
+    return { es, R, scc, big, tangled, total, rebuild, wait, avg, team: (avg * EDITS * PEOPLE) / 3600, assemblies, needs, gpu, sound, serverOk, viol };
+  }
+  const f1 = (v) => (Math.round(v * 10 + 1e-7) / 10).toFixed(1);
+  const sec = (v) => (Math.abs(v - Math.round(v)) < 1e-9 ? String(Math.round(v)) : f1(v));
+
+  // ---------- graph ----------
+  function graph(m) {
+    const W = Math.max(300, Math.min(640, Math.round($("graph").clientWidth || 600)));
+    const narrow = W < 460;
+    const L = narrow ? 40 : 128, R = W - 6, area = R - L, band = 56, top = 4, H = top + 6 * band + 4;
+    const bw = Math.min(112, Math.round(area * 0.3)), bh = 32, fs = narrow ? 12 : 13;
+    const cy = (layer) => top + (5 - layer) * band + band / 2;
+    const pos = (id) => ({ x: L + M[id].x * area, y: cy(M[id].layer) });
+    let g = `<defs>`;
+    for (const [k, c] of [["g", "--muted"], ["r", "--bad"], ["o", "--p2"]]) g += `<marker id="a${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="${k === "g" ? 5 : 6}" markerHeight="${k === "g" ? 5 : 6}" orient="auto"><path d="M0 0 L10 5 L0 10 z" style="fill:var(${c})"/></marker>`;
+    g += `</defs>`;
+    for (let i = 0; i < 6; i++) {
+      const y = top + (5 - i) * band;
+      g += `<rect x="0" y="${y}" width="${W}" height="${band}" style="fill:var(${i % 2 ? "--panel" : "--band"});stroke:var(--line);stroke-width:1"/>`;
+      g += `<text x="6" y="${y + band / 2 + 4}" style="fill:var(--muted);font-weight:600;font-size:${narrow ? 11 : 12}px">${i}${narrow ? "" : " · " + LAYERS[i]}</text>`;
+    }
+    const rebuild = new Set(m.rebuild(st.edit));
+    // clean edges, faint, behind boxes
+    const badKeys = new Set(activeBad(st).map((b) => b.from + ">" + b.to));
+    for (const [a, b] of m.es) {
+      if (badKeys.has(a + ">" + b)) continue;
+      const p = pos(a), q = pos(b);
+      g += `<line x1="${p.x}" y1="${p.y + bh / 2}" x2="${q.x}" y2="${q.y - bh / 2 - 1}" style="stroke:var(--muted);stroke-width:1;opacity:0.28" marker-end="url(#ag)"/>`;
+    }
+    // boxes
+    for (const mod of MODS) {
+      const p = pos(mod.id), rb = rebuild.has(mod.id), ed = mod.id === st.edit, tg = st.split && m.tangled.has(mod.id);
+      const fill = rb ? "--hl" : "--panel";
+      const stroke = ed ? "--accent" : tg ? "--cpu" : "--line";
+      const sw = ed ? 3 : tg ? 2 : 1.5;
+      g += `<rect x="${p.x - bw / 2}" y="${p.y - bh / 2}" width="${bw}" height="${bh}" rx="7" style="fill:var(${fill});stroke:var(${stroke});stroke-width:${sw}${tg && !ed ? ";stroke-dasharray:5 3" : ""}"><title>${mod.id}: ${mod.c} s to compile</title></rect>`;
+      g += `<text x="${p.x}" y="${p.y + 4}" text-anchor="middle" style="fill:var(--ink);font-weight:600;font-size:${fs}px">${mod.id}</text>`;
+      if (!narrow) g += `<text x="${p.x + bw / 2 - 5}" y="${p.y + bh / 2 - 4}" text-anchor="end" class="mono-t" style="fill:var(--muted);font-size:10px">${mod.c}s</text>`;
+    }
+    // bad edges on top
+    for (const b of activeBad(st)) {
+      const p = pos(b.from), q = pos(b.to), up = M[b.to].layer > M[b.from].layer;
+      const col = up ? "--bad" : "--p2", mk = up ? "ar" : "ao";
+      let d, lx, ly;
+      if (b.n === 2) {
+        const sx = p.x + bw / 2, ex = q.x + bw / 2, cx = W - 8;
+        d = `M${sx} ${p.y} C ${cx} ${p.y}, ${cx} ${q.y}, ${ex + 2} ${q.y}`;
+        const t = 0.22, u = 1 - t;
+        lx = u * u * u * sx + 3 * u * u * t * cx + 3 * u * t * t * cx + t * t * t * (ex + 2) - 11;
+        ly = u * u * u * p.y + 3 * u * u * t * p.y + 3 * u * t * t * q.y + t * t * t * q.y;
+      } else if (b.n === 1) {
+        const sx = p.x - bw / 2 + 10, sy = p.y - bh / 2, ex = q.x + bw / 4, ey = q.y + bh / 2 + 2;
+        d = `M${sx} ${sy} C ${sx} ${sy - 14}, ${ex} ${ey + 14}, ${ex} ${ey}`; lx = (sx + ex) / 2 + 16; ly = (sy + ey) / 2;
+      } else if (b.n === 3) {
+        const sx = p.x, sy = p.y - bh / 2, ex = q.x - bw / 2 - 2, ey = q.y + 6;
+        d = `M${sx} ${sy} C ${sx} ${sy - 18}, ${ex - 20} ${ey}, ${ex} ${ey}`; lx = sx - 4; ly = sy - 16;
+      } else if (b.n === 4) {
+        const sx = p.x + bw / 2, sy = p.y + 4, ex = q.x, ey = q.y - bh / 2 - 2;
+        d = `M${sx} ${sy} C ${ex} ${sy}, ${ex} ${ey - 14}, ${ex} ${ey}`; lx = ex - 2; ly = sy + 2;
+      } else {
+        const k = narrow ? 12 : 30, sx = p.x + bw / 2, sy = p.y + 6, ex = q.x + bw / 2 + 2, ey = q.y - 6;
+        d = `M${sx} ${sy} C ${sx + k} ${sy}, ${ex + k} ${ey}, ${ex} ${ey}`; lx = sx + k * 0.75 + 10; ly = (sy + ey) / 2;
+      }
+      g += `<path d="${d}" style="fill:none;stroke:var(${col});stroke-width:2.6${up ? "" : ";stroke-dasharray:6 4"}" marker-end="url(#${mk})"><title>${b.from} → ${b.to}: ${b.code}</title></path>`;
+      g += `<circle cx="${lx}" cy="${ly}" r="9" style="fill:var(${col})"/><text x="${lx}" y="${ly + 4}" text-anchor="middle" class="mono-t" style="fill:var(--panel);font-weight:700;font-size:11px">${b.n}</text>`;
+    }
+    $("graph").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ten modules on six layers with their dependency arrows">${g}</svg>`;
+  }
+
+  // ---------- render ----------
+  function render() {
+    const m = model(st);
+    graph(m);
+    const w = m.wait(st.edit), hudW = m.wait("HUD");
+    $("sWait").textContent = sec(w);
+    $("sWait").className = "v " + (w <= HUD_BUDGET ? "good" : w >= 40 ? "bad" : "");
+    $("sWaitS").textContent = `s · editing ${st.edit} · ${m.rebuild(st.edit).length} of 10 modules`;
+    $("sAvg").textContent = f1(m.avg);
+    $("sAvg").className = "v " + (m.avg <= 21 ? "good" : m.avg >= 40 ? "bad" : "");
+    $("sAvgS").textContent = `s · team waits ${f1(m.team)} h a day`;
+    if (!st.split) { $("sTangle").textContent = "10"; $("sTangle").className = "v bad"; $("sTangleS").textContent = "one assembly: all built together"; }
+    else { $("sTangle").textContent = String(m.big); $("sTangle").className = "v " + (m.big ? "bad" : "good"); $("sTangleS").textContent = m.big ? `modules · ${m.assemblies} assemblies possible` : "every module builds alone · 10 assemblies"; }
+    $("sServer").textContent = m.serverOk ? "✓ runs" : "✗ crash";
+    $("sServer").className = "v " + (m.serverOk ? "good" : "bad");
+    $("sServerS").textContent = m.serverOk ? `${REPLAY_S} s per 10-min replay` : m.gpu ? "needs a GPU" : "needs a sound device";
+    $("editLabel").textContent = st.edit + " · " + M[st.edit].c + " s to compile";
+    for (const b of document.querySelectorAll("#editBtns button")) b.setAttribute("aria-pressed", b.dataset.m === st.edit);
+    $("mOne").setAttribute("aria-pressed", !st.split); $("mSplit").setAttribute("aria-pressed", st.split);
+
+    // coach
+    const up = activeBad(st).filter((b) => M[b.to].layer > M[b.from].layer);
+    const ban = activeBad(st).filter((b) => M[b.to].layer <= M[b.from].layer);
+    let c;
+    if (!st.split) c = `All 1,840 scripts are one assembly. Any edit recompiles everything: ${m.total} s + ${RELOAD} s reload = <span class="bug">${m.total + RELOAD} s</span>. Switch to <strong>One per module</strong> to see what the arrows allow.`;
+    else if (m.big) c = `<span class="bug">${up.length} upward arrow${up.length === 1 ? "" : "s"}</span> tie ${m.big} modules into a tangle. Unity refuses cycles between assemblies, so the tangle must build as one. Editing ${st.edit} rebuilds ${m.rebuild(st.edit).length} modules.`;
+    else c = `No upward arrows, no tangles: each module is its own assembly. An edit rebuilds the module and everything above it. Editing ${st.edit}: ${m.rebuild(st.edit).join(", ")}.`;
+    if (ban.length) c += ` Arrow${ban.length > 1 ? "s" : ""} ${ban.map((b) => b.n).join(" and ")} point${ban.length > 1 ? "" : "s"} down, so the layers allow ${ban.length > 1 ? "them" : "it"}, but the simulation may use only Core and Physics.`;
+    $("coach").innerHTML = c;
+
+    // editor log
+    const rb = m.rebuild(st.edit);
+    let cap = `<span class="dim">Edit: ${st.edit}/…cs  →  press Play</span>\n`;
+    if (!st.split) cap += `Compile Assembly-CSharp`.padEnd(30) + `${String(m.total).padStart(3)} s\n`;
+    else {
+      const groups = [];
+      for (const id of rb) { const key = m.scc[id].length > 1 ? m.scc[id].slice().sort().join("+") : id; if (!groups.find((x) => x.key === key)) groups.push({ key, ids: m.scc[id].length > 1 ? m.scc[id] : [id] }); }
+      for (const gp of groups) {
+        const t = gp.ids.reduce((a, x) => a + M[x].c, 0);
+        const plain = gp.ids.length > 1 ? `tangle of ${gp.ids.length}` : "SkyHopper." + gp.ids[0];
+        const name = gp.ids.length > 1 ? `<span class="warn">${plain}</span>` : plain;
+        cap += `Compile ${name}` + " ".repeat(Math.max(1, 22 - plain.length)) + `${String(t).padStart(3)} s\n`;
+        if (gp.ids.length > 1) for (let i = 0; i < gp.ids.length; i += 3) cap += `<span class="dim">  ${gp.ids.slice(i, i + 3).join(", ")}</span>\n`;
+      }
+      if (m.big) cap += `<span class="dim">(Unity refuses cycles, so a\n tangle builds as one assembly)</span>\n`;
+    }
+    cap += `Domain reload`.padEnd(30) + `${String(RELOAD).padStart(3)} s\n`;
+    cap += `<span class="${w <= HUD_BUDGET ? "ok" : "warn"}">` + `Wait before Play`.padEnd(30) + `${sec(w).padStart(3)} s</span>`;
+    $("capture").innerHTML = cap;
+    let fm = "";
+    for (const k in WEIGHTS) fm += `${String(WEIGHTS[k]).padStart(2)}% × ${k.padEnd(10)} ${sec(m.wait(k)).padStart(3)} s\n`;
+    fm += `average = ${f1(m.avg)} s per edit\n`;
+    fm += `team    = ${f1(m.avg)} s × ${EDITS} × ${PEOPLE} = ${f1(m.team)} h a day`;
+    $("formula").textContent = fm;
+
+    // server
+    let sv = `$ replay-runner --headless --sessions ${REPLAYS}\n`;
+    if (!st.split) sv += `load Assembly-CSharp (all 10 modules)\n`;
+    else sv += `load ${m.needs.map((x) => "SkyHopper." + x).join("\n     ")}\n`;
+    if (m.gpu) sv += `<span class="warn">✗ HUD/Render: no graphics device</span>\n<span class="warn">  replay test did not run</span>`;
+    else if (m.sound) sv += `<span class="warn">✗ Audio: no audio device</span>\n<span class="warn">  replay test did not run</span>`;
+    else sv += `<span class="ok">✓ ${REPLAYS} sessions × 36,000 ticks × 2.11 ms</span>\n<span class="ok">  ≈ ${REPLAYS} × ${REPLAY_S} s = ${(REPLAYS * REPLAY_S).toLocaleString("en-US")} s ≈ ${Math.round((REPLAYS * REPLAY_S) / 60)} min, checksums match</span>`;
+    $("server").innerHTML = sv;
+
+    // CI check
+    let ck, verdict;
+    if (!st.ci) {
+      ck = `<span class="dim">(not running: nothing checks the arrows)</span>`;
+      verdict = m.viol.length ? `<span class="bug">${m.viol.length} rule break${m.viol.length > 1 ? "s" : ""}</span> in the code, and no test notices. Unity compiles ${st.split && !m.big ? "happily" : "it anyway"}.` : `The code follows the rules today. Nothing stops tomorrow's bad arrow.`;
+    } else if (m.viol.length) {
+      ck = `<span class="warn">✗ ArrowsFollowTheRules</span>\n` + m.viol.map((v) => `  SkyHopper.${v.a} → SkyHopper.${v.b}\n  <span class="dim">${v.why}</span>`).join("\n");
+      verdict = `<span class="bug">Pull request blocked</span>: ${m.viol.length} arrow${m.viol.length > 1 ? "s break" : " breaks"} the rules. Found in about 20 s, the day it was written.`;
+    } else {
+      ck = `<span class="ok">✓ ArrowsFollowTheRules</span>  ${m.es.length} references checked`;
+      verdict = `<span class="ok">All arrows follow the rules.</span> The check runs on every pull request in about 20 s.`;
+    }
+    $("check").innerHTML = ck; $("verdict").innerHTML = verdict;
+
+    // goal
+    const goal = st.split && !m.big && hudW <= HUD_BUDGET && m.serverOk && st.ci && !m.viol.length;
+    $("goalPill").className = "pill " + (goal ? "ok" : "over");
+    $("goalPill").textContent = goal ? "Goal met" : !st.split ? "One assembly" : m.big ? "Tangled" : !m.serverOk ? "Server can't run" : !st.ci ? "Add the layer check" : m.viol.length ? "Check fails" : "Not yet";
+  }
+
+  // ---------- controls ----------
+  const eb = $("editBtns");
+  for (const id of EDIT_ORDER) {
+    const b = document.createElement("button");
+    b.type = "button"; b.dataset.m = id; b.id = "e" + id; b.textContent = id === "Simulation" ? "Sim" : id;
+    b.setAttribute("aria-label", "Edit " + id);
+    b.addEventListener("click", () => { st.edit = id; render(); });
+    eb.appendChild(b);
+  }
+  $("mOne").addEventListener("click", () => { st.split = false; render(); });
+  $("mSplit").addEventListener("click", () => { st.split = true; render(); });
+  for (const k of ["fix1", "fix2", "fix3", "fix4", "hack", "ci"]) $(k).addEventListener("change", (e) => { st[k] = e.target.checked; render(); });
+  function apply(s) {
+    Object.assign(st, s);
+    for (const k of ["fix1", "fix2", "fix3", "fix4", "hack", "ci"]) $(k).checked = st[k];
+    render();
+  }
+
+  // ---------- guided steps ----------
+  const base = { split: true, edit: "HUD", fix1: false, fix2: false, fix3: false, fix4: false, hack: false, ci: false };
+  const STEPS = [
+    { t: "One big assembly", d: "Edit the HUD: everything recompiles, 42 + 6 = 48 s. The average edit is 48.0 s, so the team waits 6.4 h a day. The replay server crashes: it has to load the whole game.", s: { ...base, split: false } },
+    { t: "Split into 10 assemblies", d: "One per module, arrows as found. Three red arrows tie 8 modules into one tangle. A HUD edit is still 48 s; the average only drops to 44.1 s (5.9 h a day). Tap Tools under Edit: 9 s, the only win.", s: { ...base } },
+    { t: "Flip Core → UI with an interface", d: "SaveFile reports through ISaveProgress. The tangle shrinks to 3 modules (Physics, Simulation, HUD). HUD edit 33 s, average 29.0 s, 3.9 h a day.", s: { ...base, fix2: true } },
+    { t: "Let the upper module read", d: "The HUD reads the tension and Physics writes a contact queue. No tangles: 10 assemblies. HUD edit 12 s, average 20.8 s, 2.8 h a day. Tap Core: still 48 s, because everything stands on it. The server still crashes: no audio device.", s: { ...base, fix2: true, fix1: true, fix3: true } },
+    { t: "Sound cues: the server runs", d: "The simulation posts cues; the HUD plays them. The replay runner loads only Simulation, Physics and Core: 76 s per 10-minute replay, 20 a night in about 25 min. Average edit 20.5 s, 2.7 h a day.", s: { ...base, fix2: true, fix1: true, fix3: true, fix4: true } },
+    { t: "The camera shortcut", d: "Three weeks later: Simulation asks the camera what is visible. It points down, so Unity compiles it, with no tangle and a 12 s HUD edit. But the server crashes again: it needs a GPU.", s: { ...base, fix2: true, fix1: true, fix3: true, fix4: true, hack: true } },
+    { t: "The layer check catches it", d: "Turn on the CI check. It reports Simulation → Render: \"Simulation may use: Core, Physics\". The pull request is blocked the same day. Untick the camera shortcut and the goal turns green.", s: { ...base, fix2: true, fix1: true, fix3: true, fix4: true, hack: true, ci: true } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $("graph").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("graph").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; graph(model(st)); } }).observe($("graph"));
+})();
+</script>
