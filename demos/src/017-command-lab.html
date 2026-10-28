@@ -1,0 +1,775 @@
+<title>Command Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. The view for the current mode (input timeline, reef editor or replay) on the left, readouts and controls on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300;
+  --stripe: #c9d7e8;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --stripe: #2b3a4d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --stripe: #2b3a4d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+.pill.warn { color: var(--accent); }
+
+.view svg { display: block; width: 100%; height: auto; }
+#reef { display: block; width: 100%; height: 210px; border: 1px solid var(--line); border-radius: 8px; }
+.view text { font-family: var(--f-body); font-size: 13px; }
+.view .mono-t { font-family: var(--f-mono); font-size: 12px; }
+.flow { stroke-dasharray: 6 5; animation: march 0.9s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -11; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .bug { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-weight: 600; font-size: 14px; padding: 9px 6px; min-height: 40px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+.toggles { display: grid; gap: 8px; font-size: 14px; }
+.toggles label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.toggles label.off { opacity: 0.5; cursor: default; }
+.toggles input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; flex: none; }
+.toggles small { display: block; color: var(--muted); font-size: 12px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(10.5px, 2.9vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .ok { color: var(--good); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+
+.two { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.passes { display: grid; gap: 8px; }
+.pass { display: grid; grid-template-columns: 8.5em minmax(0, 1fr) 5.6em; gap: 10px; align-items: center; font-size: 14px; }
+.pass .track { height: 14px; background: var(--field); border: 1px solid var(--line); border-radius: 3px; position: relative; overflow: hidden; }
+.pass .fill { position: absolute; inset: 0 auto 0 0; border-radius: 0 3px 3px 0; transition: width 0.25s ease; }
+.pass .ms { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.pass small { display: block; font-size: 11px; line-height: 1.2; color: var(--muted); }
+.pass.total { border-top: 1px solid var(--line); padding-top: 8px; font-weight: 600; }
+.formula { font-family: var(--f-mono); font-size: clamp(10.5px, 2.9vw, 13px); background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; overflow-x: auto; white-space: pre; line-height: 1.6; }
+
+.runline { font-size: 14px; margin: 0; }
+.runline .bug { color: var(--bad); font-weight: 600; }
+.runline .ok { color: var(--good); font-weight: 600; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.steps-group { display: grid; gap: 10px; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; min-height: 36px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.seg-ctl.n3 { grid-template-columns: repeat(3, 1fr); }
+.seg-ctl.n2 { grid-template-columns: repeat(2, 1fr); }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+#reefC, #replayC { display: block; width: 100%; border: 1px solid var(--line); border-radius: 8px; touch-action: manipulation; }
+#reefC { height: 240px; cursor: crosshair; }
+#replayC { height: 230px; }
+.strip { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); gap: 3px; }
+.strip i { height: 12px; border-radius: 2px; background: var(--field); border: 1px solid var(--line); }
+.strip i.ok { background: var(--good); border-color: var(--good); }
+.strip i.bad { background: var(--bad); border-color: var(--bad); }
+.scrub { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 13px; }
+.mini { font-size: 13px; color: var(--muted); margin: 0; }
+@media (prefers-reduced-motion: reduce) { .pass .fill { transition: none; } .flow { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/017-command-pattern-input-undo-replays.md">Read Lesson 017 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 017 · Lesson 017 · simulation using the lesson's numbers, with a real mini replay</div>
+    <h1>Command Lab</h1>
+    <p class="lede">Turn taps and edits into command objects. Watch Reel taps get lost or doubled when the hook reads the screen directly, edit a reef and undo it, then record a fishing run and replay it until every checksum matches.</p>
+  </header>
+
+  <div class="goal">
+    <p id="goalText"><strong>Sky Hopper, 30 fps phone, 60 Hz fixed step.</strong></p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Main view, readouts and controls">
+    <div class="panel">
+      <h2 id="viewH">Frames and ticks</h2>
+      <div id="inputView">
+        <div class="view" id="timeline"></div>
+        <p class="fine">Blue boxes run one 60 Hz tick (dot) at their start. Grey boxes run none. A tap is read by the next frame. ✓ = 1 notch, ✗ = lost, ×2 = doubled.</p>
+      </div>
+      <div id="undoView" hidden>
+        <canvas id="reefC" height="240" aria-label="Reef editor. Tap to use the chosen tool."></canvas>
+        <div class="legend"><span><i style="background:var(--stripe)"></i>reef patch, 2,000 objects</span><span><i style="background:var(--p4)"></i>rock</span><span><i style="background:var(--p3)"></i>sea grass</span><span><i style="background:var(--p2)"></i>big rock</span><span><i style="background:var(--bad)"></i>a deleted rock Undo moved</span></div>
+      </div>
+      <div id="replayView" hidden>
+        <canvas id="replayC" height="230" aria-label="Recorded run and its replay"></canvas>
+        <div class="legend"><span><i style="background:var(--muted)"></i>recording (outline)</span><span><i style="background:var(--p1)"></i>replay, matches</span><span><i style="background:var(--bad)"></i>replay, different</span></div>
+        <div class="scrub">
+          <button type="button" class="btn" id="playBtn">▶ Play</button>
+          <input type="range" id="tick" min="0" max="1200" step="1" value="0" aria-label="Tick">
+          <span class="mono" id="tickLabel">0:00</span>
+        </div>
+        <div class="strip" id="strip" aria-label="20 checksums, one per 60 ticks"></div>
+        <p class="mini">20 checksums, one every 60 ticks (1 s). Green: the replay's checksum equals the recording's.</p>
+      </div>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k" id="k1"></span><span class="v" id="v1">0</span><span class="s" id="s1"></span></div>
+        <div class="stat"><span class="k" id="k2"></span><span class="v" id="v2">0</span><span class="s" id="s2"></span></div>
+        <div class="stat"><span class="k" id="k3"></span><span class="v" id="v3">0</span><span class="s" id="s3"></span></div>
+        <div class="stat"><span class="k" id="k4"></span><span class="v" id="v4">0</span><span class="s" id="s4"></span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <span class="lbl"><span>Part of the lesson</span></span>
+          <div class="seg-ctl n3" role="group" aria-label="Mode">
+            <button type="button" id="mInput" aria-pressed="true">Input</button>
+            <button type="button" id="mUndo" aria-pressed="false">Undo</button>
+            <button type="button" id="mReplay" aria-pressed="false">Replay</button>
+          </div>
+        </div>
+
+        <div id="inputCtl" class="controls">
+          <div class="field-row">
+            <span class="lbl"><span>Screen refresh</span><span class="mono" id="rateLabel">120 Hz</span></span>
+            <div class="seg-ctl n3" role="group" aria-label="Screen refresh">
+              <button type="button" id="r30" aria-pressed="false">30 fps</button>
+              <button type="button" id="r60" aria-pressed="false">60 Hz</button>
+              <button type="button" id="r120" aria-pressed="true">120 Hz</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label><input type="checkbox" id="cmd"><span>Input becomes commands in a queue<small>Off: the hook calls GetButtonDown inside the fixed step. On: InputMapper pushes "Reel for tick N"</small></span></label>
+          </div>
+          <div class="btns"><button type="button" class="btn primary" id="tapBtn">👆 Tap Reel</button><button type="button" class="btn" id="tapClear">Clear my taps</button></div>
+          <p class="mini" id="yourTaps"></p>
+        </div>
+
+        <div id="undoCtl" class="controls" hidden>
+          <div class="field-row">
+            <span class="lbl"><span>Undo is stored as</span></span>
+            <div class="seg-ctl n2" role="group" aria-label="Undo storage">
+              <button type="button" id="uSnap" aria-pressed="false">Snapshots</button>
+              <button type="button" id="uCmd" aria-pressed="true">Commands</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label id="idsL"><input type="checkbox" id="ids"><span>Commands name objects by stable ID<small>Commands only. Off: Move keeps a reference to the C# object</small></span></label>
+          </div>
+          <div class="field-row">
+            <span class="lbl"><span>Tap the reef to use</span></span>
+            <div class="seg-ctl" role="group" aria-label="Tool">
+              <button type="button" id="tRock" aria-pressed="true">Rock</button>
+              <button type="button" id="tBrush" aria-pressed="false">Brush</button>
+              <button type="button" id="tClear" aria-pressed="false">Clear</button>
+              <button type="button" id="tMove" aria-pressed="false">Move</button>
+            </div>
+          </div>
+          <div class="btns">
+            <button type="button" class="btn primary" id="undoBtn">↩ Undo</button>
+            <button type="button" class="btn" id="redoBtn">↪ Redo</button>
+            <button type="button" class="btn" id="fillBtn">Do 100 typical edits</button>
+            <button type="button" class="btn" id="storyBtn">Run the rock story</button>
+            <button type="button" class="btn" id="resetBtn">New reef</button>
+          </div>
+        </div>
+
+        <div id="replayCtl" class="controls" hidden>
+          <div class="field-row">
+            <span class="lbl"><span>The replay file stores</span></span>
+            <div class="seg-ctl n2" role="group" aria-label="Recording">
+              <button type="button" id="recState" aria-pressed="false">Every state</button>
+              <button type="button" id="recCmd" aria-pressed="true">Commands + seed</button>
+            </div>
+          </div>
+          <div class="toggles">
+            <label id="ownRandL"><input type="checkbox" id="ownRand"><span>Simulation has its own seeded random<small>Off: splash particles draw from the same generator, once per rendered frame</small></span></label>
+            <label id="ticksOnlyL"><input type="checkbox" id="ticksOnly"><span>Simulation time = ticks only<small>Off: the bite timer reads the wall clock (realtimeSinceStartup)</small></span></label>
+            <label id="snapsL"><input type="checkbox" id="snaps"><span>Snapshot every 30 s<small>For seeking: 20 × 108.8 KB in a 10-minute file</small></span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2 id="capH">What the computer sees</h2>
+      <p class="fine" id="capNote"></p>
+      <pre class="capture" id="capture"></pre>
+    </div>
+    <div class="panel">
+      <h2 id="fmH">The arithmetic</h2>
+      <p class="fine" id="fmNote"></p>
+      <pre class="formula" id="formula"></pre>
+      <p class="runline" id="runline"></p>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the main view and the four numbers. This replays the lesson's story.</p>
+    <div class="steps-group">
+      <h3>Lesson 017: commands for input, undo and replays</h3>
+      <ol class="steps" id="steps"></ol>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Input once, at one door</h3><p>A button that is "down" for one frame is seen 0 times by a fixed step on a 120 Hz screen and 2 times on a 30 fps phone. A command stamped with its tick runs exactly once.</p></div>
+      <div class="note"><h3>Undo stores the change</h3><p>A snapshot copies the whole reef: 5.76 MB per step, 576 MB for 100. A command keeps only what it changed: 0.53 MB. It must name objects by stable ID, or Undo moves a deleted rock.</p></div>
+      <div class="note"><h3>Replay needs determinism</h3><p>Commands and a seed are 24.1 KB for 10 minutes instead of 3.9 GB. But one shared random or one clock read makes the replay drift. Checksums show when; snapshots make seeking fast.</p></div>
+    </div>
+    <p class="fine">Input and undo memory are a simulation using Lesson 017's numbers: a 60 Hz fixed step; 48 B per reef object; 120,000 objects (5.76 MB) per snapshot; command sizes 64 B (rock), 1,936 B (brush of 40), 36 B (move), 16 B + 48 B per removed object (clear: 2,000 objects per patch). The undo stack, the editor and the rock bug are real code running here. The replay is a real deterministic mini simulation (16 fish, one hook, 1,200 ticks = 20 s, 12 commands) recorded as if on a 30 fps phone and replayed in fast-forward; its mismatches are produced live, not scripted. The 10-minute sizes (24.1 KB, 3.9 GB, 2.2 MB) and seek times (2.11 ms per tick: 66.6 s and 2.0 s) come from the lesson and are approximate. A real engine has more sources of non-determinism, such as floating-point differences between CPUs and job order.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const fmtInt = (v) => Math.round(v).toLocaleString("en-US");
+  const st = { mode: "input", rate: 120, cmd: false, undo: "cmd", ids: false, tool: "rock", rec: "cmd", ownRand: false, ticksOnly: false, snaps: false };
+
+  // =================== INPUT ===================
+  const TICK_MS = 1000 / 60, BASE_TAPS = [10, 22, 45, 72];
+  let userTaps = [];
+  const ticksInFrame = (f, rate) => Math.floor(f * 60 / rate + 1e-9) - Math.floor((f - 1) * 60 / rate + 1e-9);
+  function inputModel() {
+    const cyc = st.rate === 120 ? 2 : 1;
+    let zero = 0, many = 0, sum = 0;
+    for (let f = 1; f <= cyc; f++) { const k = ticksInFrame(f, st.rate); if (k === 0) zero++; if (k >= 2) many++; sum += k; }
+    if (st.cmd) return { lost: 0, doubled: 0, notches: 100 };
+    return { lost: Math.round(100 * zero / cyc), doubled: Math.round(100 * many / cyc), notches: Math.round(100 * sum / cyc) };
+  }
+  function tapOutcome(t) {
+    const fd = 1000 / st.rate, rf = Math.ceil(t / fd - 1e-9), k = ticksInFrame(rf, st.rate);
+    if (!st.cmd) return { rf, k, n: k, res: k === 0 ? "lost" : k >= 2 ? "x2" : "ok" };
+    let f = rf; while (ticksInFrame(f, st.rate) === 0) f++;
+    return { rf: f, k: 1, n: 1, res: "ok" };
+  }
+  function drawTimeline() {
+    const W = Math.max(300, Math.min(680, Math.round($("timeline").clientWidth || 600))), narrow = W < 460;
+    const X0 = 6, X1 = W - 6, PX = (X1 - X0) / 100, fd = 1000 / st.rate, y = 46, h = 34;
+    let g = "";
+    const n = Math.round(100 / fd);
+    for (let f = 0; f < n; f++) {
+      const x = X0 + f * fd * PX, w = fd * PX, k = ticksInFrame(f, st.rate) || (f === 0 ? 1 : 0);
+      g += `<rect x="${(x + 1).toFixed(1)}" y="${y}" width="${(w - 2).toFixed(1)}" height="${h}" rx="4" style="fill:var(${k ? "--field" : "--panel"});stroke:var(${k ? "--p1" : "--line"})"/>`;
+      for (let j = 0; j < k; j++) g += `<circle cx="${(x + 9 + j * 13).toFixed(1)}" cy="${y + h / 2}" r="4.5" style="fill:var(--p1)"/>`;
+      if (!k && w > 34) g += `<text x="${(x + w / 2).toFixed(1)}" y="${y + h / 2 + 4}" text-anchor="middle" style="fill:var(--muted);font-size:${narrow ? 9.5 : 11}px">${w > 50 ? "no tick" : "–"}</text>`;
+    }
+    const taps = BASE_TAPS.map((t) => ({ t, mine: false })).concat(userTaps.map((t) => ({ t, mine: true })));
+    taps.forEach(({ t, mine }) => {
+      const o = tapOutcome(t), tx = X0 + t * PX, rx = X0 + o.rf * fd * PX + 6;
+      const col = o.res === "ok" ? "--good" : "--bad";
+      g += `<line x1="${tx.toFixed(1)}" y1="${y - 22}" x2="${tx.toFixed(1)}" y2="${y - 3}" style="stroke:var(${mine ? "--accent" : "--ink"});stroke-width:2"/><path d="M${(tx - 4).toFixed(1)},${y - 9} L${tx.toFixed(1)},${y - 2} L${(tx + 4).toFixed(1)},${y - 9}" style="fill:none;stroke:var(${mine ? "--accent" : "--ink"});stroke-width:2"/>`;
+      if (!mine) g += `<text x="${tx.toFixed(1)}" y="${y - 26}" text-anchor="middle" style="fill:var(--ink);font-size:11px">tap</text>`;
+      g += `<path d="M${tx.toFixed(1)},${y + h + 3} Q${((tx + rx) / 2).toFixed(1)},${y + h + 20} ${rx.toFixed(1)},${y + h + 3}" style="fill:none;stroke:var(${col});stroke-width:1.5;stroke-dasharray:4 3"/>`;
+      if (!mine) { const lab = narrow ? (o.res === "ok" ? "✓" : o.res === "lost" ? "✗" : "×2") : o.res === "ok" ? (st.cmd ? "✓ tick" : "✓ 1") : o.res === "lost" ? "✗ lost" : "✗ ×2"; g += `<text x="${rx.toFixed(1)}" y="${y + h + 34}" text-anchor="middle" style="fill:var(${col});font-weight:700;font-size:${narrow ? 11 : 12}px">${lab}</text>`; }
+    });
+    const ay = y + h + 52;
+    g += `<line x1="${X0}" y1="${ay}" x2="${X1}" y2="${ay}" style="stroke:var(--line)"/>`;
+    for (let ms = 0; ms <= 100; ms += narrow ? 50 : 20) { const x = X0 + ms * PX; g += `<text x="${x.toFixed(1)}" y="${ay + 15}" text-anchor="${ms === 0 ? "start" : ms === 100 ? "end" : "middle"}" class="mono-t" style="fill:var(--muted)">${ms} ms</text>`; }
+    $("timeline").innerHTML = `<svg viewBox="0 0 ${W} ${ay + 22}" role="img" aria-label="100 ms of frames and ticks with taps">${g}</svg>`;
+  }
+
+  // =================== UNDO ===================
+  const PC = 12, PR = 5, PATCH = 2000, OBJ = 48, HDR = 16, SNAP = 5.76, CAP = 100;
+  let reef, undoS, redoS, nextId, ghost, story;
+  const A = { x: 0.13, y: 0.30 }, B = { x: 0.71, y: 0.70 };
+  function newReef() {
+    reef = { cleared: new Array(PC * PR).fill(false), objs: new Map() };
+    nextId = 2; reef.objs.set(1, { id: 1, x: A.x, y: A.y, type: "big" });
+    undoS = []; redoS = []; ghost = null; story = null;
+  }
+  const patchOf = (x, y) => Math.min(PR - 1, Math.floor(y * PR)) * PC + Math.min(PC - 1, Math.floor(x * PC));
+  const findBig = () => { for (const o of reef.objs.values()) if (o.type === "big") return o; return null; };
+  const cloneReef = (r) => ({ cleared: r.cleared.slice(), objs: new Map([...r.objs].map(([k, o]) => [k, { ...o }])) });
+  function rng32(seed) { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  let edRand = rng32(7);
+  // --- commands (real Do/Undo) ---
+  function PlaceRock(x, y) { let id = 0; return { name: "Place rock", bytes: HDR + OBJ, do() { if (!id) id = nextId++; reef.objs.set(id, { id, x, y, type: "rock" }); }, undo() { reef.objs.delete(id); } }; }
+  function Brush(x, y) {
+    const pts = []; for (let i = 0; i < 40; i++) { const a = edRand() * 6.283, r = Math.sqrt(edRand()) * 0.06; pts.push([Math.min(0.99, Math.max(0.01, x + Math.cos(a) * r)), Math.min(0.99, Math.max(0.01, y + Math.sin(a) * r * 1.6))]); }
+    let ids = null;
+    return { name: "Brush 40 sea grass", bytes: HDR + 40 * OBJ, do() { if (!ids) ids = pts.map(() => nextId++); pts.forEach((p, i) => reef.objs.set(ids[i], { id: ids[i], x: p[0], y: p[1], type: "grass" })); }, undo() { ids.forEach((id) => reef.objs.delete(id)); } };
+  }
+  function ClearArea(p, useIds) {
+    let removed = [];
+    const c = {
+      name: "Clear area", bytes: 0,
+      do() {
+        reef.cleared[p] = true; removed = [];
+        for (const o of [...reef.objs.values()]) if (patchOf(o.x, o.y) === p) { removed.push({ ...o }); reef.objs.delete(o.id); }   // saved as data
+        c.bytes = HDR + OBJ * (PATCH + removed.length);
+      },
+      undo() {
+        reef.cleared[p] = false;
+        for (const d of removed) {
+          if (useIds) reef.objs.set(d.id, { ...d });                 // same ID: Find(id) works again
+          else { const id = nextId++; reef.objs.set(id, { ...d, id }); }  // a NEW object, like Instantiate from saved data
+        }
+      },
+    };
+    return c;
+  }
+  function MoveObj(target, to, useIds) {
+    const id = target.id, ref = target, from = { x: target.x, y: target.y };
+    return {
+      name: "Move rock", bytes: HDR + 4 + 8 + 8,
+      do() { const o = useIds ? reef.objs.get(id) : ref; if (o) { o.x = to.x; o.y = to.y; } },
+      undo() {
+        if (useIds) { const o = reef.objs.get(id); if (o) { o.x = from.x; o.y = from.y; } ghost = null; }
+        else { ref.x = from.x; ref.y = from.y; ghost = reef.objs.get(ref.id) === ref ? null : { x: from.x, y: from.y }; }
+      },
+    };
+  }
+  function exec(c) {
+    if (st.undo === "snap") { undoS.push({ name: c.name, snap: cloneReef(reef) }); c.do(); }
+    else { c.do(); undoS.push(c); }
+    redoS = [];
+    if (undoS.length > CAP) undoS.shift();
+  }
+  function undo() {
+    const c = undoS.pop(); if (!c) return;
+    if (st.undo === "snap") { redoS.push({ name: c.name, snap: cloneReef(reef) }); reef = c.snap; ghost = null; }
+    else { c.undo(); redoS.push(c); }
+  }
+  function redo() {
+    const c = redoS.pop(); if (!c) return;
+    if (st.undo === "snap") { undoS.push({ name: c.name, snap: cloneReef(reef) }); reef = c.snap; }
+    else { c.do(); undoS.push(c); }
+  }
+  function memBytes() {
+    if (st.undo === "snap") return (undoS.length + redoS.length) * SNAP * 1e6;
+    return undoS.concat(redoS).reduce((s, c) => s + c.bytes, 0);
+  }
+  function fill100() {
+    newReef(); edRand = rng32(7);
+    const bigP = patchOf(A.x, A.y), pats = [];
+    for (const p of [7, 20, 33, 46, 57]) if (p !== bigP) pats.push(p);
+    pats.forEach((p) => exec(ClearArea(p, st.ids)));
+    for (let i = 0; i < 70; i++) exec(PlaceRock(0.03 + edRand() * 0.94, 0.05 + edRand() * 0.9));
+    for (let i = 0; i < 25; i++) exec(Brush(0.06 + edRand() * 0.88, 0.1 + edRand() * 0.8));
+  }
+  function runStory() {
+    newReef(); edRand = rng32(7);
+    const big = findBig();
+    exec(MoveObj(big, B, st.ids));
+    exec(ClearArea(patchOf(B.x, B.y), st.ids));
+    undo(); undo();
+    story = true;
+  }
+  function bigStatus() {
+    const b = findBig();
+    if (!b) return { v: "gone", cls: "bad", s: "deleted by Clear" };
+    if (Math.abs(b.x - A.x) < 1e-9 && Math.abs(b.y - A.y) < 1e-9) return { v: "at A ✓", cls: "good", s: "where it started" };
+    return { v: story ? "stuck ✗" : "moved", cls: story ? "bad" : "", s: story ? "Undo moved a deleted object" : "by your Move" };
+  }
+  const reefC = $("reefC"), rctx = reefC.getContext("2d");
+  function drawReef() {
+    const dpr = window.devicePixelRatio || 1, W = Math.max(280, reefC.clientWidth), H = 240;
+    if (reefC.width !== Math.round(W * dpr)) { reefC.width = Math.round(W * dpr); reefC.height = Math.round(H * dpr); }
+    rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    rctx.fillStyle = css("--field"); rctx.fillRect(0, 0, W, H);
+    const cw = W / PC, ch = H / PR, stripe = css("--stripe"), line = css("--line");
+    for (let p = 0; p < PC * PR; p++) {
+      const cx = (p % PC) * cw, cy = Math.floor(p / PC) * ch;
+      if (!reef.cleared[p]) {
+        rctx.fillStyle = stripe; rctx.fillRect(cx + 1, cy + 1, cw - 2, ch - 2);
+        rctx.fillStyle = line; for (let k = 0; k < 6; k++) { const r = rng32(p * 13 + k); rctx.beginPath(); rctx.arc(cx + 4 + r() * (cw - 8), cy + 4 + r() * (ch - 8), 1.6, 0, 6.3); rctx.fill(); }
+      } else { rctx.strokeStyle = line; rctx.setLineDash([3, 3]); rctx.strokeRect(cx + 1.5, cy + 1.5, cw - 3, ch - 3); rctx.setLineDash([]); }
+    }
+    for (const o of reef.objs.values()) {
+      const x = o.x * W, y = o.y * H;
+      if (o.type === "grass") { rctx.strokeStyle = css("--p3"); rctx.lineWidth = 1.2; rctx.beginPath(); rctx.moveTo(x, y + 3); rctx.lineTo(x + 1, y - 3); rctx.stroke(); }
+      else if (o.type === "rock") { rctx.fillStyle = css("--p4"); rctx.beginPath(); rctx.arc(x, y, 3.5, 0, 6.3); rctx.fill(); }
+    }
+    const b = findBig();
+    if (b) { rctx.fillStyle = css("--p2"); rctx.beginPath(); rctx.ellipse(b.x * W, b.y * H, 13, 9, 0, 0, 6.3); rctx.fill(); rctx.fillStyle = css("--panel"); rctx.font = "700 11px " + css("--f-body"); rctx.textAlign = "center"; rctx.fillText("big", b.x * W, b.y * H + 4); }
+    rctx.textAlign = "left"; rctx.font = "600 12px " + css("--f-body");
+    for (const [p, lab] of [[A, "A"], [B, "B"]]) { rctx.fillStyle = css("--ink"); rctx.fillText(lab, p.x * W - 22, p.y * H - 10); }
+    if (ghost) {
+      rctx.strokeStyle = css("--bad"); rctx.lineWidth = 2; rctx.setLineDash([4, 3]); rctx.beginPath(); rctx.ellipse(ghost.x * W, ghost.y * H, 13, 9, 0, 0, 6.3); rctx.stroke(); rctx.setLineDash([]);
+      rctx.fillStyle = css("--bad"); rctx.font = "700 12px " + css("--f-body"); rctx.fillText("deleted rock moved here", Math.min(ghost.x * W + 16, W - 150), ghost.y * H + 22);
+    }
+    rctx.fillStyle = css("--ink"); rctx.font = "12px " + css("--f-mono");
+    rctx.fillText(`tool: ${st.tool}`, 8, H - 8);
+  }
+  reefC.addEventListener("click", (e) => {
+    const r = reefC.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    story = null; ghost = null;
+    if (st.tool === "rock") exec(PlaceRock(x, y));
+    else if (st.tool === "brush") exec(Brush(x, y));
+    else if (st.tool === "clear") { const p = patchOf(x, y); if (!reef.cleared[p]) exec(ClearArea(p, st.ids)); }
+    else { const b = findBig(); if (b) exec(MoveObj(b, { x, y }, st.ids)); }
+    render();
+  });
+
+  // =================== REPLAY (real mini simulation) ===================
+  const TICKS = 1200, NF = 16, SEED = 20261027, CHK = 60;
+  const SCRIPT = [[20, "Move", 0.3], [40, "Cast"], [200, "Reel"], [320, "Move", 0.7], [340, "Cast"], [520, "Reel"], [640, "Move", 0.5], [660, "Cast"], [860, "Reel"], [980, "Move", 0.2], [1000, "Cast"], [1180, "Reel"]];
+  function hashState(s) {
+    let h = 2166136261 >>> 0;
+    const mix = (v) => { h ^= v & 0xffffffff; h = Math.imul(h, 16777619) >>> 0; };
+    for (const f of s.fish) { mix(Math.round(f.x * 1e6)); mix(Math.round(f.y * 1e6)); }
+    mix(Math.round(s.hook.y * 1e6)); mix(s.hook.st); mix(s.score);
+    return h >>> 0;
+  }
+  // recording: as on a 30 fps phone (2 ticks per rendered frame, particles drawn every frame)
+  // replay: fast-forward (no rendering, no particles; wall clock moves 2.11 ms per tick)
+  function simulate(kind, ownRand, ticksOnly) {
+    const simR = rng32(SEED), vfxR = ownRand ? rng32(99) : simR;
+    const s = { fish: [], hook: { x: 0.5, tx: 0.5, y: 0.08, st: 0, down: 0, caught: -1 }, score: 0 };
+    for (let i = 0; i < NF; i++) s.fish.push({ x: 0.05 + simR() * 0.9, y: 0.5 + simR() * 0.44, vx: (simR() * 2 - 1) * 0.004, vy: 0 });
+    const frames = [], sums = [];
+    let splash = 0, ci = 0;
+    for (let t = 0; t < TICKS; t++) {
+      // wall-clock seconds this tick, as Time.realtimeSinceStartup would see them
+      const wall = ticksOnly ? 1 / 60 : kind === "rec" ? (t % 2 === 0 ? 2 / 30 : 0) : 0.00211;
+      while (ci < SCRIPT.length && SCRIPT[ci][0] === t) {
+        const c = SCRIPT[ci++], h = s.hook;
+        if (c[1] === "Move") h.tx = c[2]; else if (c[1] === "Cast" && h.st === 0) h.st = 1; else if (c[1] === "Reel" && h.st === 2) h.st = 3;
+      }
+      const h = s.hook;
+      if (h.st === 0) h.x += Math.max(-0.01, Math.min(0.01, h.tx - h.x));
+      else if (h.st === 1) { h.y += 0.02; if (h.y >= 0.72) { h.y = 0.72; h.st = 2; h.down = 0; splash = 15; } }
+      else if (h.st === 2) {
+        h.down += wall;
+        if (h.down >= 1.0 && h.caught < 0) {
+          let best = -1, bd = 0.14;
+          s.fish.forEach((f, i) => { const d = Math.hypot(f.x - h.x, f.y - h.y); if (d < bd) { bd = d; best = i; } });
+          h.caught = best; h.down = -1e9;
+        }
+      } else if (h.st === 3) {
+        h.y -= 0.015;
+        if (h.y <= 0.08) { h.y = 0.08; h.st = 0; if (h.caught >= 0) { s.score++; const f = s.fish[h.caught]; f.x = 0.05 + simR() * 0.9; f.y = 0.5 + simR() * 0.44; h.caught = -1; } }
+      }
+      s.fish.forEach((f, i) => {
+        if (i === h.caught) { f.x = h.x; f.y = h.y + 0.03; return; }
+        if (simR() < 0.03) { f.vx = (simR() * 2 - 1) * 0.004; f.vy = (simR() * 2 - 1) * 0.002; }
+        f.x += f.vx; f.y += f.vy;
+        if (f.x < 0.02 || f.x > 0.98) { f.vx = -f.vx; f.x = Math.min(0.98, Math.max(0.02, f.x)); }
+        if (f.y < 0.46 || f.y > 0.96) { f.vy = -f.vy; f.y = Math.min(0.96, Math.max(0.46, f.y)); }
+      });
+      // end of a rendered frame on the phone: particles update (recording only)
+      if (kind === "rec" && t % 2 === 1 && splash > 0) { for (let k = 0; k < 6; k++) vfxR(); splash--; }
+      if (kind !== "rec" && splash > 0) splash = 0;
+      frames.push({ fx: s.fish.map((f) => f.x), fy: s.fish.map((f) => f.y), hx: h.x, hy: h.y, hs: h.st, c: h.caught, score: s.score });
+      if ((t + 1) % CHK === 0) sums.push(hashState(s));
+    }
+    return { frames, sums };
+  }
+  let rep = null, playT = 0, playing = false, lastNow = 0;
+  function computeReplay() {
+    const rec = simulate("rec", st.ownRand, st.ticksOnly);
+    const play = st.rec === "state" ? rec : simulate("play", st.ownRand, st.ticksOnly);
+    let first = -1;
+    rec.sums.forEach((v, i) => { if (first < 0 && play.sums[i] !== v) first = i; });
+    rep = { rec, play, first, firstTick: first < 0 ? -1 : (first + 1) * CHK };
+  }
+  const replayC = $("replayC"), pctx = replayC.getContext("2d");
+  function drawReplay() {
+    if (!rep) return;
+    const t = Math.min(TICKS - 1, Math.max(0, Math.round(playT)));
+    const dpr = window.devicePixelRatio || 1, W = Math.max(280, replayC.clientWidth), H = 230;
+    if (replayC.width !== Math.round(W * dpr)) { replayC.width = Math.round(W * dpr); replayC.height = Math.round(H * dpr); }
+    pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    pctx.fillStyle = css("--field"); pctx.fillRect(0, 0, W, H);
+    pctx.fillStyle = css("--stripe"); pctx.fillRect(0, H * 0.42, W, H * 0.58);
+    const a = rep.rec.frames[t], b = rep.play.frames[t];
+    const fish = (x, y, col, hollow) => { pctx.beginPath(); pctx.ellipse(x * W, y * H, 7, 4, 0, 0, 6.3); if (hollow) { pctx.strokeStyle = col; pctx.lineWidth = 1.5; pctx.stroke(); } else { pctx.fillStyle = col; pctx.fill(); } };
+    for (let i = 0; i < NF; i++) fish(a.fx[i], a.fy[i], css("--muted"), true);
+    for (let i = 0; i < NF; i++) { const same = Math.abs(a.fx[i] - b.fx[i]) < 1e-9 && Math.abs(a.fy[i] - b.fy[i]) < 1e-9; fish(b.fx[i], b.fy[i], css(same ? "--p1" : "--bad"), false); }
+    const hook = (x, y, col, dash) => { pctx.strokeStyle = col; pctx.lineWidth = 1.5; pctx.setLineDash(dash ? [4, 3] : []); pctx.beginPath(); pctx.moveTo(x * W, 4); pctx.lineTo(x * W, y * H); pctx.stroke(); pctx.setLineDash([]); pctx.beginPath(); pctx.arc(x * W, y * H + 4, 4, 0, Math.PI); pctx.stroke(); };
+    hook(a.hx, a.hy, css("--muted"), true);
+    const hsame = Math.abs(a.hx - b.hx) < 1e-9 && Math.abs(a.hy - b.hy) < 1e-9 && a.c === b.c;
+    hook(b.hx, b.hy, css(hsame ? "--ink" : "--bad"), false);
+    pctx.fillStyle = css("--ink"); pctx.font = "12px " + css("--f-mono");
+    pctx.fillText(W < 460 ? `tick ${String(t + 1).padStart(4, "0")} · caught ${a.score} vs ${b.score}` : `tick ${String(t + 1).padStart(4, "0")} · caught: recording ${a.score} · replay ${b.score}`, 8, H - 8);
+    const tl = $("tickLabel"); const sec = (t + 1) / 60; tl.textContent = `${Math.floor(sec / 60)}:${(sec % 60).toFixed(1).padStart(4, "0")}`;
+    if (+$("tick").value !== t) $("tick").value = t;
+  }
+  function loop(now) {
+    if (!playing) return;
+    const dt = Math.min(0.1, (now - lastNow) / 1000); lastNow = now;
+    playT += dt * 120;                      // 2× real speed
+    if (playT >= TICKS - 1) { playT = TICKS - 1; playing = false; $("playBtn").textContent = "▶ Play"; }
+    drawReplay();
+    if (playing) requestAnimationFrame(loop);
+  }
+  function play() {
+    if (reduce.matches) { playT = TICKS - 1; drawReplay(); return; }
+    if (playT >= TICKS - 1) playT = 0;
+    playing = !playing; $("playBtn").textContent = playing ? "❚❚ Pause" : "▶ Play";
+    if (playing) { lastNow = performance.now(); requestAnimationFrame(loop); }
+  }
+  $("playBtn").addEventListener("click", play);
+  $("tick").addEventListener("input", (e) => { playing = false; $("playBtn").textContent = "▶ Play"; playT = +e.target.value; drawReplay(); });
+
+  // =================== RENDER ===================
+  const setStat = (i, k, v, cls, s) => { $("k" + i).textContent = k; $("v" + i).textContent = v; $("v" + i).className = "v " + (cls || ""); $("s" + i).textContent = s; };
+  function render() {
+    for (const [id, v] of [["mInput", "input"], ["mUndo", "undo"], ["mReplay", "replay"]]) $(id).setAttribute("aria-pressed", st.mode === v);
+    $("inputView").hidden = st.mode !== "input"; $("inputCtl").hidden = st.mode !== "input";
+    $("undoView").hidden = st.mode !== "undo"; $("undoCtl").hidden = st.mode !== "undo";
+    $("replayView").hidden = st.mode !== "replay"; $("replayCtl").hidden = st.mode !== "replay";
+    if (st.mode === "input") renderInput(); else if (st.mode === "undo") renderUndo(); else renderReplay();
+  }
+  function goal(ok, txt, okTxt) { const p = $("goalPill"); p.className = "pill " + (ok ? "ok" : "over"); p.textContent = ok ? okTxt : txt; }
+
+  function renderInput() {
+    const m = inputModel(), fd = 1000 / st.rate;
+    for (const r of [30, 60, 120]) $("r" + r).setAttribute("aria-pressed", st.rate === r);
+    $("rateLabel").textContent = `frame ${fd.toFixed(1)} ms`;
+    $("viewH").textContent = `Frames and ticks: ${st.rate === 30 ? "30 fps phone" : st.rate === 60 ? "60 Hz screen" : "120 Hz tablet"}, 100 ms`;
+    drawTimeline();
+    setStat(1, "Lost taps", m.lost, m.lost ? "bad" : "good", "of 100 Reel taps");
+    setStat(2, "Doubled taps", m.doubled, m.doubled ? "bad" : "good", "of 100 Reel taps");
+    setStat(3, "Notches", m.notches, m.notches === 100 ? "good" : "bad", "from 100 taps (want 100)");
+    setStat(4, "Files reading input", st.cmd ? 1 : 9, st.cmd ? "good" : "bad", st.cmd ? "only InputMapper" : "hook, boat, 3 menus, ...");
+    $("goalText").innerHTML = "<strong>Input goal:</strong> on every screen, each Reel tap gives exactly 1 notch, and only one file reads the device.";
+    goal(st.cmd, m.lost ? "Taps lost" : m.doubled ? "Taps doubled" : "Right by luck", "Goal met");
+    let lost = 0, dbl = 0, n = 0; userTaps.forEach((t) => { const o = tapOutcome(t); n += o.n; if (o.res === "lost") lost++; if (o.res === "x2") dbl++; });
+    $("yourTaps").innerHTML = userTaps.length ? `Your taps (orange arrows): ${userTaps.length} · lost ${lost} · doubled ${dbl} · notches ${n}` : "Tap Reel: each tap lands at a random moment in the 100 ms window.";
+    $("coach").innerHTML = st.cmd ? `InputMapper reads the screen once per frame and pushes "Reel for tick N". The first tick at or after N runs it and removes it. <strong>Every tap: exactly 1 notch</strong>, after a wait of at most one tick (16.7 ms).`
+      : st.rate === 120 ? `GetButtonDown is true for one frame. On a 120 Hz screen only every second frame runs a tick, so <span class="bug">half the taps are never seen</span>.`
+      : st.rate === 30 ? `Each 33.3 ms frame runs 2 ticks, and both see the button "down". <span class="bug">Every tap reels twice.</span>`
+      : `One tick per frame: every tap is seen once. Correct, but only by luck. Change the screen and it breaks.`;
+    // capture: frame log
+    let cap = `<span class="dim">${st.rate} Hz screen · 60 Hz fixed step · ${st.cmd ? "command queue" : "GetButtonDown in FixedStep"}</span>\n`;
+    BASE_TAPS.forEach((t, i) => {
+      const o = tapOutcome(t);
+      const tick = Math.floor(o.rf * fd / TICK_MS + 1e-9);
+      if (st.cmd) cap += `tap ${i + 1} at ${String(t).padStart(2)} ms → push Reel for tick ${tick}\n        frame ${o.rf} runs tick ${tick} → <span class="ok">1 notch</span>\n`;
+      else cap += `tap ${i + 1} at ${String(t).padStart(2)} ms → read in frame ${o.rf} (${(o.rf * fd).toFixed(1)} ms)\n        ticks in that frame: ${o.k} → ${o.res === "lost" ? '<span class="warn">lost</span>' : o.res === "x2" ? '<span class="warn">2 notches</span>' : '<span class="ok">1 notch</span>'}\n`;
+    });
+    $("capH").textContent = "Frame log"; $("capNote").textContent = "The four black taps in the picture, frame by frame.";
+    $("capture").innerHTML = cap;
+    $("fmH").textContent = "The arithmetic";
+    $("fmNote").textContent = "Per 100 taps, from how many ticks each frame runs.";
+    $("formula").textContent = st.cmd
+      ? `Each command runs once, on its tick:\n  100 taps → 100 notches\n  lost 0, doubled 0\n  wait: at most 1 tick = 16.7 ms\n  cost: 12 B per command`
+      : `ticks per frame = 60 ÷ ${st.rate} = ${(60 / st.rate).toFixed(st.rate === 120 ? 1 : 0)}\n` + (st.rate === 120 ? `frames with 1 tick: 1 in 2 → seen\nframes with 0 ticks: 1 in 2 → lost\n100 taps → 50 notches, 50 lost` : st.rate === 30 ? `every frame runs 2 ticks\nboth see "down" → 2 notches\n100 taps → 200 notches, 100 doubled` : `every frame runs 1 tick\n100 taps → 100 notches (by luck)`);
+    $("runline").innerHTML = st.cmd ? `<span class="ok">Same result at 30, 60 and 120.</span>` : `<span class="bug">The result depends on the screen.</span>`;
+  }
+
+  function renderUndo() {
+    $("uSnap").setAttribute("aria-pressed", st.undo === "snap"); $("uCmd").setAttribute("aria-pressed", st.undo === "cmd");
+    for (const [id, v] of [["tRock", "rock"], ["tBrush", "brush"], ["tClear", "clear"], ["tMove", "move"]]) $(id).setAttribute("aria-pressed", st.tool === v);
+    $("ids").disabled = st.undo !== "cmd"; $("idsL").classList.toggle("off", st.undo !== "cmd");
+    $("undoBtn").disabled = !undoS.length; $("redoBtn").disabled = !redoS.length;
+    $("viewH").textContent = "Reef editor: 60 patches × 2,000 objects";
+    drawReef();
+    const mem = memBytes(), mb = mem / 1e6, over = mb > 64;
+    setStat(1, "Undo memory", mb >= 10 ? fmtInt(mb) + " MB" : mb >= 0.01 ? mb.toFixed(2) + " MB" : fmtInt(mem) + " B", over ? "bad" : "good", over ? "over the 64 MB tool budget" : "budget 64 MB");
+    setStat(2, "Undo steps", `${undoS.length}`, "", `of ${CAP} · redo ${redoS.length}`);
+    let objs = 0; for (let p = 0; p < PC * PR; p++) if (!reef.cleared[p]) objs += PATCH; for (const o of reef.objs.values()) if (o.type !== "big") objs++;
+    setStat(3, "Reef objects", fmtInt(objs), "", "patches + placed");
+    const bs = bigStatus(); setStat(4, "Big rock", bs.v, bs.cls, bs.s);
+    $("goalText").innerHTML = "<strong>Undo goal:</strong> 100 steps under the 64 MB tool budget, and Undo always puts things back.";
+    const okUndo = st.undo === "cmd" && st.ids && !ghost && bs.cls !== "bad";
+    goal(okUndo && !over, over ? "Over budget" : st.undo === "snap" ? "5.76 MB a step" : bs.cls === "bad" || ghost ? "Undo is wrong" : !st.ids ? "Needs stable IDs" : "Not yet", "Goal met");
+    let c = st.undo === "snap" ? `Every edit first copies the whole reef: 120,000 × 48 B = 5.76 MB. Undo puts the copy back, so it can't be wrong, but 100 steps need <span class="bug">576 MB</span>.`
+      : `Every edit is a command with Do and Undo that remembers only what it changed. `;
+    if (st.undo === "cmd") c += story ? (ghost ? `<span class="bug">The rock story went wrong:</span> Clear's Undo made a <em>new</em> rock, and Move's Undo moved the old, deleted one. Tick "stable ID".` : `Move → Clear → Undo → Undo: the restored rock has its old ID, so Move's Undo finds it. <strong>Back at A.</strong>`) : `Tap the reef with a tool, then Undo and Redo.`;
+    $("coach").innerHTML = c;
+    // capture: stacks
+    const list = undoS.slice(-8).reverse();
+    let cap = `<span class="dim">Undo stack (top first) · ${undoS.length} entries</span>\n`;
+    list.forEach((e, i) => { const b = st.undo === "snap" ? SNAP * 1e6 : e.bytes; cap += `#${String(undoS.length - i).padStart(3)} ${e.name.padEnd(20)}${fmtInt(b).padStart(10)} B\n`; });
+    if (undoS.length > 8) cap += `<span class="dim">     ... ${undoS.length - 8} more</span>\n`;
+    cap += `<span class="dim">Redo stack: ${redoS.length} entr${redoS.length === 1 ? "y" : "ies"}</span>`;
+    $("capH").textContent = "The two stacks"; $("capNote").textContent = st.undo === "snap" ? "Each entry is a full copy of the reef, whatever the edit was." : "Each entry is a command object. Its size is what it must remember.";
+    $("capture").innerHTML = cap;
+    // formula
+    const all = undoS.concat(redoS), cnt = {}; all.forEach((e) => { cnt[e.name] = cnt[e.name] || { n: 0, b: 0 }; cnt[e.name].n++; cnt[e.name].b += st.undo === "snap" ? 0 : e.bytes; });
+    let fm = "";
+    if (st.undo === "snap") fm = `${all.length} snapshots × 5.76 MB\n  = ${fmtInt(all.length * 5.76 * 100) / 100} MB\n(120,000 objects × 48 B each)`;
+    else { for (const k of Object.keys(cnt)) fm += `${String(cnt[k].n).padStart(3)} × ${k.padEnd(20)}${fmtInt(cnt[k].b).padStart(9)} B\n`; fm += `${"".padEnd(26, " ")}─────────\n${"total".padEnd(26)}${fmtInt(mem).padStart(9)} B`; }
+    $("fmH").textContent = "Where the memory goes"; $("fmNote").textContent = "Command sizes: 16 B header + 48 B per object stored; Move is 36 B.";
+    $("formula").textContent = fm || "No edits yet.";
+    $("runline").innerHTML = st.undo === "snap" ? `<span class="bug">Snapshots cost the same for a 1-object edit and a 2,000-object one.</span>` : `<span class="ok">Clears dominate:</span> cap the history by bytes, not by count.`;
+  }
+
+  function renderReplay() {
+    $("recState").setAttribute("aria-pressed", st.rec === "state"); $("recCmd").setAttribute("aria-pressed", st.rec === "cmd");
+    for (const k of ["ownRand", "ticksOnly"]) { $(k).disabled = st.rec !== "cmd"; $(k + "L").classList.toggle("off", st.rec !== "cmd"); }
+    $("snaps").disabled = st.rec !== "cmd"; $("snapsL").classList.toggle("off", st.rec !== "cmd");
+    $("viewH").textContent = "A 20 s fishing run: recording vs replay";
+    const strip = $("strip"); strip.innerHTML = rep.rec.sums.map((v, i) => `<i class="${rep.play.sums[i] === v ? "ok" : "bad"}" title="tick ${(i + 1) * CHK}"></i>`).join("");
+    drawReplay();
+    const cmd = st.rec === "cmd", match = rep.first < 0, nOk = rep.rec.sums.filter((v, i) => rep.play.sums[i] === v).length;
+    setStat(1, "File, 10 min", cmd ? "24.1 KB" : "3.9 GB", cmd ? "good" : "bad", cmd ? "this 20 s run: 288 B" : "this 20 s run: 130.6 MB");
+    setStat(2, "Replay check", match ? `✓ ${nOk}/20` : `✗ tick ${rep.firstTick}`, match ? "good" : "bad", match ? "all checksums match" : `first bad checksum · last good ${rep.firstTick - CHK}`);
+    const snaps = cmd && st.snaps;
+    setStat(3, "Seek to 8:46", !cmd ? "instant" : snaps ? "2.0 s" : "66.6 s", !cmd || snaps ? "good" : "bad", !cmd ? "every state is saved" : snaps ? "from the 8:30 snapshot" : "31,560 ticks from 0:00");
+    setStat(4, "Snapshots", !cmd ? "—" : snaps ? "+2.2 MB" : "none", "", !cmd ? "the file is all states" : snaps ? "20 × 108.8 KB" : "seek simulates from the start");
+    $("goalText").innerHTML = "<strong>Replay goal:</strong> a small file (under 5 MB for 10 minutes), every checksum matches, and seeking to the bug takes under 5 s.";
+    goal(cmd && match && snaps, !cmd ? "File too big" : !match ? "Replay drifts" : "Seek too slow", "Goal met");
+    let c;
+    if (!cmd) c = `The file holds every tick's state: 1,000 gulls + 2,400 fish × 32 B = 108.8 KB per tick. It always plays back, but <span class="bug">10 minutes are 3.9 GB</span>.`;
+    else if (match) c = `Same seed + same commands → the same game. Blue fish sit exactly inside the grey outlines, and all 20 checksums match.`;
+    else {
+      const why = []; if (!st.ownRand) why.push("the splash particles drew from the simulation's random only while recording (30 fps phone), not in the fast-forward replay"); if (!st.ticksOnly) why.push("the bite timer read the wall clock, which moves 33.3 ms per frame on the phone and 2.11 ms per tick in fast-forward");
+      c = `<span class="bug">The replay drifts.</span> The first checksum that differs is at tick ${rep.firstTick}. Why: ${why.join("; and ")}. Drag the slider past tick ${rep.firstTick - CHK} and watch the red fish.`;
+    }
+    $("coach").innerHTML = c;
+    let cap = `<span class="dim">replay file (this 20 s run)</span>\nheader   64 B  seed ${SEED}\n`;
+    if (cmd) {
+      SCRIPT.forEach((s) => { cap += `tick ${String(s[0]).padStart(4)}  ${s[1].padEnd(4)}${s[2] !== undefined ? " x=" + s[2].toFixed(2) : ""}\n`; });
+      cap += `<span class="dim">12 commands × 12 B = 144 B\n20 checksums × 4 B  =  80 B</span>\n`;
+      rep.rec.sums.slice(0, 20).forEach((v, i) => { if (i < 4 || i === rep.first || i === rep.first - 1) cap += `check tick ${String((i + 1) * CHK).padStart(4)}  ${v.toString(16).padStart(8, "0")}  ${rep.play.sums[i] === v ? '<span class="ok">✓</span>' : '<span class="warn">✗</span>'}\n`; else if (i === 4) cap += `<span class="dim">  ...</span>\n`; });
+    } else cap += `tick    1  16 fish, hook, score  (full state)\ntick    2  16 fish, hook, score  (full state)\n<span class="dim">  ... 1,200 full states</span>\n`;
+    $("capH").textContent = "The replay file"; $("capNote").textContent = cmd ? "Commands with their ticks, then the checksums the replay must match." : "One full copy of the state per tick.";
+    $("capture").innerHTML = cap;
+    $("fmH").textContent = "10-minute Frenzy (36,000 ticks)"; $("fmNote").textContent = "1,000 gulls + 2,400 fish at 32 B; about 3 commands a second; 2.11 ms per simulated tick.";
+    $("formula").textContent = cmd
+      ? `header                     64 B\n1,800 commands × 12 B   21,600 B\n600 checksums × 4 B      2,400 B\n                       ─────────\n                        24,064 B ≈ 24.1 KB\n` + (snaps ? `+ 20 snapshots × 108.8 KB ≈ 2.2 MB\nseek 8:46: (31,560 − 30,600) × 2.11 ms\n         = 960 × 2.11 ms ≈ 2.0 s` : `seek 8:46: 31,560 × 2.11 ms ≈ 66.6 s`)
+      : `36,000 ticks × 108.8 KB\n  = 3,916.8 MB ≈ 3.9 GB`;
+    $("runline").innerHTML = !cmd ? `<span class="bug">Plays back always, but far too big.</span>` : match ? `<span class="ok">Deterministic: the file is enough.</span>` : `<span class="bug">Something outside the file changed the game.</span>`;
+  }
+
+  // =================== CONTROLS ===================
+  for (const [id, v] of [["mInput", "input"], ["mUndo", "undo"], ["mReplay", "replay"]]) $(id).addEventListener("click", () => { st.mode = v; if (v === "replay" && !rep) computeReplay(); render(); });
+  for (const r of [30, 60, 120]) $("r" + r).addEventListener("click", () => { st.rate = r; render(); });
+  $("cmd").addEventListener("change", (e) => { st.cmd = e.target.checked; render(); });
+  $("tapBtn").addEventListener("click", () => { userTaps.push(2 + Math.random() * 96); if (userTaps.length > 8) userTaps.shift(); render(); });
+  $("tapClear").addEventListener("click", () => { userTaps = []; render(); });
+  $("uSnap").addEventListener("click", () => { st.undo = "snap"; newReef(); render(); });
+  $("uCmd").addEventListener("click", () => { st.undo = "cmd"; newReef(); render(); });
+  $("ids").addEventListener("change", (e) => { st.ids = e.target.checked; if (story) runStory(); else newReef(); render(); });
+  for (const [id, v] of [["tRock", "rock"], ["tBrush", "brush"], ["tClear", "clear"], ["tMove", "move"]]) $(id).addEventListener("click", () => { st.tool = v; render(); });
+  $("undoBtn").addEventListener("click", () => { undo(); render(); });
+  $("redoBtn").addEventListener("click", () => { redo(); render(); });
+  $("fillBtn").addEventListener("click", () => { fill100(); render(); });
+  $("storyBtn").addEventListener("click", () => { runStory(); render(); });
+  $("resetBtn").addEventListener("click", () => { newReef(); render(); });
+  $("recState").addEventListener("click", () => { st.rec = "state"; computeReplay(); render(); });
+  $("recCmd").addEventListener("click", () => { st.rec = "cmd"; computeReplay(); render(); });
+  for (const k of ["ownRand", "ticksOnly", "snaps"]) $(k).addEventListener("change", (e) => { st[k] = e.target.checked; computeReplay(); render(); });
+
+  function apply(s, after) {
+    Object.assign(st, s);
+    for (const k of ["cmd", "ids", "ownRand", "ticksOnly", "snaps"]) $(k).checked = st[k];
+    if (st.mode === "input") userTaps = [];
+    if (st.mode === "undo") { newReef(); if (after) after(); }
+    if (st.mode === "replay") { computeReplay(); playing = false; $("playBtn").textContent = "▶ Play"; playT = after ? after() : 0; }
+    render();
+  }
+
+  // =================== STEPS ===================
+  const STEPS = [
+    { t: "Read the screen inside the tick", d: "A 120 Hz tablet, GetButtonDown in the fixed step. Half the frames run no tick: 50 of 100 taps are lost. Then tap \"30 fps\": every tap is seen by 2 ticks, 100 doubled, 200 notches.", s: { mode: "input", rate: 120, cmd: false } },
+    { t: "Turn taps into commands", d: "InputMapper pushes \"Reel for tick N\" into a queue. 0 lost, 0 doubled, 100 notches, and only 1 file reads the screen. Try 30, 60 and 120: the same.", s: { mode: "input", rate: 120, cmd: true } },
+    { t: "Undo with snapshots", d: "100 typical edits (70 rocks, 25 brush strokes, 5 clears). Each step copies the whole reef: 100 × 5.76 MB = 576 MB, 9 times the 64 MB budget.", s: { mode: "undo", undo: "snap", ids: false }, after: fill100 },
+    { t: "Undo with commands", d: "The same 100 edits as commands that remember only what they changed: 532,960 B, 0.53 MB. The 5 clears are 480,080 B of it. Tap Undo a few times and watch the reef go back.", s: { mode: "undo", undo: "cmd", ids: false }, after: fill100 },
+    { t: "The rock that won't go back", d: "Move the big rock A → B, clear B's patch, Undo, Undo. Move kept a reference, and Clear's Undo made a new rock: the big rock is stuck at B. Then tick \"stable ID\": it goes back to A.", s: { mode: "undo", undo: "cmd", ids: false }, after: runStory },
+    { t: "Replay that drifts", d: "Commands + seed: 24.1 KB for 10 minutes. But particles share the random and the bite timer reads the clock: in this 20 s run the first bad checksum is at tick 120 (the last good one at 60), and seeking to 8:46 takes 66.6 s. Tap \"Every state\" to compare: 3.9 GB, always matches.", s: { mode: "replay", rec: "cmd", ownRand: false, ticksOnly: false, snaps: false }, after: () => 150 },
+    { t: "Deterministic, with snapshots", d: "Own seeded random, time from ticks only, a snapshot every 30 s: ✓ 20/20 checksums, seek in 2.0 s for +2.2 MB. Untick either of the first two and the replay drifts again.", s: { mode: "replay", rec: "cmd", ownRand: true, ticksOnly: true, snaps: true }, after: () => 0 },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s, s.after);
+      $("viewH").scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  newReef();
+  computeReplay();
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = document.querySelector(".lab .panel").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe(document.querySelector(".lab .panel"));
+})();
+</script>

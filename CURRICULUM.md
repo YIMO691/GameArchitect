@@ -35,7 +35,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 014 | Events and messaging, and what they really cost: the feeding frenzy that broke the event bus | ✅ |
 | 015 | Singletons, service locators and dependency injection: the high score that reset to zero | ✅ |
 | 016 | State machines, hierarchical FSMs and behavior trees: the gulls that hovered forever | ✅ |
-| 017 | Command pattern: input, undo, replays | ⬜ |
+| 017 | Command pattern for input, undo and replays: the swallowed hook nobody could replay | ✅ |
 | 018 | Layered engine architecture and dependency rules | ⬜ |
 | 019 | Data-driven design: configs, assets and data pipelines | ⬜ |
 | 020 | Scripting layers and hot reload | ⬜ |

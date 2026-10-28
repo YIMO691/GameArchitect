@@ -69,6 +69,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `014-events-lab` | 014 |
 | `015-services-lab` | 015 |
 | `016-gull-brain` | 016 |
+| `017-command-lab` | 017 |
 | `024-draw-calls` | 024, 025, 027, 028 |
 | `048-netcode` | 048, 049 |
 

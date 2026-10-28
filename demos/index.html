@@ -150,6 +150,13 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <ul><li>Impossible flag combinations</li><li>States, transitions, enter and exit</li><li>Hierarchical states: interrupts written once</li><li>Behavior trees: selector, sequence, running</li><li>Blackboards and resuming the running action</li></ul>
       <span class="go">Open lab →</span>
     </a>
+    <a class="card" href="017-command-lab/index.html">
+      <div class="meta"><span class="tag live">live</span><span>Lesson 017</span><span>simulation + real mini replay</span></div>
+      <h3>Command Lab</h3>
+      <p>The hook's Reel taps are lost (50 of 100 on a 120 Hz tablet) or doubled (30 fps phone) until input becomes commands. Edit a reef and undo it with snapshots (576 MB) or commands (0.53 MB), then record a fishing run and replay it until every checksum matches.</p>
+      <ul><li>Commands and a command queue stamped with ticks</li><li>Undo and redo stacks, Do and Undo</li><li>Stable IDs vs object references</li><li>Replays from seed + commands, checksums</li><li>Determinism and snapshots for seeking</li></ul>
+      <span class="go">Open lab →</span>
+    </a>
   </section>
 
   <section class="panel" aria-labelledby="planH">
@@ -168,6 +175,7 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
           <tr><td>Events Lab</td><td class="mono">014</td><td>Direct calls vs event bus vs typed bus vs event queue in the Feeding Frenzy: wires, garbage, cold vs warm work, and the bugs of nesting and delay. Live.</td></tr>
           <tr><td>Services Lab</td><td class="mono">015</td><td>Singletons vs service locator vs dependency injection in the Reef: hidden helpers, start-up order, test time and lookup cost. Live.</td></tr>
           <tr><td>Gull Brain Lab</td><td class="mono">016</td><td>Flags vs flat state machine vs hierarchical state machine vs behavior tree in the Reef: impossible states, arrows by hand, and the cost of ticking a tree. Live.</td></tr>
+          <tr><td>Command Lab</td><td class="mono">017</td><td>Input as commands (lost and doubled taps), undo with snapshots vs commands and stable IDs, and replays from seed + commands with checksums and snapshots. Live.</td></tr>
           <tr><td>Draw Call &amp; Overdraw Lab</td><td class="mono">024 · 025 · 027</td><td>Batching, instancing, transparency and culling.</td></tr>
           <tr><td>Netcode Lab</td><td class="mono">048 · 049</td><td>Lag, interpolation, prediction and rollback with a fake network.</td></tr>
         </tbody>
