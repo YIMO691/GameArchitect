@@ -1,0 +1,36 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='420' viewBox='0 0 860 420' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='419' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='38' font-size='20' font-weight='700' fill='#1f2328'>The price of crossing into the script</text>
+<text x='24' y='60' font-size='13' fill='#57606a'>Steal rule for 1,000 gulls on the mid-range phone, per frame (2 ticks). Approximate.</text>
+<text x='836' y='105' font-size='12' fill='#57606a' font-weight='600' text-anchor='end'>garbage</text>
+<text x='836' y='92' font-size='12' fill='#1f2328'></text>
+<path d='M355.0 100 L355.0 362' stroke='#1a7f37' stroke-width='2' stroke-dasharray='6 4'/>
+<text x='238' y='129' font-size='14' fill='#1f2328' font-weight='600' text-anchor='end'>C# rule</text>
+<rect x='250' y='112' width='10.5' height='24' rx='2' fill='#4e79a7'/>
+<text x='268.5' y='129' font-size='14' fill='#1f2328' font-weight='700'>0.10 ms</text>
+<text x='836' y='129' font-size='14' fill='#1a7f37' font-weight='700' text-anchor='end'>0</text>
+<text stroke='#ffffff' stroke-width='4' paint-order='stroke' x='250' y='154' font-size='12' fill='#57606a'>1,000 × 50 ns × 2 ticks</text>
+<text x='238' y='193' font-size='14' fill='#1f2328' font-weight='600' text-anchor='end'>Lua, one call per gull</text>
+<rect x='250' y='176' width='252.0' height='24' rx='2' fill='#cf222e'/>
+<rect x='502.0' y='176' width='189.0' height='24' rx='2' fill='#b07aa1'/>
+<text x='699.0' y='193' font-size='14' fill='#1f2328' font-weight='700'>4.20 ms</text>
+<text x='836' y='193' font-size='14' fill='#cf222e' font-weight='700' text-anchor='end'>128 KB</text>
+<text stroke='#ffffff' stroke-width='4' paint-order='stroke' x='250' y='218' font-size='12' fill='#57606a'>crossing 2,000 × 1.2 µs = 2.4 ms · rule body 1.8 ms</text>
+<text x='238' y='257' font-size='14' fill='#1f2328' font-weight='600' text-anchor='end'>Lua, one batched call</text>
+<rect x='250' y='240' width='189.0' height='24' rx='2' fill='#b07aa1'/>
+<text x='447.0' y='257' font-size='14' fill='#1f2328' font-weight='700'>1.80 ms</text>
+<text x='836' y='257' font-size='14' fill='#1a7f37' font-weight='700' text-anchor='end'>0</text>
+<text stroke='#ffffff' stroke-width='4' paint-order='stroke' x='250' y='282' font-size='12' fill='#57606a'>2 crossings · rule body 1,000 × 0.9 µs × 2</text>
+<text x='238' y='321' font-size='14' fill='#1f2328' font-weight='600' text-anchor='end'>Batched, near carriers</text>
+<rect x='250' y='304' width='12.6' height='24' rx='2' fill='#1a7f37'/>
+<text x='270.6' y='321' font-size='14' fill='#1f2328' font-weight='700'>0.12 ms</text>
+<text x='836' y='321' font-size='14' fill='#1a7f37' font-weight='700' text-anchor='end'>0</text>
+<text stroke='#ffffff' stroke-width='4' paint-order='stroke' x='250' y='346' font-size='12' fill='#57606a'>C# picks the 60 gulls near a fish carrier</text>
+<text x='361.0' y='104' font-size='12' fill='#1a7f37' font-weight='700'>script budget 1 ms</text>
+<rect x='560' y='94' width='12' height='12' rx='2' fill='#cf222e'/>
+<text x='578' y='105' font-size='12' fill='#57606a'>crossing</text>
+<rect x='640' y='94' width='12' height='12' rx='2' fill='#b07aa1'/>
+<text x='658' y='105' font-size='12' fill='#57606a'>rule body</text>
+<text x='24' y='392' font-size='13' fill='#57606a'>Analogy: border control. Every crossing waits in the queue (≈ 1.2 µs), however little you carry.</text>
+<text x='24' y='410' font-size='13' fill='#57606a'>One bus with all 1,000 passengers waits once.</text>
+</svg>

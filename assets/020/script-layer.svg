@@ -1,0 +1,54 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='460' viewBox='0 0 860 460' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='459' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='38' font-size='20' font-weight='700' fill='#1f2328'>Where the steal rule lives</text>
+<text x='24' y='60' font-size='13' fill='#57606a'>Mia’s rules sit on top of the C# simulation and talk to it only through a small API, like buttons on a remote.</text>
+<rect x='24' y='84' width='400' height='92' rx='8' fill='#f6eef4' stroke='#b07aa1'/>
+<text x='40' y='110' font-size='15' fill='#1f2328' font-weight='700'>📜 Scripts (Lua) · Mia’s rules</text>
+<text x='40' y='134' font-size='13' fill='#57606a' font-family='Consolas, Menlo, monospace'>Scripts/gull_steal.lua</text>
+<text x='40' y='156' font-size='13' fill='#1f2328'>says HOW a gull decides; holds no state</text>
+<path d='M430 100 L520 100' stroke='#cf222e' stroke-width='2' stroke-dasharray='5 4'/>
+<text x='472' y='105' font-size='15' fill='#cf222e' font-weight='700' text-anchor='middle'>✗</text>
+<text x='530' y='105' font-size='13' fill='#cf222e' font-weight='600'>files and save data</text>
+<path d='M430 126 L520 126' stroke='#cf222e' stroke-width='2' stroke-dasharray='5 4'/>
+<text x='472' y='131' font-size='15' fill='#cf222e' font-weight='700' text-anchor='middle'>✗</text>
+<text x='530' y='131' font-size='13' fill='#cf222e' font-weight='600'>render and audio</text>
+<path d='M430 152 L520 152' stroke='#cf222e' stroke-width='2' stroke-dasharray='5 4'/>
+<text x='472' y='157' font-size='15' fill='#cf222e' font-weight='700' text-anchor='middle'>✗</text>
+<text x='530' y='157' font-size='13' fill='#cf222e' font-weight='600'>network</text>
+<text x='530' y='186' font-size='12' fill='#57606a'>the sandbox hides these</text>
+<rect x='24' y='194' width='400' height='54' rx='8' fill='#dafbe1' stroke='#1a7f37'/>
+<text x='40' y='217' font-size='14' fill='#1a7f37' font-weight='700'>🔌 Script API · 14 functions</text>
+<text x='40' y='238' font-size='12' fill='#1f2328' font-family='Consolas, Menlo, monospace'>gull.hunger · gull:steal(c) · World.nearestCarrier()</text>
+<path d='M120 180 L120 190' stroke='#1a7f37' stroke-width='2'/><path d='M115 186 L120 193 L125 186 z' fill='#1a7f37'/>
+<path d='M120 252 L120 262' stroke='#1a7f37' stroke-width='2'/><path d='M115 258 L120 265 L125 258 z' fill='#1a7f37'/>
+<path d='M224 180 L224 190' stroke='#1a7f37' stroke-width='2'/><path d='M219 186 L224 193 L229 186 z' fill='#1a7f37'/>
+<path d='M224 252 L224 262' stroke='#1a7f37' stroke-width='2'/><path d='M219 258 L224 265 L229 258 z' fill='#1a7f37'/>
+<path d='M328 180 L328 190' stroke='#1a7f37' stroke-width='2'/><path d='M323 186 L328 193 L333 186 z' fill='#1a7f37'/>
+<path d='M328 252 L328 262' stroke='#1a7f37' stroke-width='2'/><path d='M323 258 L328 265 L333 258 z' fill='#1a7f37'/>
+<rect x='24' y='268' width='400' height='92' rx='8' fill='#e8eef6' stroke='#4e79a7'/>
+<text x='40' y='294' font-size='15' fill='#1f2328' font-weight='700'>🎣 Simulation (C#) · the engine</text>
+<text x='40' y='318' font-size='13' fill='#1f2328'>Gull component: hunger, position, state</text>
+<text x='40' y='340' font-size='13' fill='#1f2328'>behavior tree (Lesson 016) asks the rule</text>
+<rect x='24' y='372' width='400' height='40' rx='8' fill='#f1f3f5' stroke='#9aa0a6'/>
+<text x='40' y='397' font-size='13' fill='#57606a' font-weight='600'>Physics · Core (Lesson 018 layers)</text>
+<text x='460' y='238' font-size='1' fill='#1f2328'></text>
+<text x='585' y='254' font-size='13' fill='#b07aa1' font-weight='700'>Script</text>
+<text x='720' y='254' font-size='13' fill='#4e79a7' font-weight='700'>C#</text>
+<path d='M460 264 L836 264' stroke='#d0d7de'/>
+<text x='460' y='284' font-size='13' fill='#57606a' font-weight='600'>Who edits it</text>
+<text x='585' y='284' font-size='13' fill='#1f2328'>Mia</text>
+<text x='720' y='284' font-size='13' fill='#1f2328'>programmers</text>
+<text x='460' y='314' font-size='13' fill='#57606a' font-weight='600'>How often</text>
+<text x='585' y='314' font-size='13' fill='#1f2328'>≈ 40 times a level</text>
+<text x='720' y='314' font-size='13' fill='#1f2328'>rarely</text>
+<text x='460' y='344' font-size='13' fill='#57606a' font-weight='600'>See a change</text>
+<text x='585' y='344' font-size='13' fill='#1f2328'>15 s, hot reload</text>
+<text x='720' y='344' font-size='13' fill='#1f2328'>compile + replay</text>
+<text x='460' y='374' font-size='13' fill='#57606a' font-weight='600'>Cost per gull</text>
+<text x='585' y='374' font-size='13' fill='#1f2328'>≈ 2.1 µs</text>
+<text x='720' y='374' font-size='13' fill='#1f2328'>≈ 0.05 µs</text>
+<text x='460' y='404' font-size='13' fill='#57606a' font-weight='600'>Typos found</text>
+<text x='585' y='404' font-size='13' fill='#1f2328'>when it runs</text>
+<text x='720' y='404' font-size='13' fill='#1f2328'>when it compiles</text>
+<text x='24' y='440' font-size='13' fill='#57606a'>Analogy: a TV remote. You can press any button on it, but you can’t open the TV and rewire it.</text>
+</svg>

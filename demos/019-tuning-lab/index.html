@@ -154,6 +154,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
 .btn:disabled { opacity: 0.55; cursor: default; }
 .pending { font-size: 13px; color: var(--accent); font-weight: 600; }
+.reef canvas.rcv { height: 210px; }
 .subhead { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; margin: 4px 0 -6px; }
 </style>
 
@@ -162,10 +163,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/019-data-driven-design-configs-and-pipelines.md">Read Lesson 019 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/020-scripting-layers-and-hot-reload.md">Read Lesson 020 ↗</a>
     </div>
-    <div class="eyebrow">Lab 019 · Lesson 019 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 019 · Lessons 019–020 · simulation using the lesson's numbers</div>
     <h1>Tuning Lab</h1>
-    <p class="lede">Mia tunes the Feeding Frenzy on Reef 2. Change the gull's dive speed and the sardine's bite window, then get the change into the game three ways and watch the hours add up. Break the data, guard it, and bake it for the phone.</p>
+    <p class="lede">Mia tunes the Feeding Frenzy on Reef 2. Change the gull's dive speed and the sardine's bite window, then get the change into the game three ways and watch the hours add up. Break the data, guard it, and bake it for the phone. Then (Lesson 020) move the gulls' steal <em>rule</em> into a hot-reloaded script, fix its traps and pay its speed bill.</p>
   </header>
 
   <div class="goal">
@@ -255,12 +257,93 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     </div>
   </section>
 
+  <div class="goal">
+    <p><strong>Lesson 020 · Mia needs about 40 tries to find the gulls' steal rule.</strong> Goal: 15-second tries that lose no state and leave one rule running, a guard that keeps the game alive, and a script that costs under 1 ms a frame on the phone.</p>
+    <span id="rulePill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="The steal rule: C# or script">
+    <div class="panel">
+      <h2>Steal rule: who is hungry enough?</h2>
+      <div class="reef"><canvas id="rcv" class="rcv" aria-label="Ten gulls with hunger bars and the steal thresholds of every rule version that is running"></canvas></div>
+      <div class="legend"><span><i style="background:var(--p1)"></i>hunger</span><span><i style="background:var(--cpu)"></i>hungry enough</span><span><i style="background:var(--p2)"></i>near a fish carrier</span><span><i style="background:var(--bad)"></i>old rule still running</span></div>
+      <p class="coach" id="rcoach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">One rule try</span><span class="v" id="rOne">0</span><span class="s" id="rOneS">s</span></div>
+        <div class="stat"><span class="k">Mia's 40 tries</span><span class="v" id="rAll">0</span><span class="s" id="rAllS">h</span></div>
+        <div class="stat"><span class="k">Rules running</span><span class="v" id="rRun">1</span><span class="s" id="rRunS">version</span></div>
+        <div class="stat"><span class="k">The Frenzy</span><span class="v" id="rReef">✓</span><span class="s" id="rReefS"></span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <span class="lbl"><span>Where the steal rule lives</span></span>
+          <div class="seg-ctl n3" role="group" aria-label="Where the steal rule lives">
+            <button type="button" id="rCode" aria-pressed="true">C# code</button>
+            <button type="button" id="rRestart" aria-pressed="false">Script, restart</button>
+            <button type="button" id="rLive" aria-pressed="false">Script, hot reload</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="thr"><span>Mia's rule: steal if hunger &gt;</span><span class="mono" id="thrV">0.60</span></label>
+          <input type="range" id="thr" min="0.4" max="0.9" step="0.05" value="0.6">
+        </div>
+        <div class="applyrow">
+          <button type="button" class="btn primary" id="rApply">Apply</button>
+          <span class="pending" id="rPending"></span>
+        </div>
+        <div class="toggles">
+          <span class="subhead">How the script is written</span>
+          <label id="lLocal"><input type="checkbox" id="rLocal"><span><span class="num">1</span>Hunger kept inside the script<small>local hunger = {} at the top of the file. Untick: hunger lives in the C# Gull component</small></span></label>
+          <label id="lSelf"><input type="checkbox" id="rSelf"><span><span class="num">2</span>Script subscribes itself on load<small>Events.on("GullThink", rule). Untick: the script returns its functions and the engine keeps rules by name</small></span></label>
+          <span class="subhead">Mia's mistakes</span>
+          <label id="lTypo"><input type="checkbox" id="rTypo"><span><span class="num">3</span>Typo: gull.hungr<small>Lua gets nil: "attempt to compare number with nil"</small></span></label>
+          <label id="lLoop"><input type="checkbox" id="rLoop"><span><span class="num">4</span>Runaway loop<small>while gull.hunger &gt; 0.6 do gull:circle() end</small></span></label>
+          <label id="lGuard"><input type="checkbox" id="rGuard"><span><span class="num ci">✓</span>Guard: pcall, budget, sandbox<small>Errors are caught, a call stops after 100,000 instructions (≈ 1 ms), the last good version takes over</small></span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="panel">
+      <h2>Script host log</h2>
+      <p class="fine">What happened on the last save or restart.</p>
+      <pre class="capture" id="rlog"></pre>
+      <h3>The rule loop</h3>
+      <pre class="formula" id="rformula"></pre>
+    </div>
+    <div class="panel">
+      <h2>The shipped game: calling the rule</h2>
+      <div class="field-row">
+        <span class="lbl"><span>The behavior tree calls the script</span></span>
+        <div class="seg-ctl n3" role="group" aria-label="How the script is called">
+          <button type="button" id="cPer" aria-pressed="true">Once per gull</button>
+          <button type="button" id="cBatch" aria-pressed="false">One batch</button>
+          <button type="button" id="cNear" aria-pressed="false">Batch, near only</button>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="k">Steal rule</span><span class="v" id="pCost">0</span><span class="s" id="pCostS">ms per frame</span></div>
+        <div class="stat"><span class="k">Garbage</span><span class="v" id="pGc">0</span><span class="s" id="pGcS">KB per frame</span></div>
+      </div>
+      <pre class="capture" id="pcap"></pre>
+      <div class="passes" id="pbars"></div>
+    </div>
+  </section>
+
   <section class="panel" aria-labelledby="tryH">
     <h2 id="tryH">Try this</h2>
     <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the reef, the four numbers and the logs. This replays the lesson's story.</p>
     <div class="steps-group">
       <h3>Lesson 019: data-driven design</h3>
       <ol class="steps" id="steps"></ol>
+    </div>
+    <div class="steps-group">
+      <h3>Lesson 020: scripting and hot reload</h3>
+      <ol class="steps" id="steps2"></ol>
     </div>
   </section>
 
@@ -271,7 +354,12 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <div class="note"><h3>Read, don't copy; check everything</h3><p>A value copied at spawn never sees a live change. Data with no schema breaks quietly: one extra "e" stops every gull diving. A validator and stable IDs catch all three mistakes on save.</p></div>
       <div class="note"><h3>Text for people, binary for the phone</h3><p>Parsing 3.2 MB of JSON costs 1,900 ms and 41 MB of garbage at start-up. A bake step makes one 0.6 MB file that loads in 40 ms. Typed structs cut tuning reads from 0.27 ms to 0.006 ms a tick.</p></div>
     </div>
-    <p class="fine">This lab is a simulation, not a measurement. The times are the lesson's numbers: 720 s waiting for a programmer, 60 s to edit, 29 s to compile the Simulation (Lesson 018), 90 s to play back to the Frenzy, 10 s to edit a file and 5 s to see a live change. The phone numbers are the lesson's approximate profiler capture. The reef animation only shows the effect of each value; it is not Sky Hopper's real simulation.</p>
+    <div class="notes">
+      <div class="note"><h3>Engine in C#, rules in scripts</h3><p>A rule in C# costs 899 s a try: 10 hours for Mia's 40 tries. A Lua script with hot reload costs 15 s: 10 minutes. The script sees only a 14-function API.</p></div>
+      <div class="note"><h3>Reloading code keeps old things alive</h3><p>State kept in the script resets on every save (50 s before a steal). A script that subscribes itself leaves old versions running. State goes in components; the engine keeps rules by name; every call is guarded.</p></div>
+      <div class="note"><h3>C# loops, the script decides</h3><p>Each crossing into Lua costs about 1.2 µs. One call per gull: 4.2 ms a frame and 128 KB of garbage. One batched call for the 60 gulls near a carrier: 0.12 ms, inside the 1 ms budget.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. The times are the lesson's numbers: 720 s waiting for a programmer, 60 s to edit, 29 s to compile the Simulation (Lesson 018), 90 s to play back to the Frenzy, 10 s to edit a file and 5 s to see a live change. The phone numbers are the lesson's approximate profiler capture. The reef animation only shows the effect of each value; it is not Sky Hopper's real simulation. The steal-rule panel (Lesson 020) uses the lesson's approximate numbers: 1.2 µs per crossing into Lua, 0.9 µs per rule, 50 ns for the same rule in C#, 4 ms to compile a script, and hunger growing 0.012 a second. No Lua runs on this page.</p>
   </section>
 </div>
 
@@ -401,7 +489,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
   }
   function frame(t) {
     const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
-    step(dt); draw(); requestAnimationFrame(frame);
+    step(dt); draw(); rStep(dt); rDraw(); requestAnimationFrame(frame);
   }
 
   // ---------- render ----------
@@ -530,21 +618,285 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     { t: "Ship it: bake the data", d: "The phone parses 3.2 MB of JSON: 1,900 ms of a 3,450 ms start-up and 41 MB of garbage. String lookups cost 0.27 ms a tick. Tap Baked binary and Typed struct: 40 ms, no garbage, 0.006 ms a tick, and the goal turns green.",
       s: () => { st.mode = "live"; st.copy = false; st.validate = true; applyEdit(0, false); } },
   ];
-  const stepsEl = $("steps");
-  STEPS.forEach((s, k) => {
-    const li = document.createElement("li");
-    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
-    stepsEl.appendChild(li);
-    li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
-      li.classList.add("active");
-      setup(s.s);
-      $("cv").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+  // =====================================================================
+  // Lesson 020: the steal rule, in C# or in a hot-reloaded script
+  // =====================================================================
+  const RTRIES = 40, HUNGER_RATE = 0.012, NG = 10;
+  const RLOOP = {
+    code: { one: 899, parts: [["wait for a programmer", 720], ["edit the C#", 60], ["compile Simulation", 29], ["play to the frenzy", 90]], prog: 89, label: "Ask a programmer · 899 s", sub: "a programmer + a 29 s compile" },
+    restart: { one: 100, parts: [["edit the script", 10], ["stop, Play, reach the frenzy", 90]], prog: 0, label: "Stop, press Play, play to the frenzy · 100 s", sub: "no compile, but play back 90 s" },
+    live: { one: 15, parts: [["edit and save", 10], ["watch the gulls", 5]], prog: 0, label: "Reloaded on save · 15 s", sub: "compiled in 4 ms between ticks" },
+  };
+  const CALL = {
+    per: { tick: 2.10, frame: 4.20, gc: 128, lines: ["crossing   1,000 × 1.2 µs = 1.20 ms", "rule body  1,000 × 0.9 µs = 0.90 ms"], gcTick: "64 KB" },
+    batch: { tick: 0.90, frame: 1.80, gc: 0, lines: ["crossing   1 × 1.2 µs     ≈ 0.001 ms", "rule body  1,000 × 0.9 µs = 0.90 ms"], gcTick: "0 (arrays reused)" },
+    near: { tick: 0.06, frame: 0.12, gc: 0, lines: ["C# query   1,000 × 5 ns   = 0.005 ms", "crossing   1 × 1.2 µs     ≈ 0.001 ms", "rule body  60 × 0.9 µs    = 0.054 ms"], gcTick: "0 (arrays reused)" },
+  };
+  const rs = {};
+  function rDefaults() {
+    Object.assign(rs, { mode: "code", thr: 0.6, local: true, self: true, typo: false, loop: false, guard: false, call: "per",
+      versions: [0.6], appliedThr: 0.6, applied: { typo: false, loop: false }, resetAt: 0, spent: 0, tweaks: 0, log: [] });
+  }
+  rDefaults();
+  const t2 = (v) => v.toFixed(2);
+  const nowS = () => performance.now() / 1000;
+  function resetLeft() {
+    if (!rs.resetAt) return 0;
+    const total = rs.appliedThr / HUNGER_RATE;
+    return Math.max(0, Math.ceil(total - (nowS() - rs.resetAt) - 1e-6));
+  }
+  function frozen() { return rs.applied.typo ? "typo" : rs.applied.loop ? "loop" : ""; }
+
+  // hunger animation state
+  const hg = Array.from({ length: NG }, (_, i) => ({ h: 0.08 + i * 0.09, flash: 0, old: false }));
+  let rT = 0;
+  function nearCarrier(i) { return (i + Math.floor(rT / 4)) % 3 === 0; }
+
+  function install(restart) {
+    const thr = rs.thr;
+    rs.appliedThr = thr;
+    if (restart || rs.mode === "code") { rs.versions = [thr]; rs.resetAt = 0; return; }
+    rs.versions = rs.self ? [...rs.versions, thr] : [thr];
+    if (rs.local) { rs.resetAt = nowS(); for (const g of hg) g.h = 0; }
+  }
+  function ruleApply(cost, restart) {
+    const log = [];
+    if (rs.mode === "code") {
+      rs.applied = { typo: false, loop: false };
+      install(true);
+      log.push(`<span class="dim">GullBrain.cs  if (gull.hunger > ${t2(rs.thr)}f) Steal();</span>`);
+      log.push(`compile Simulation 29 s · Play · reach the frenzy 90 s`);
+      log.push(`<span class="ok">✓ rule: steal if hunger > ${t2(rs.thr)}</span>`);
+    } else {
+      log.push(rs.mode === "live" ? `<span class="dim">watcher: gull_steal.lua saved</span>\n<span class="dim">→ compile 4 ms, swap between ticks</span>` : `<span class="dim">Play → load Scripts/ (85 files), fresh start</span>`);
+      const bad = rs.typo || rs.loop;
+      if (bad && rs.guard) {
+        if (rs.typo) log.push(`<span class="warn">✗ gull_steal.lua:4: attempt to compare</span>\n<span class="warn">  number with nil</span>`);
+        if (rs.loop) log.push(`<span class="warn">✗ gull_steal.lua:6: used 100,000 instructions</span>\n<span class="warn">  in one call (≈ 1 ms), stopped</span>`);
+        log.push(`<span class="ok">Rule turned off. Last good version runs:</span>\n<span class="ok">steal if hunger > ${t2(rs.versions[rs.versions.length - 1])}. Game still running.</span>`);
+        rs.applied = { typo: false, loop: false };
+        if (restart) rs.versions = [rs.versions[rs.versions.length - 1]];
+      } else if (bad) {
+        rs.applied = { typo: rs.typo, loop: rs.loop };
+        install(restart);
+        if (rs.typo) log.push(`<span class="warn">ScriptRuntimeException in Simulation tick:</span>\n<span class="warn">gull_steal.lua:4: attempt to compare number with nil</span>\n<span class="warn">Every tick stops halfway: every gull frozen.</span>`);
+        else log.push(`<span class="warn">Unity is not responding: runaway loop in</span>\n<span class="warn">gull_steal.lua:6. Kill it: 20 min of reef edits lost.</span>`);
+      } else {
+        rs.applied = { typo: false, loop: false };
+        install(restart);
+        log.push(`<span class="ok">✓ rule gull_steal: steal if hunger > ${t2(rs.thr)}</span>`);
+      }
+      if (!frozen()) {
+        if (rs.versions.length > 1) log.push(`<span class="warn">Events.on ran again: ${rs.versions.length} versions subscribed</span>\n<span class="warn">(${rs.versions.map(t2).join(", ")}). All of them run each think.</span>`);
+        if (rs.resetAt && !(bad && rs.guard)) log.push(`<span class="warn">local hunger = {} ran again: every gull at 0.</span>\n<span class="warn">${t2(rs.appliedThr)} ÷ 0.012 per s → first steal in ${Math.round(rs.appliedThr / HUNGER_RATE)} s</span>`);
+      }
+    }
+    if (cost) { rs.spent += cost; rs.tweaks += 1; }
+    rs.log = log;
+  }
+  function rLiveChange() { if (rs.mode === "live") ruleApply(RLOOP.live.one, false); rRender(); }
+
+  function rState() {
+    const fz = frozen();
+    if (fz === "typo") return ["✗ frozen", "a Lua error stops every tick", "bad"];
+    if (fz === "loop") return ["✗ hung", "runaway loop: Unity not responding", "bad"];
+    if (rs.versions.length > 1) { const m = Math.min(...rs.versions); return ["✗ old rules", `a gull at ${t2(m + 0.02)} still steals`, "bad"]; }
+    const left = resetLeft();
+    if (left > 0) return ["✗ hunger reset", `every gull at 0 · first steal in ${left} s`, "bad"];
+    return ["✓ plays right", `steal if hunger > ${t2(rs.versions[0])}`, "good"];
+  }
+  function rPending() {
+    if (rs.mode === "live") return "";
+    const out = [];
+    if (Math.abs(rs.thr - rs.appliedThr) > 1e-9) out.push("the rule");
+    if (rs.mode !== "code" && ((rs.typo && !rs.guard) !== rs.applied.typo || (rs.loop && !rs.guard) !== rs.applied.loop)) out.push("the script");
+    return out.length ? `Edited, not in the game yet: ${out.join(", ")}` : "";
+  }
+
+  function rRender() {
+    const L = RLOOP[rs.mode], isCode = rs.mode === "code";
+    $("rOne").textContent = L.one + " s";
+    $("rOne").className = "v " + (isCode ? "bad" : rs.mode === "live" ? "good" : "");
+    $("rOneS").textContent = L.sub;
+    const total = RTRIES * L.one;
+    const allTxt = rs.mode === "live" ? "10 min" : (total / 3600).toFixed(1) + " h";
+    $("rAll").textContent = allTxt;
+    $("rAll").className = "v " + (isCode ? "bad" : rs.mode === "live" ? "good" : "");
+    $("rAllS").textContent = L.prog ? `+ ${((RTRIES * L.prog) / 3600).toFixed(1)} h of programmer time` : "no programmer needed";
+    const n = rs.versions.length;
+    $("rRun").textContent = String(n);
+    $("rRun").className = "v " + (n > 1 ? "bad" : "good");
+    $("rRunS").textContent = n > 1 ? `versions: ${rs.versions.map(t2).join(", ")}` : `version · steal if > ${t2(rs.versions[0])}`;
+    const [sv, ss, sc] = rState();
+    $("rReef").textContent = sv; $("rReef").className = "v " + sc; $("rReefS").textContent = ss;
+
+    for (const [id, m] of [["rCode", "code"], ["rRestart", "restart"], ["rLive", "live"]]) $(id).setAttribute("aria-pressed", rs.mode === m);
+    $("thr").value = rs.thr; $("thrV").textContent = t2(rs.thr);
+    const ap = $("rApply"); ap.textContent = L.label; ap.disabled = rs.mode === "live";
+    $("rPending").textContent = rPending();
+    for (const [k, id, lab] of [["local", "rLocal", "lLocal"], ["self", "rSelf", "lSelf"], ["typo", "rTypo", "lTypo"], ["loop", "rLoop", "lLoop"], ["guard", "rGuard", "lGuard"]]) {
+      $(id).checked = rs[k]; $(id).disabled = isCode; $(lab).classList.toggle("off", isCode);
+    }
+
+    let c;
+    if (isCode) c = `The rule is <strong>C# in the Simulation</strong>. Mia can't change it herself, and the compiler would catch a typo like <code>gull.hungr</code>, so the script options are off here.`;
+    else if (rs.mode === "restart") c = `The rule is a <strong>Lua script</strong>. No programmer, no compile, but the game only reads it at start-up: every try means playing back to the Frenzy.`;
+    else c = `<strong>Hot reload</strong>: saving the script compiles it in 4 ms and swaps it in between ticks. Drag the rule and watch the bars.`;
+    const fz = frozen();
+    if (!isCode) {
+      if (fz) c += ` <span class="bug">${fz === "typo" ? "The Lua error escaped into the Simulation tick." : "The loop never ends, so the tick never ends."}</span> Turn on the guard and save again.`;
+      else if (rs.versions.length > 1) c += ` <span class="bug">The old rules are still subscribed: ${rs.versions.length} versions run each think.</span> The lowest one, ${t2(Math.min(...rs.versions))}, decides.`;
+      else if (resetLeft() > 0) c += ` <span class="bug">The reload emptied the script's hunger table.</span> No gull can steal until hunger passes ${t2(rs.appliedThr)} again.`;
+    }
+    $("rcoach").innerHTML = c;
+
+    $("rlog").innerHTML = rs.log.length ? rs.log.join("\n") : `<span class="dim">(no change applied yet)</span>`;
+    let fm = L.parts.map(([nm, s]) => `${String(s).padStart(4)} s  ${nm}`).join("\n");
+    fm += `\n${"─".repeat(30)}\n${String(L.one).padStart(4)} s  one try\n`;
+    fm += `${RTRIES} × ${L.one} s = ${total.toLocaleString("en-US")} s ≈ ${allTxt}`;
+    if (L.prog) fm += `\nprogrammer: ${RTRIES} × (60 + 29) s ≈ ${((RTRIES * L.prog) / 3600).toFixed(1)} h`;
+    fm += `\nspent so far: ${rs.spent.toLocaleString("en-US")} s in ${rs.tweaks} tr${rs.tweaks === 1 ? "y" : "ies"}`;
+    $("rformula").textContent = fm;
+
+    // shipped game
+    for (const [id, m] of [["cPer", "per"], ["cBatch", "batch"], ["cNear", "near"]]) { $(id).setAttribute("aria-pressed", rs.call === m); $(id).disabled = isCode; }
+    const C = CALL[rs.call];
+    const ms = isCode ? 0.10 : C.frame, gc = isCode ? 0 : C.gc;
+    $("pCost").textContent = ms.toFixed(2); $("pCost").className = "v " + (ms > 1 ? "bad" : "good");
+    $("pCostS").textContent = `ms per frame · ${isCode ? "C#" : "script"} · budget 1 ms`;
+    $("pGc").textContent = gc ? gc + " KB" : "0"; $("pGc").className = "v " + (gc ? "bad" : "good");
+    $("pGcS").textContent = gc ? "per frame · ≈ 3.8 MB a second" : "per frame";
+    let cap;
+    if (isCode) cap = `Simulation tick · 1,000 gulls\n└─ <span class="ok">steal rule in C#      0.05 ms</span>\n   1,000 × 50 ns · GC.Alloc 0`;
+    else cap = `Simulation tick · 1,000 gulls\n└─ <span class="${C.tick > 0.5 ? "warn" : "ok"}">ScriptHost gull_steal  ${t2(C.tick)} ms</span>\n${C.lines.map((l, i) => (i === C.lines.length - 1 ? "   └─ " : "   ├─ ") + l).join("\n")}\n   <span class="${C.gc ? "warn" : "dim"}">GC.Alloc ${C.gcTick}</span>`;
+    $("pcap").innerHTML = cap;
+    let pb = bar("C# rule", "1,000 × 50 ns, 2 ticks", 0.10, 4.5, "0.10 ms", "--p1");
+    pb += bar("This build", isCode ? "the rule is C#" : { per: "1,000 crossings a tick", batch: "1 crossing, 1,000 rules", near: "1 crossing, 60 rules" }[rs.call], ms, 4.5, ms.toFixed(2) + " ms", ms > 1 ? "--bad" : "--good");
+    pb += bar("Script budget", "all scripts, mid-range phone", 1, 4.5, "1.00 ms", "--muted");
+    $("pbars").innerHTML = pb;
+
+    const ok = rs.mode === "live" && !rs.local && !rs.self && rs.guard && rState()[2] === "good" && rs.call === "near";
+    $("rulePill").className = "pill " + (ok ? "ok" : "over");
+    $("rulePill").textContent = ok ? "Goal met" : rs.mode !== "live" ? "Slow tries" : rs.local ? "State in script" : rs.self ? "Script subscribes itself" : !rs.guard ? "No guard" : rState()[2] !== "good" ? "Frenzy plays wrong" : "Over 1 ms a frame";
+    if (reduce) rDraw();
+  }
+
+  // ---------- hunger canvas ----------
+  const rcv = $("rcv"), rctx = rcv.getContext("2d");
+  function rStep(dt) {
+    if (frozen()) return;
+    rT += dt;
+    const min = Math.min(...rs.versions), newest = rs.versions[rs.versions.length - 1];
+    hg.forEach((g, i) => {
+      g.h = Math.min(1, g.h + HUNGER_RATE * dt * (resetLeft() > 0 ? 1 : 4));
+      g.flash = Math.max(0, g.flash - dt);
+      if (nearCarrier(i) && g.h > min && g.flash === 0) { g.old = g.h <= newest; g.flash = 0.9; g.h = 0.1; }
     });
-  });
+  }
+  function rDraw() {
+    const W = rcv.clientWidth || 600, H = 210, dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (rcv.width !== Math.round(W * dpr)) { rcv.width = Math.round(W * dpr); rcv.height = Math.round(H * dpr); }
+    rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    rctx.clearRect(0, 0, W, H);
+    const ink = css("--ink"), muted = css("--muted"), p1 = css("--p1"), p2 = css("--p2"), bad = css("--bad"), cpu = css("--cpu"), accent = css("--accent"), line = css("--line"), panel = css("--panel");
+    const font = css("--f-body") || "sans-serif";
+    const left = 8, right = W - 74, top = 50, bot = 176, bh = bot - top, slot = (right - left) / NG;
+    const newest = rs.versions[rs.versions.length - 1];
+    hg.forEach((g, i) => {
+      const cx = left + slot * (i + 0.5), bw = Math.min(22, slot * 0.55);
+      // gull
+      const gy = 26 - (g.flash > 0 ? 6 : 0);
+      rctx.strokeStyle = g.flash > 0 ? (g.old ? bad : p2) : ink; rctx.lineWidth = 2;
+      rctx.beginPath(); rctx.moveTo(cx - 8, gy - 5); rctx.lineTo(cx, gy); rctx.lineTo(cx + 8, gy - 5); rctx.stroke();
+      if (g.flash > 0) { rctx.fillStyle = g.old ? bad : p2; rctx.font = "600 11px " + font; rctx.textAlign = "center"; rctx.fillText("steal", cx, 42); }
+      // bar
+      rctx.fillStyle = css("--field"); rctx.strokeStyle = line; rctx.lineWidth = 1;
+      rctx.fillRect(cx - bw / 2, top, bw, bh); rctx.strokeRect(cx - bw / 2 + 0.5, top + 0.5, bw - 1, bh - 1);
+      rctx.fillStyle = g.h > newest ? cpu : p1;
+      rctx.fillRect(cx - bw / 2, bot - bh * g.h, bw, bh * g.h);
+      // near a carrier
+      if (nearCarrier(i)) { rctx.fillStyle = p2; rctx.beginPath(); rctx.ellipse(cx, bot + 12, 7, 3.5, 0, 0, Math.PI * 2); rctx.fill(); }
+    });
+    rctx.textAlign = "left";
+    // thresholds
+    rs.versions.forEach((v, k) => {
+      const y = bot - bh * v, isNew = k === rs.versions.length - 1;
+      rctx.strokeStyle = isNew ? accent : bad; rctx.lineWidth = 2; rctx.setLineDash(isNew ? [] : [5, 4]);
+      rctx.beginPath(); rctx.moveTo(left, y); rctx.lineTo(right + 4, y); rctx.stroke(); rctx.setLineDash([]);
+      if (isNew || k === 0) { rctx.fillStyle = isNew ? accent : bad; rctx.font = "600 12px " + font; rctx.fillText(`v${k + 1} ${t2(v)}${isNew ? "" : " old"}`, right + 8, y + 4 + (isNew || rs.versions.length < 2 ? 0 : 12)); }
+    });
+    rctx.fillStyle = muted; rctx.font = "12px " + font;
+    rctx.fillText("hunger of 10 gulls (each stands for 100) · orange: near a fish carrier", left, H - 6);
+    const left2 = resetLeft();
+    if (left2 > 0 && !frozen()) { rctx.fillStyle = bad; rctx.font = "600 13px " + font; rctx.fillText(`hunger reset · first steal in ${left2} s`, left, 14); }
+    const fz = frozen();
+    if (fz) {
+      rctx.globalAlpha = 0.78; rctx.fillStyle = panel; rctx.fillRect(0, 0, W, H); rctx.globalAlpha = 1;
+      rctx.fillStyle = bad; rctx.font = "700 15px " + font; rctx.textAlign = "center";
+      rctx.fillText(fz === "typo" ? "Simulation stopped: every gull frozen" : "Unity is not responding", W / 2, H / 2 - 8);
+      rctx.font = "600 12px " + font;
+      rctx.fillText(fz === "typo" ? "gull_steal.lua:4: attempt to compare number with nil" : "runaway loop in gull_steal.lua:6", W / 2, H / 2 + 14);
+      rctx.textAlign = "left";
+    }
+  }
+  setInterval(() => { if (rs.resetAt) { const [, ss] = rState(); if ($("rReefS").textContent !== ss) rRender(); } }, 500);
+
+  // ---------- rule controls ----------
+  $("rCode").addEventListener("click", () => { rs.mode = "code"; rRender(); });
+  $("rRestart").addEventListener("click", () => { rs.mode = "restart"; rRender(); });
+  $("rLive").addEventListener("click", () => { rs.mode = "live"; rRender(); });
+  $("thr").addEventListener("input", (e) => { rs.thr = Math.round(+e.target.value * 100) / 100; $("thrV").textContent = t2(rs.thr); if (rs.mode !== "live") rRender(); });
+  $("thr").addEventListener("change", () => rLiveChange());
+  $("rApply").addEventListener("click", () => { if (rs.mode !== "live") { ruleApply(RLOOP[rs.mode].one, true); rRender(); } });
+  for (const [k, id] of [["typo", "rTypo"], ["loop", "rLoop"]]) $(id).addEventListener("change", (e) => { rs[k] = e.target.checked; rLiveChange(); });
+  $("rLocal").addEventListener("change", (e) => { rs.local = e.target.checked; rRender(); });
+  $("rSelf").addEventListener("change", (e) => { rs.self = e.target.checked; if (!rs.self && rs.mode === "live") rs.versions = [rs.versions[rs.versions.length - 1]]; rRender(); });
+  $("rGuard").addEventListener("change", (e) => { rs.guard = e.target.checked; rLiveChange(); });
+  $("cPer").addEventListener("click", () => { rs.call = "per"; rRender(); });
+  $("cBatch").addEventListener("click", () => { rs.call = "batch"; rRender(); });
+  $("cNear").addEventListener("click", () => { rs.call = "near"; rRender(); });
+
+  // ---------- Lesson 020 steps ----------
+  function rSetup(s) {
+    rDefaults();
+    hg.forEach((g, i) => { g.h = 0.08 + i * 0.09; g.flash = 0; });
+    s();
+    rRender();
+  }
+  const save = (thr) => { rs.thr = thr; ruleApply(RLOOP.live.one, false); };
+  const STEPS2 = [
+    { t: "The rule in C#, then in a script", d: "In C# one try is 720 + 60 + 29 + 90 = 899 s: Mia's 40 tries take 10.0 h, plus 1.0 h of programmer time. Tap Script, restart: 100 s a try, 1.1 h. Then Script, hot reload: 15 s, 10 min.",
+      s: () => {} },
+    { t: "Trap 1: the hunger lived in the script", d: "Mia saves the script with hot reload. local hunger = {} ran again: every bar drops to 0 and the Frenzy shows \"first steal in 50 s\" (0.60 ÷ 0.012). Untick box 1 and move the slider to save again: this save keeps the hunger.",
+      s: () => { rs.mode = "live"; rs.self = false; save(0.6); } },
+    { t: "Trap 2: the old rule keeps running", d: "Hunger now lives in the Gull component. Mia saves 0.65, 0.70 and 0.75, but the script subscribes itself on load: Rules running shows 4, and a gull at 0.62 still steals. Untick box 2: back to 1 rule, 0.75.",
+      s: () => { rs.mode = "live"; rs.local = false; rs.self = true; save(0.65); save(0.7); save(0.75); } },
+    { t: "Guard every call", d: "Both traps fixed, and Mia's typo gull.hungr is saved with the guard on. The log shows \"attempt to compare number with nil\", the rule falls back to the last good version (0.75) and the Frenzy plays right. Untick the guard: every gull freezes.",
+      s: () => { rs.mode = "live"; rs.local = false; rs.self = false; save(0.75); rs.guard = true; rs.typo = true; save(0.75); } },
+    { t: "Ship it: cross the border less", d: "One call per gull: 2.10 ms a tick, 4.20 ms a frame and 128 KB of garbage, over the 1 ms budget. Tap One batch: 1.80 ms. Tap Batch, near only: 0.12 ms, no garbage, and the goal turns green.",
+      s: () => { rs.mode = "live"; rs.local = false; rs.self = false; rs.guard = true; save(0.75); } },
+  ];
+
+  const allSteps = () => [...$("steps").children, ...$("steps2").children];
+  function addSteps(list, el, offset, run, target) {
+    list.forEach((s, k) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + offset}">Set up</button>`;
+      el.appendChild(li);
+      li.querySelector("button").addEventListener("click", () => {
+        allSteps().forEach((c) => c.classList.remove("active"));
+        li.classList.add("active");
+        run(s.s);
+        $(target).scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
+      });
+    });
+  }
+  addSteps(STEPS, $("steps"), 0, setup, "cv");
+  addSteps(STEPS2, $("steps2"), STEPS.length, rSetup, "rcv");
 
   render();
-  if (reduce) { tSim = 1; draw(); new ResizeObserver(() => draw()).observe(cv); }
+  rRender();
+  if (reduce) { tSim = 1; draw(); rDraw(); new ResizeObserver(() => { draw(); rDraw(); }).observe(document.body); }
   else requestAnimationFrame(frame);
 })();
 </script>
