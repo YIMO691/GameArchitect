@@ -37,7 +37,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 016 | State machines, hierarchical FSMs and behavior trees: the gulls that hovered forever | ✅ |
 | 017 | Command pattern for input, undo and replays: the swallowed hook nobody could replay | ✅ |
 | 018 | Layered engine architecture and dependency rules: the 48-second wait and the replay server that needed a GPU | ✅ |
-| 019 | Data-driven design: configs, assets and data pipelines | ⬜ |
+| 019 | Data-driven design: configs, assets and data pipelines: the 15-minute tweak and the 1.9-second start-up | ✅ |
 | 020 | Scripting layers and hot reload | ⬜ |
 | 021 | Plugin and extension architecture | ⬜ |
 | 022 | Review: Module 2 + architecture critique exercise | ⬜ |

@@ -1,0 +1,44 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='440' viewBox='0 0 860 440' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='439' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='38' font-size='20' font-weight='700' fill='#1f2328'>Three bad edits, with and without a validator</text>
+<text x='24' y='60' font-size='13' fill='#57606a'>Mia’s first week of live tuning. None of these crashes the game. It just plays wrong.</text>
+<text x='24' y='92' font-size='12' fill='#57606a' font-weight='700'>THE EDIT</text>
+<text x='304' y='92' font-size='12' fill='#cf222e' font-weight='700'>WITHOUT A CHECK</text>
+<text x='584' y='92' font-size='12' fill='#1a7f37' font-weight='700'>WITH THE VALIDATOR AND IDS</text>
+<rect x='24.0' y='104' width='256.0' height='70' rx='8' fill='#f6f8fa' stroke='#d0d7de'/>
+<rect x='304.0' y='104' width='256.0' height='70' rx='8' fill='#ffebe9' stroke='#ffcecb'/>
+<rect x='584.0' y='104' width='256.0' height='70' rx='8' fill='#dafbe1' stroke='#aceebb'/>
+<text x='38' y='133' font-size='14' fill='#1f2328' font-weight='700' font-family='Consolas, Menlo, monospace'>“diveSpeeed”: 7</text>
+<text x='38' y='156' font-size='12' fill='#57606a'>a typo in the key: three e’s</text>
+<text x='318' y='133' font-size='13' fill='#cf222e' font-weight='600'>key skipped → diveSpeed = 0</text>
+<text x='318' y='156' font-size='13' fill='#1f2328'>every gull circles, never dives</text>
+<text x='598' y='133' font-size='13' fill='#1a7f37' font-weight='600'>✗ unknown key “diveSpeeed”</text>
+<text x='598' y='156' font-size='13' fill='#1f2328'>did you mean “diveSpeed”?</text>
+<path d='M284 139 L298 139' stroke='#9aa0a6' stroke-width='2'/><path d='M292 134 L300 139 L292 144 z' fill='#9aa0a6'/>
+<rect x='24.0' y='188' width='256.0' height='70' rx='8' fill='#f6f8fa' stroke='#d0d7de'/>
+<rect x='304.0' y='188' width='256.0' height='70' rx='8' fill='#ffebe9' stroke='#ffcecb'/>
+<rect x='584.0' y='188' width='256.0' height='70' rx='8' fill='#dafbe1' stroke='#aceebb'/>
+<text x='38' y='217' font-size='14' fill='#1f2328' font-weight='700' font-family='Consolas, Menlo, monospace'>“biteWindow”: 4.0</text>
+<text x='38' y='240' font-size='12' fill='#57606a'>meant 0.40: ten times too long</text>
+<text x='318' y='217' font-size='13' fill='#cf222e' font-weight='600'>a bite holds for 4 s</text>
+<text x='318' y='240' font-size='13' fill='#1f2328'>every cast catches a sardine</text>
+<text x='598' y='217' font-size='13' fill='#1a7f37' font-weight='600'>✗ 4.0 is outside 0.1 – 1.0 s</text>
+<text x='598' y='240' font-size='13' fill='#1f2328'>kept the last good value, 0.40</text>
+<path d='M284 223 L298 223' stroke='#9aa0a6' stroke-width='2'/><path d='M292 218 L300 223 L292 228 z' fill='#9aa0a6'/>
+<rect x='24.0' y='272' width='256.0' height='70' rx='8' fill='#f6f8fa' stroke='#d0d7de'/>
+<rect x='304.0' y='272' width='256.0' height='70' rx='8' fill='#ffebe9' stroke='#ffcecb'/>
+<rect x='584.0' y='272' width='256.0' height='70' rx='8' fill='#dafbe1' stroke='#aceebb'/>
+<text x='38' y='301' font-size='14' fill='#1f2328' font-weight='700' font-family='Consolas, Menlo, monospace'>“Sardine” → “Pilchard”</text>
+<text x='38' y='324' font-size='12' fill='#57606a'>a rename; 37 spawn rows still say Sardine</text>
+<text x='318' y='301' font-size='13' fill='#cf222e' font-weight='600'>37 rows find no such fish</text>
+<text x='318' y='324' font-size='13' fill='#1f2328'>the reef has no small fish</text>
+<text x='598' y='301' font-size='13' fill='#1a7f37' font-weight='600'>✓ spawn rows use ID 1007</text>
+<text x='598' y='324' font-size='13' fill='#1f2328'>renaming is safe: names are for people</text>
+<path d='M284 307 L298 307' stroke='#9aa0a6' stroke-width='2'/><path d='M292 302 L300 307 L292 312 z' fill='#9aa0a6'/>
+<text x='304' y='370' font-size='13' fill='#cf222e' font-weight='600'>Found by QA after 2 days.</text>
+<text x='584' y='370' font-size='13' fill='#1a7f37' font-weight='600'>Caught on save, in about 0.3 s</text>
+<text x='584' y='388' font-size='12' fill='#57606a'>for all 4,800 records.</text>
+<text x='584' y='406' font-size='12' fill='#57606a'>Also at bake time and in CI.</text>
+<text x='24' y='388' font-size='12' fill='#57606a'>Schema: required keys, types, ranges,</text>
+<text x='24' y='406' font-size='12' fill='#57606a'>no unknown keys, every ID must exist.</text>
+</svg>
