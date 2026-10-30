@@ -180,6 +180,13 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <ul><li>The four stations: vertex, raster, pixel, output &amp; memory</li><li>The slowest station sets the GPU time</li><li>One lever per station; busy % per station</li><li>Fixing the limiter, then the next one in line</li><li>A budget per station, not only a total</li></ul>
       <span class="go">Open lab →</span>
     </a>
+    <a class="card" href="024-draw-calls/index.html">
+      <div class="meta"><span class="tag live">live</span><span>Lesson 024</span><span>simulation</span></div>
+      <h3>Draw Call Lab</h3>
+      <p>The Reef's 1,200 fish were free on the GPU, but one line, renderer.material, made 1,200 material copies: 1,550 draw calls, 1,250 switches and a 42.5 ms render thread. Share the materials (18.62 ms), try static batching (+18 MB), then instance the fish (7.88 ms). See every draw call in its own colour, and scale the shoal to 4,000.</p>
+      <ul><li>Draw calls and material switches as CPU paperwork</li><li>Material copies vs shared materials + property blocks</li><li>Static batching and its memory price</li><li>GPU instancing: one draw per species</li><li>Scale test: CPU budget vs GPU vertex limit</li></ul>
+      <span class="go">Open lab →</span>
+    </a>
   </section>
 
   <section class="panel" aria-labelledby="planH">
@@ -203,7 +210,7 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
           <tr><td>Tuning Lab</td><td class="mono">019 · 020</td><td>Constants in code vs data files vs live reload, the copy-at-spawn trap, a validator with schema and IDs, and JSON vs baked binary on a phone; then a steal rule in C# vs a hot-reloaded Lua script, its reload traps, a guard, and the cost of crossing into the script. Both lessons are live.</td></tr>
           <tr><td>Plugin Lab</td><td class="mono">021</td><td>Modes built into the core vs as plugins in the Reef: checks per core file, scan vs baked discovery, leftovers after a round, arrival order vs phases, and an API version check for mods. Live.</td></tr>
           <tr><td>GPU Pipeline Lab</td><td class="mono">023 · 033</td><td>The four GPU stations in the Reef's Coral Garden: the slowest station sets the GPU time, one lever per station, and the bottleneck that moves after a fix. Live. Later: reading real GPU profiler captures.</td></tr>
-          <tr><td>Draw Call &amp; Overdraw Lab</td><td class="mono">024 · 025 · 027</td><td>Batching, instancing, transparency and culling.</td></tr>
+          <tr><td>Draw Call Lab</td><td class="mono">024 · 025 · 027 · 028</td><td>Draw calls and material switches in the Reef's 1,200-fish shoal: material copies, shared materials, static batching and instancing. Live. Later: overdraw and transparency, culling, and LODs.</td></tr>
           <tr><td>Netcode Lab</td><td class="mono">048 · 049</td><td>Lag, interpolation, prediction and rollback with a fake network.</td></tr>
         </tbody>
       </table>

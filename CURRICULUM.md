@@ -46,7 +46,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | # | Title | Status |
 |---|-------|--------|
 | 023 | The GPU pipeline mental model: the Coral Garden that halved its triangles and gained 0 ms | ✅ |
-| 024 | Draw calls, batching and instancing | ⬜ |
+| 024 | Draw calls, batching and instancing: the 1,200 fish that cost nothing on the GPU and 32 ms on the CPU | ✅ |
 | 025 | Overdraw, fill rate and transparency | ⬜ |
 | 026 | Shader cost and shader variant explosion | ⬜ |
 | 027 | Culling: frustum, occlusion, HLOD | ⬜ |

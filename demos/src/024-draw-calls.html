@@ -1,0 +1,523 @@
+<title>Draw Call Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. The reef (game or draw-call view) and the three thread bars on the left, readouts and controls on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/024-draw-calls-batching-and-instancing.md">Read Lesson 024 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 024 · Lesson 024 · simulation using the lesson's numbers</div>
+    <h1>Draw Call Lab</h1>
+    <p class="lede">Every draw call is an order slip the render thread writes for the GPU. Change the fish, the tint code and the way they are drawn, then switch to the <strong>Draw calls</strong> view: each slip gets its own colour. Watch the render thread bar against the 12 ms budget.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>The Reef's Coral Garden, mid-range phone.</strong> Goal: 30 fps and a render thread of at most 12 ms.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Reef view and controls">
+    <div class="panel">
+      <div class="head-row">
+        <h2>The Coral Garden</h2>
+        <div class="seg-ctl small" role="group" aria-label="View">
+          <button type="button" data-k="view" data-v="game">Game</button>
+          <button type="button" data-k="view" data-v="calls">Draw calls</button>
+        </div>
+      </div>
+      <div class="stage" id="stage">
+        <canvas id="cv" aria-label="Fish swimming over coral. In the draw-call view, every draw call has its own colour."></canvas>
+        <span class="stage-tag" id="stageTag">1,550 slips</span>
+      </div>
+      <p class="legend" id="legend"></p>
+      <div class="threads" id="threads"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Render thread</span><span class="v" id="sRt">0</span><span class="s" id="sRtS">ms</span></div>
+        <div class="stat"><span class="k">Frame rate</span><span class="v" id="sFps">0</span><span class="s" id="sFpsS">fps</span></div>
+        <div class="stat"><span class="k">Draw calls</span><span class="v" id="sDraws">0</span><span class="s" id="sDrawsS">slips per frame</span></div>
+        <div class="stat"><span class="k">Material switches</span><span class="v" id="sSw">0</span><span class="s" id="sSwS">SetPass calls</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <label for="fish"><span>Fish in the shoal</span><span class="mono" id="fishLabel">1,200</span></label>
+          <input type="range" id="fish" min="400" max="4000" step="400" value="1200">
+          <p class="hint">6 species. Each fish: 600 vertices, a random tint.</p>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Tint code</span><span class="mono">materials</span></span>
+          <div class="seg-ctl" role="group" aria-label="Tint code">
+            <button type="button" data-k="tint" data-v="clone">.material<small>a copy per fish</small></button>
+            <button type="button" data-k="tint" data-v="shared">.sharedMaterial<small>+ tint block</small></button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Fish are drawn</span><span class="mono">fish draws</span></span>
+          <div class="seg-ctl" role="group" aria-label="Fish are drawn">
+            <button type="button" data-k="draw" data-v="each">One per fish<small>a slip each</small></button>
+            <button type="button" data-k="draw" data-v="inst">Instanced<small>a slip per species</small></button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Coral and rocks (300 pieces, 40 materials)</span></span>
+          <div class="seg-ctl" role="group" aria-label="Coral and rocks">
+            <button type="button" data-k="coral" data-v="sep">Separate<small>300 draws</small></button>
+            <button type="button" data-k="coral" data-v="static">Static batching<small>40 draws, +18 MB</small></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two-col">
+    <div class="panel">
+      <h2>What the Stats window says</h2>
+      <p class="fine">The counts in the style of Unity's Stats window and Frame Debugger, and the render thread's bill: 2 ms fixed + 10 µs per draw + 20 µs per material switch + 1 µs per instanced fish.</p>
+      <pre class="capture" id="capture"></pre>
+    </div>
+    <div class="panel">
+      <h2>Scale test</h2>
+      <p class="fine">The same settings with more fish. Render thread budget 12 ms. The GPU only feels the fish's vertices: 6 ms of coral + 3 ms per 400 fish, against a pixel load of 24 ms.</p>
+      <table class="tbl" id="scale"></table>
+      <p class="fine" id="maxFish"></p>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the render thread bar and the draw-call view. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 024 · The 1,200-fish shoal</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>A draw call is CPU paperwork</h3><p>Each slip costs the render thread about 10 µs, and each material switch 20 µs more, however small the mesh. "Free on the GPU" can still be 42.5 ms on the CPU.</p></div>
+      <div class="note"><h3>Share first, then merge</h3><p>renderer.material made 1,200 copies. Sharing the materials cut the switches from 1,250 to 56. Only then can instancing merge 1,200 fish into 6 draws.</p></div>
+      <div class="note"><h3>Every merge has a price</h3><p>Static batching saves 2.6 ms for 18 MB. Instancing costs 1 µs per fish and moves culling to you. Neither removes a single triangle: at 4,000 fish the GPU is the limit again.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. Costs come from Lesson 024: render thread = 2 ms + 0.01 ms per draw call + 0.02 ms per material switch + 0.001 ms per instanced fish; main thread 14 ms; GPU = 3 ms + the larger of the pixel load (24 ms) and the vertex load (6 ms + 3 ms per 400 fish); the game caps at 30 fps. Real per-draw costs depend on the graphics API, the driver and the engine (Vulkan and Metal are cheaper per draw than OpenGL ES), and real engines also spend main-thread time on culling and sorting each object.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const MAIN = 14, BUDGET = 12, CAP = 30, FRAME = 1000 / 30;
+  const SPECIES = 6, ENV = 300, ENV_MAT = 40, UI = 50, UI_MAT = 10;
+  const st = { fish: 1200, tint: "clone", draw: "each", coral: "sep", view: "game" };
+  const DEFAULTS = { fish: 1200, tint: "shared", draw: "each", coral: "sep", view: "game" };
+
+  function model(s) {
+    const N = s.fish, clones = s.tint === "clone";
+    const inst = s.draw === "inst" && !clones;
+    const envDraws = s.coral === "static" ? ENV_MAT : ENV;
+    const fishDraws = inst ? SPECIES : N;
+    const draws = envDraws + UI + fishDraws;
+    const switches = ENV_MAT + UI_MAT + (clones ? N : SPECIES);
+    const instN = inst ? N : 0;
+    const parts = { fixed: 2, draw: 0.01 * draws, sw: 0.02 * switches, inst: 0.001 * instN };
+    const rt = parts.fixed + parts.draw + parts.sw + parts.inst;
+    const vert = 6 + (3 * N) / 400;
+    const gpu = 3 + Math.max(24, vert);
+    const frame = Math.max(MAIN, rt, gpu);
+    const raw = 1000 / frame;
+    let slow = "GPU";
+    if (rt > gpu + 1e-9 && rt >= MAIN) slow = "render thread";
+    else if (MAIN > gpu && MAIN > rt) slow = "main thread";
+    return { N, clones, inst, instBlocked: s.draw === "inst" && clones, envDraws, fishDraws, draws, switches, instN, parts, rt, vert, gpu, frame, raw, fps: Math.min(CAP, raw), slow, mem: s.coral === "static" ? 18 : 0 };
+  }
+  const f2 = (v) => { const r = Math.round(v * 100) / 100; return Number.isInteger(r) ? r.toFixed(1) : String(r); };
+  const f1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
+  const n0 = (v) => Math.round(v).toLocaleString("en-US");
+
+  // ---------- theme colours ----------
+  let col = {};
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement);
+    for (const k of ["field", "ink", "muted", "line", "bad", "good", "sea1", "sea2", "sand", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "panel"]) col[k] = cs.getPropertyValue("--" + k).trim();
+    dark = matchMedia("(prefers-color-scheme: dark)").matches && document.documentElement.dataset.theme !== "light" || document.documentElement.dataset.theme === "dark";
+  }
+  let dark = false;
+  readColors();
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { readColors(); paint(); }); } catch (e) {}
+  new MutationObserver(() => { readColors(); paint(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  // ---------- the world: deterministic positions ----------
+  let seed = 12345;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const MAXF = 4000;
+  const fishes = [];
+  for (let i = 0; i < MAXF; i++) {
+    fishes.push({ x: rnd(), y: 0.08 + rnd() * 0.6, sp: i % SPECIES, tint: rnd(), v: 0.012 + rnd() * 0.02, ph: rnd() * 6.28, dir: rnd() < 0.5 ? -1 : 1 });
+  }
+  const corals = [];
+  for (let i = 0; i < ENV; i++) {
+    corals.push({ x: rnd(), y: 0.74 + rnd() * 0.22, r: 0.012 + rnd() * 0.02, h: 0.5 + rnd(), mat: Math.floor(rnd() * ENV_MAT) });
+  }
+  const SPECIES_COL = ["p1", "p2", "p3", "p4", "p5", "p7"];
+  const hue = (i) => `hsl(${(i * 137.508) % 360} ${dark ? 65 : 70}% ${dark ? 60 : 50}%)`;
+
+  const cv = $("cv"), ctx = cv.getContext("2d"), stage = $("stage");
+  let W = 0, H = 0, dpr = 1;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = stage.clientWidth; H = stage.clientHeight;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  let t = 0;
+  function paint() {
+    if (!W) return;
+    const m = model(st), calls = st.view === "calls";
+    // sea
+    if (calls) { ctx.fillStyle = col.field; ctx.fillRect(0, 0, W, H); }
+    else {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, col.sea1); g.addColorStop(1, col.sea2);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = col.sand; ctx.fillRect(0, H * 0.9, W, H * 0.1);
+    }
+    // coral
+    for (let i = 0; i < corals.length; i++) {
+      const c = corals[i];
+      const id = st.coral === "static" ? c.mat : i;
+      ctx.fillStyle = calls ? hue(id + 3000) : `hsl(${(c.mat * 9) % 50} ${dark ? 45 : 60}% ${dark ? 40 : 62}%)`;
+      ctx.beginPath();
+      ctx.ellipse(c.x * W, c.y * H, c.r * W, c.r * W * c.h, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // UI strip: 50 draws
+    const pip = Math.max(3, Math.min(8, (W - 20) / 50 - 2));
+    for (let i = 0; i < UI; i++) {
+      ctx.fillStyle = calls ? hue(i + 5000) : col.panel;
+      ctx.globalAlpha = calls ? 1 : 0.7;
+      ctx.fillRect(W - 10 - (UI - i) * (pip + 2), H - pip - 6, pip, pip);
+    }
+    ctx.globalAlpha = 1;
+    // fish
+    const s = Math.max(2.2, Math.min(5, W / 150));
+    for (let i = 0; i < m.N; i++) {
+      const f = fishes[i];
+      let x = (f.x + f.dir * f.v * t) % 1; if (x < 0) x += 1;
+      const px = x * W, py = f.y * H + Math.sin(t * 1.3 + f.ph) * 4;
+      if (calls) ctx.fillStyle = m.inst ? hue(f.sp * 7 + 1) : hue(i + 7);
+      else { ctx.fillStyle = col[SPECIES_COL[f.sp]]; ctx.globalAlpha = 0.65 + 0.35 * f.tint; }
+      const d = f.dir;
+      ctx.beginPath();
+      ctx.moveTo(px + d * s * 1.6, py);
+      ctx.quadraticCurveTo(px, py - s, px - d * s * 1.2, py);
+      ctx.quadraticCurveTo(px, py + s, px + d * s * 1.6, py);
+      ctx.moveTo(px - d * s * 1.0, py);
+      ctx.lineTo(px - d * s * 2.0, py - s * 0.8);
+      ctx.lineTo(px - d * s * 2.0, py + s * 0.8);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // ---------- thread bars ----------
+  function drawThreads(m) {
+    const box = $("threads").clientWidth || 600;
+    const Wd = Math.max(320, Math.min(680, Math.round(box))), narrow = Wd < 500;
+    const L = narrow ? 70 : 120, VR = narrow ? 56 : 70, x0 = L, x1 = Wd - VR;
+    const maxMs = Math.max(50, m.rt + 2, m.gpu + 2);
+    const X = (ms) => x0 + (ms / maxMs) * (x1 - x0);
+    let g = `<text x="0" y="14" style="fill:var(--muted);font-size:12px">${narrow ? "Each thread's work (ms)" : "Each thread's work per frame (ms). Frame = the slowest."}</text>`;
+    const rows = [
+      { n: "Main", v: MAIN, c: "--cpu" },
+      { n: "Render", v: m.rt, c: null },
+      { n: "GPU", v: m.gpu, c: "--p3" },
+    ];
+    const top = 26, rh = 40;
+    rows.forEach((r, i) => {
+      const y = top + i * rh, slow = Math.abs(r.v - m.frame) < 1e-9;
+      g += `<text x="0" y="${y + 19}" style="fill:${slow ? "var(--bad)" : "var(--ink)"};font-weight:600">${r.n}${slow ? " ◀" : ""}</text>`;
+      g += `<rect x="${x0}" y="${y + 4}" width="${x1 - x0}" height="24" rx="4" style="fill:var(--field);stroke:var(--line)"/>`;
+      if (r.c) {
+        g += `<rect class="bar" x="${x0}" y="${y + 4}" width="${Math.max(1, X(r.v) - x0)}" height="24" rx="4" style="fill:var(${r.c})"/>`;
+      } else {
+        const segs = [["fixed", "--muted"], ["draw", "--p1"], ["sw", "--bad"], ["inst", "--p7"]];
+        let cx = x0;
+        for (const [k, c] of segs) {
+          const w = (m.parts[k] / maxMs) * (x1 - x0);
+          if (w > 0) g += `<rect class="bar" x="${cx}" y="${y + 4}" width="${Math.max(0.5, w)}" height="24" style="fill:var(${c})"><title>${k}: ${f2(m.parts[k])} ms</title></rect>`;
+          cx += w;
+        }
+      }
+      const over = r.n === "Render" && r.v > BUDGET + 1e-9;
+      g += `<text x="${Wd}" y="${y + 21}" text-anchor="end" style="fill:${over || slow ? "var(--bad)" : "var(--ink)"};font-weight:600">${f2(r.v)}</text>`;
+    });
+    // budget line on render row, frame line
+    const by = top + rh, bx = X(BUDGET);
+    g += `<line x1="${bx}" x2="${bx}" y1="${by}" y2="${by + 32}" style="stroke:var(--good);stroke-width:2.5;stroke-dasharray:5 3"/>`;
+    const fx = X(FRAME);
+    g += `<line x1="${fx}" x2="${fx}" y1="${top}" y2="${top + 3 * rh}" style="stroke:var(--muted);stroke-width:1.5;stroke-dasharray:2 3"/>`;
+    const ly = top + 3 * rh + 14;
+    g += `<text x="${bx}" y="${ly}" text-anchor="middle" style="fill:var(--good);font-size:12px">${narrow ? "12 ms" : "12 budget"}</text>`;
+    g += `<text x="${fx}" y="${ly}" text-anchor="middle" style="fill:var(--muted);font-size:12px">${narrow ? "30 fps" : "33.3 = 30 fps"}</text>`;
+    // legend for render segments
+    const lg = [["fixed 2", "--muted"], ["draws", "--p1"], ["switches", "--bad"], ["instance data", "--p7"]];
+    let lx = 0, ly2 = ly + 22;
+    lg.forEach(([n, c], i) => {
+      if (narrow && i === 2) { lx = 0; ly2 += 18; }
+      g += `<rect x="${lx}" y="${ly2 - 10}" width="11" height="11" rx="2" style="fill:var(${c})"/><text x="${lx + 15}" y="${ly2}" style="fill:var(--muted);font-size:12px">${n}</text>`;
+      lx += 15 + n.length * 7.6 + (narrow ? 14 : 16);
+    });
+    const H2 = ly2 + 8;
+    $("threads").innerHTML = `<svg viewBox="0 0 ${Wd} ${H2}" role="img" aria-label="Main thread 14 ms, render thread ${f2(m.rt)} ms, GPU ${f2(m.gpu)} ms. Frame ${f2(m.frame)} ms.">${g}</svg>`;
+  }
+
+  // ---------- readouts ----------
+  function render() {
+    const m = model(st);
+    drawThreads(m);
+    paint();
+    const over = m.rt > BUDGET + 1e-9;
+    $("sRt").textContent = f2(m.rt);
+    $("sRt").className = "v " + (over ? "bad" : "good");
+    $("sRtS").textContent = over ? `ms · ${f2(m.rt - BUDGET)} over the 12 ms budget` : `ms · ${f2(BUDGET - m.rt)} under the 12 ms budget`;
+    $("sFps").textContent = f1(m.fps).replace(/\.0$/, "");
+    $("sFps").className = "v " + (m.fps >= 29.95 ? "good" : "bad");
+    $("sFpsS").textContent = m.raw > 30.05 ? `fps, capped (could do ${Math.round(m.raw)})` : `fps · frame ${f2(m.frame)} ms (${m.slow})`;
+    $("sDraws").textContent = n0(m.draws);
+    $("sDrawsS").textContent = `${n0(m.envDraws)} coral + ${UI} UI + ${n0(m.fishDraws)} fish`;
+    $("sSw").textContent = n0(m.switches);
+    $("sSw").className = "v " + (m.switches > 100 ? "bad" : "");
+    $("sSwS").textContent = `${ENV_MAT} coral + ${UI_MAT} UI + ${n0(m.clones ? m.N : SPECIES)} fish materials`;
+    $("fishLabel").textContent = n0(st.fish);
+    $("fish").value = st.fish;
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
+
+    $("stageTag").textContent = st.view === "calls" ? `${n0(m.draws)} slips · ${n0(m.switches)} materials` : `${n0(m.N)} fish · ${m.fps >= 29.95 ? "30" : f1(m.fps)} fps`;
+    $("legend").innerHTML = st.view === "calls"
+      ? (m.inst ? "Each colour is one draw call. Fish: 6 colours, one per species." : "Each colour is one draw call. Fish: every fish its own colour.") + (st.coral === "static" ? " Coral: 40 glued meshes." : " Coral: every piece its own draw.")
+      : "Game view. Switch to <strong>Draw calls</strong> to see the slips.";
+
+    const goal = !over && m.fps >= 29.95;
+    $("goalPill").className = "pill " + (goal ? "ok" : "over");
+    $("goalPill").textContent = goal ? "Goal met" : over && m.fps >= 29.95 ? "30 fps, but render thread over 12 ms" : m.fps < 29.95 ? "Below 30 fps" : "Not yet";
+
+    let coach = "";
+    if (m.instBlocked) coach += `<span class="warn">Instancing can't merge anything:</span> every fish has its own material copy, so every fish is still its own draw call. Share the materials first. `;
+    coach += `Frame = max(main ${MAIN}, render ${f2(m.rt)}, GPU ${f2(m.gpu)}) = <strong>${f2(m.frame)} ms</strong>: the <strong>${m.slow}</strong> sets the pace. `;
+    if (m.slow === "GPU" && m.vert > 24) coach += `The GPU's vertex station needs ${f2(m.vert)} ms for ${n0(m.N)} fish: instancing removes slips, not triangles (Lesson 028: LOD). `;
+    if (m.slow === "render thread") coach += `The GPU waits ${f2(m.frame - m.gpu)} ms for slips. `;
+    if (m.mem) coach += `Static batching costs +18 MB of glued coral meshes.`;
+    $("coach").innerHTML = coach;
+
+    // capture
+    const pad = (s, n) => String(s).padStart(n, " ");
+    let cap = `<span class="dim">Stats · Coral Garden · ${n0(m.N)} fish</span>\n`;
+    cap += `Batches (draw calls) ${pad(n0(m.draws), 7)}\n`;
+    cap += `SetPass calls        ${pad(n0(m.switches), 7)}\n`;
+    cap += `Instanced fish       ${pad(n0(m.instN), 7)}${m.inst ? `  <span class="dim">(${n0(m.instN * 80 / 1000)} KB/frame)</span>` : ""}\n`;
+    cap += `Extra mesh memory    ${pad(m.mem + " MB", 7)}\n\n`;
+    cap += `<span class="dim">Render thread bill</span>\n`;
+    cap += `fixed                ${pad("2.0", 7)} ms\n`;
+    cap += `${pad(n0(m.draws), 5)} draws × 10 µs   ${pad(f2(m.parts.draw), 7)} ms\n`;
+    cap += `${pad(n0(m.switches), 5)} switch × 20 µs  ${pad(f2(m.parts.sw), 7)} ms\n`;
+    cap += `${pad(n0(m.instN), 5)} inst × 1 µs     ${pad(f2(m.parts.inst), 7)} ms\n`;
+    const tl = `total                ${pad(f2(m.rt), 7)} ms  ${over ? "◀ over 12" : "✓ under 12"}`;
+    cap += over ? `<span class="warn">${tl}</span>` : `<span class="ok">${tl}</span>`;
+    $("capture").innerHTML = cap;
+
+    // scale table
+    let html = `<thead><tr><th>Fish</th><th class="num">Render</th><th class="num">GPU</th><th class="num">FPS</th></tr></thead><tbody>`;
+    for (const N of [400, 1200, 2000, 4000]) {
+      const r = model({ ...st, fish: N });
+      html += `<tr class="${N === st.fish ? "cur" : ""}"><td class="mono">${n0(N)}</td><td class="num ${r.rt > BUDGET ? "bad" : "good"}">${f2(r.rt)}</td><td class="num ${r.gpu > 27.01 ? "bad" : ""}">${f2(r.gpu)}</td><td class="num ${r.fps < 29.95 ? "bad" : ""}">${f1(r.fps).replace(/\.0$/, "")}</td></tr>`;
+    }
+    $("scale").innerHTML = html + "</tbody>";
+    const a = model({ ...st, fish: 0 }).rt, k = (model({ ...st, fish: 1000 }).rt - a) / 1000;
+    const maxN = Math.floor((BUDGET - a) / k + 1e-6);
+    $("maxFish").innerHTML = `With these settings the render thread stays under 12 ms up to <strong>${n0(maxN)}</strong> fish. The GPU stays at 27 ms up to <strong>2,400</strong> fish, however they are drawn.`;
+  }
+
+  // ---------- controls ----------
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); }));
+  $("fish").addEventListener("input", (e) => { st.fish = +e.target.value; render(); });
+  function apply(s) { Object.assign(st, DEFAULTS, s); render(); }
+
+  // ---------- guided steps ----------
+  const STEPS = [
+    { t: "Before the big shoal", d: "400 fish, 6 shared materials. 750 draws, 56 switches. Render thread 10.62 ms, under 12. The frame is the GPU's 27 ms: 30 fps.", s: { fish: 400 } },
+    { t: "1,200 fish with renderer.material", d: "Every fish gets its own material copy. 1,550 draws and 1,250 switches. Render thread 2 + 15.5 + 25 = 42.5 ms, so 23.5 fps. The draw-call view shows 1,200 fish in 1,200 colours.", s: { tint: "clone", view: "calls" } },
+    { t: "Share the materials", d: "sharedMaterial + a tint block. Switches 1,250 → 56. Render thread 18.62 ms. 30 fps again, but 6.62 ms over the 12 ms budget: the low-end phone would drop.", s: { view: "calls" } },
+    { t: "Static batching on the coral", d: "300 coral pieces become 40 glued meshes. Draws 1,550 → 1,290. Render thread 16.02 ms: 2.6 ms saved, still over. Price: +18 MB.", s: { coral: "static", view: "calls" } },
+    { t: "Instance the fish", d: "Coral back to separate. One draw per species: 356 draws. Render thread 2 + 3.56 + 1.12 + 1.2 = 7.88 ms ✅. The fish now come in 6 colours.", s: { draw: "inst", view: "calls" } },
+    { t: "Instancing can't fix clones", d: "Instanced, but with renderer.material again. Every fish has a different material, so nothing merges: 1,550 draws, 42.5 ms, 23.5 fps.", s: { draw: "inst", tint: "clone", view: "calls" } },
+    { t: "4,000 fish", d: "Instanced and shared. Render thread 10.68 ms ✅. But the GPU needs 39 ms (vertex 36 ms): 25.6 fps. Instancing removes slips, not triangles. Switch to one draw per fish: 46.62 ms.", s: { fish: 4000, draw: "inst" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      stage.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  // ---------- animation ----------
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+  let last = 0;
+  function loop(ts) {
+    if (!reduce.matches) {
+      const dt = last ? Math.min(0.1, (ts - last) / 1000) : 0;
+      t += dt; paint();
+    }
+    last = ts;
+    requestAnimationFrame(loop);
+  }
+  resize();
+  render();
+  requestAnimationFrame(loop);
+  let lastW = 0;
+  new ResizeObserver(() => {
+    const w = stage.clientWidth;
+    if (Math.abs(w - lastW) > 4) { lastW = w; resize(); render(); }
+  }).observe(stage);
+})();
+</script>
