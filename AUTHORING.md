@@ -72,6 +72,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `017-command-lab` | 017 |
 | `018-layers-lab` | 018 |
 | `019-tuning-lab` | 019, 020 (scripting and hot reload) |
+| `021-plugin-lab` | 021 |
 | `024-draw-calls` | 024, 025, 027, 028 |
 | `048-netcode` | 048, 049 |
 

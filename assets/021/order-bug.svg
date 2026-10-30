@@ -1,0 +1,59 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='420' viewBox='0 0 860 420' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='419' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='38' font-size='20' font-weight='700' fill='#1f2328'>The same parrotfish, two players</text>
+<text x='24' y='60' font-size='13' fill='#57606a'>Tournament during the Coral Festival. Design: add the +5 first, then double. (40 + 5) × 2 = 90.</text>
+<text x='24' y='126' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>Player A</text>
+<text x='24' y='146' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>festival was already on</text>
+<rect x='250' y='104' width='56' height='40' rx='8' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='278' y='130' font-size='15' fill='#1f2328' font-weight='700' text-anchor='middle'>40</text>
+<line x1='310' y1='124' x2='398' y2='124' stroke='#b07aa1' stroke-width='2'/>
+<path d='M398 119 L406 124 L398 129 z' fill='#b07aa1'/>
+<rect x='328' y='92' width='58' height='22' rx='11' fill='#ffffff' stroke='#b07aa1'/>
+<text x='357' y='108' font-size='13' fill='#b07aa1' font-weight='700' text-anchor='middle'>+5</text>
+<rect x='410' y='104' width='56' height='40' rx='8' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='438' y='130' font-size='15' fill='#1f2328' font-weight='700' text-anchor='middle'>45</text>
+<line x1='470' y1='124' x2='558' y2='124' stroke='#e5534b' stroke-width='2'/>
+<path d='M558 119 L566 124 L558 129 z' fill='#e5534b'/>
+<rect x='488' y='92' width='58' height='22' rx='11' fill='#ffffff' stroke='#e5534b'/>
+<text x='517' y='108' font-size='13' fill='#e5534b' font-weight='700' text-anchor='middle'>×2</text>
+<rect x='570' y='104' width='56' height='40' rx='8' fill='#dafbe1' stroke='#1a7f37'/>
+<text x='598' y='130' font-size='15' fill='#1f2328' font-weight='700' text-anchor='middle'>90</text>
+<text x='644' y='130' font-size='13' fill='#1a7f37' font-weight='700' text-anchor='start'>✓ as designed</text>
+<text x='24' y='204' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>Player B</text>
+<text x='24' y='224' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>round 9:59, festival 10:00</text>
+<rect x='250' y='182' width='56' height='40' rx='8' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='278' y='208' font-size='15' fill='#1f2328' font-weight='700' text-anchor='middle'>40</text>
+<line x1='310' y1='202' x2='398' y2='202' stroke='#e5534b' stroke-width='2'/>
+<path d='M398 197 L406 202 L398 207 z' fill='#e5534b'/>
+<rect x='328' y='170' width='58' height='22' rx='11' fill='#ffffff' stroke='#e5534b'/>
+<text x='357' y='186' font-size='13' fill='#e5534b' font-weight='700' text-anchor='middle'>×2</text>
+<rect x='410' y='182' width='56' height='40' rx='8' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='438' y='208' font-size='15' fill='#1f2328' font-weight='700' text-anchor='middle'>80</text>
+<line x1='470' y1='202' x2='558' y2='202' stroke='#b07aa1' stroke-width='2'/>
+<path d='M558 197 L566 202 L558 207 z' fill='#b07aa1'/>
+<rect x='488' y='170' width='58' height='22' rx='11' fill='#ffffff' stroke='#b07aa1'/>
+<text x='517' y='186' font-size='13' fill='#b07aa1' font-weight='700' text-anchor='middle'>+5</text>
+<rect x='570' y='182' width='56' height='40' rx='8' fill='#ffebe9' stroke='#cf222e'/>
+<text x='598' y='208' font-size='15' fill='#1f2328' font-weight='700' text-anchor='middle'>85</text>
+<text x='644' y='208' font-size='13' fill='#cf222e' font-weight='700' text-anchor='start'>✗ 5 points short</text>
+<line x1='24' y1='246' x2='836' y2='246' stroke='#d0d7de'/>
+<text x='24' y='274' font-size='12' fill='#1a7f37' font-weight='700' text-anchor='start'>WITH PHASES · SORTED BY PHASE, THEN PLUGIN ID</text>
+<text x='24' y='326' font-size='14' fill='#1f2328' font-weight='700' text-anchor='start'>Both players</text>
+<text x='24' y='346' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>phase 100 add · phase 200 multiply</text>
+<rect x='250' y='304' width='56' height='40' rx='8' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='278' y='330' font-size='15' fill='#1f2328' font-weight='700' text-anchor='middle'>40</text>
+<line x1='310' y1='324' x2='398' y2='324' stroke='#b07aa1' stroke-width='2'/>
+<path d='M398 319 L406 324 L398 329 z' fill='#b07aa1'/>
+<rect x='328' y='292' width='58' height='22' rx='11' fill='#ffffff' stroke='#b07aa1'/>
+<text x='357' y='308' font-size='13' fill='#b07aa1' font-weight='700' text-anchor='middle'>+5</text>
+<rect x='410' y='304' width='56' height='40' rx='8' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='438' y='330' font-size='15' fill='#1f2328' font-weight='700' text-anchor='middle'>45</text>
+<line x1='470' y1='324' x2='558' y2='324' stroke='#e5534b' stroke-width='2'/>
+<path d='M558 319 L566 324 L558 329 z' fill='#e5534b'/>
+<rect x='488' y='292' width='58' height='22' rx='11' fill='#ffffff' stroke='#e5534b'/>
+<text x='517' y='308' font-size='13' fill='#e5534b' font-weight='700' text-anchor='middle'>×2</text>
+<rect x='570' y='304' width='56' height='40' rx='8' fill='#dafbe1' stroke='#1a7f37'/>
+<text x='598' y='330' font-size='15' fill='#1f2328' font-weight='700' text-anchor='middle'>90</text>
+<text x='644' y='330' font-size='13' fill='#1a7f37' font-weight='700' text-anchor='start'>✓ as designed</text>
+<text x='24' y='392' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Arrival order = when each plugin activated. Phases make the order part of the design, not luck.</text>
+</svg>

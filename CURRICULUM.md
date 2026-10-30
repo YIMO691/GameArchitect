@@ -39,7 +39,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 018 | Layered engine architecture and dependency rules: the 48-second wait and the replay server that needed a GPU | ✅ |
 | 019 | Data-driven design: configs, assets and data pipelines: the 15-minute tweak and the 1.9-second start-up | ✅ |
 | 020 | Scripting layers and hot reload: the rule that kept running after it was deleted | ✅ |
-| 021 | Plugin and extension architecture | ⬜ |
+| 021 | Plugin and extension architecture: the tournament that doubled every fish | ✅ |
 | 022 | Review: Module 2 + architecture critique exercise | ⬜ |
 
 ## Module 3 — Rendering performance

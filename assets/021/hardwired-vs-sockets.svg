@@ -1,0 +1,132 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='880' height='520' viewBox='0 0 880 520' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='879' height='519' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='38' font-size='20' font-weight='700' fill='#1f2328'>Two ways to add a mode</text>
+<text x='24' y='60' font-size='13' fill='#57606a'>Left: modes written into the core. Right: the core has sockets, and each mode is a plugin.</text>
+<text x='24' y='92' font-size='12' fill='#cf222e' font-weight='700' text-anchor='start'>HARDWIRED · MODE CHECKS IN 9 CORE FILES</text>
+<rect x='24' y='112' width='392' height='30' rx='6' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='34' y='132' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>ScoreSystem.cs</text>
+<rect x='160' y='120' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='175' y='120' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='190' y='120' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='205' y='120' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='220' y='120' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='235' y='120' width='12' height='14' rx='2' fill='#b07aa1'/>
+<rect x='250' y='120' width='12' height='14' rx='2' fill='#b07aa1'/>
+<rect x='265' y='120' width='12' height='14' rx='2' fill='#b07aa1'/>
+<rect x='280' y='120' width='12' height='14' rx='2' fill='#4e79a7'/>
+<rect x='295' y='120' width='12' height='14' rx='2' fill='#4e79a7'/>
+<text x='404' y='132' font-size='13' fill='#cf222e' font-weight='700' text-anchor='end'>10</text>
+<rect x='24' y='146' width='392' height='30' rx='6' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='34' y='166' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>CatchSystem.cs</text>
+<rect x='160' y='154' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='175' y='154' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='190' y='154' width='12' height='14' rx='2' fill='#b07aa1'/>
+<rect x='205' y='154' width='12' height='14' rx='2' fill='#4e79a7'/>
+<text x='404' y='166' font-size='13' fill='#cf222e' font-weight='700' text-anchor='end'>4</text>
+<rect x='24' y='180' width='392' height='30' rx='6' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='34' y='200' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>FishSpawner.cs</text>
+<rect x='160' y='188' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='175' y='188' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='190' y='188' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='205' y='188' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='220' y='188' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='235' y='188' width='12' height='14' rx='2' fill='#b07aa1'/>
+<rect x='250' y='188' width='12' height='14' rx='2' fill='#b07aa1'/>
+<rect x='265' y='188' width='12' height='14' rx='2' fill='#b07aa1'/>
+<rect x='280' y='188' width='12' height='14' rx='2' fill='#4e79a7'/>
+<rect x='295' y='188' width='12' height='14' rx='2' fill='#4e79a7'/>
+<rect x='310' y='188' width='12' height='14' rx='2' fill='#4e79a7'/>
+<rect x='325' y='188' width='12' height='14' rx='2' fill='#4e79a7'/>
+<text x='404' y='200' font-size='13' fill='#cf222e' font-weight='700' text-anchor='end'>12</text>
+<rect x='24' y='214' width='392' height='30' rx='6' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='34' y='234' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>Hud.cs</text>
+<rect x='160' y='222' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='175' y='222' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='190' y='222' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='205' y='222' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='220' y='222' width='12' height='14' rx='2' fill='#b07aa1'/>
+<rect x='235' y='222' width='12' height='14' rx='2' fill='#b07aa1'/>
+<rect x='250' y='222' width='12' height='14' rx='2' fill='#4e79a7'/>
+<rect x='265' y='222' width='12' height='14' rx='2' fill='#4e79a7'/>
+<rect x='280' y='222' width='12' height='14' rx='2' fill='#4e79a7'/>
+<text x='404' y='234' font-size='13' fill='#cf222e' font-weight='700' text-anchor='end'>9</text>
+<rect x='24' y='248' width='392' height='30' rx='6' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='34' y='268' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>GameFlow.cs</text>
+<rect x='160' y='256' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='175' y='256' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='190' y='256' width='12' height='14' rx='2' fill='#4e79a7'/>
+<rect x='205' y='256' width='12' height='14' rx='2' fill='#4e79a7'/>
+<text x='404' y='268' font-size='13' fill='#cf222e' font-weight='700' text-anchor='end'>4</text>
+<rect x='24' y='282' width='392' height='30' rx='6' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='34' y='302' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>SaveSystem.cs</text>
+<rect x='160' y='290' width='12' height='14' rx='2' fill='#e5534b'/>
+<text x='404' y='302' font-size='13' fill='#cf222e' font-weight='700' text-anchor='end'>1</text>
+<rect x='24' y='316' width='392' height='30' rx='6' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='34' y='336' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>AudioDirector.cs</text>
+<rect x='160' y='324' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='175' y='324' width='12' height='14' rx='2' fill='#4e79a7'/>
+<rect x='190' y='324' width='12' height='14' rx='2' fill='#4e79a7'/>
+<text x='404' y='336' font-size='13' fill='#cf222e' font-weight='700' text-anchor='end'>3</text>
+<rect x='24' y='350' width='392' height='30' rx='6' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='34' y='370' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>Rewards.cs</text>
+<rect x='160' y='358' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='175' y='358' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='190' y='358' width='12' height='14' rx='2' fill='#b07aa1'/>
+<text x='404' y='370' font-size='13' fill='#cf222e' font-weight='700' text-anchor='end'>3</text>
+<rect x='24' y='384' width='392' height='30' rx='6' fill='#f6f8fa' stroke='#d0d7de'/>
+<text x='34' y='404' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>Analytics.cs</text>
+<rect x='160' y='392' width='12' height='14' rx='2' fill='#e5534b'/>
+<rect x='175' y='392' width='12' height='14' rx='2' fill='#b07aa1'/>
+<rect x='190' y='392' width='12' height='14' rx='2' fill='#4e79a7'/>
+<text x='404' y='404' font-size='13' fill='#cf222e' font-weight='700' text-anchor='end'>3</text>
+<text x='24' y='436' font-size='15' fill='#cf222e' font-weight='700' text-anchor='start'>49 checks</text>
+<rect x='24' y='447' width='12' height='14' rx='2' fill='#e5534b'/>
+<text x='41' y='458' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>Tournament 23</text>
+<rect x='146' y='447' width='12' height='14' rx='2' fill='#b07aa1'/>
+<text x='163' y='458' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>Coral Festival 11</text>
+<rect x='296' y='447' width='12' height='14' rx='2' fill='#4e79a7'/>
+<text x='313' y='458' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>Night Fishing 15</text>
+<text x='452' y='92' font-size='12' fill='#1a7f37' font-weight='700' text-anchor='start'>PLUGINS · 0 MODE CHECKS IN THE CORE</text>
+<rect x='452' y='108' width='180' height='300' rx='10' fill='#dafbe1' stroke='#1a7f37'/>
+<text x='542' y='132' font-size='14' fill='#1f2328' font-weight='700' text-anchor='middle'>Core: 5 sockets</text>
+<rect x='466' y='148' width='152' height='36' rx='6' fill='#ffffff' stroke='#1a7f37'/>
+<text x='480' y='171' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>Score rules</text>
+<circle cx='618' cy='166' r='6' fill='#ffffff' stroke='#1a7f37' stroke-width='2'/>
+<rect x='466' y='198' width='152' height='36' rx='6' fill='#ffffff' stroke='#1a7f37'/>
+<text x='480' y='221' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>Spawns</text>
+<circle cx='618' cy='216' r='6' fill='#ffffff' stroke='#1a7f37' stroke-width='2'/>
+<rect x='466' y='248' width='152' height='36' rx='6' fill='#ffffff' stroke='#1a7f37'/>
+<text x='480' y='271' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>HUD panels</text>
+<circle cx='618' cy='266' r='6' fill='#ffffff' stroke='#1a7f37' stroke-width='2'/>
+<rect x='466' y='298' width='152' height='36' rx='6' fill='#ffffff' stroke='#1a7f37'/>
+<text x='480' y='321' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>Round hooks</text>
+<circle cx='618' cy='316' r='6' fill='#ffffff' stroke='#1a7f37' stroke-width='2'/>
+<rect x='466' y='348' width='152' height='36' rx='6' fill='#ffffff' stroke='#1a7f37'/>
+<text x='480' y='371' font-size='13' fill='#1f2328' font-weight='600' text-anchor='start'>Rewards</text>
+<circle cx='618' cy='366' r='6' fill='#ffffff' stroke='#1a7f37' stroke-width='2'/>
+<path d='M738 154 C 690 154, 680 166, 624 166' fill='none' stroke='#e5534b' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 154 C 690 154, 680 216, 624 216' fill='none' stroke='#e5534b' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 154 C 690 154, 680 266, 624 266' fill='none' stroke='#e5534b' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 154 C 690 154, 680 316, 624 316' fill='none' stroke='#e5534b' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 154 C 690 154, 680 366, 624 366' fill='none' stroke='#e5534b' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 254 C 690 254, 680 166, 624 166' fill='none' stroke='#b07aa1' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 254 C 690 254, 680 216, 624 216' fill='none' stroke='#b07aa1' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 254 C 690 254, 680 266, 624 266' fill='none' stroke='#b07aa1' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 254 C 690 254, 680 366, 624 366' fill='none' stroke='#b07aa1' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 354 C 690 354, 680 166, 624 166' fill='none' stroke='#4e79a7' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 354 C 690 354, 680 216, 624 216' fill='none' stroke='#4e79a7' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 354 C 690 354, 680 266, 624 266' fill='none' stroke='#4e79a7' stroke-width='1.8' opacity='0.8'/>
+<path d='M738 354 C 690 354, 680 316, 624 316' fill='none' stroke='#4e79a7' stroke-width='1.8' opacity='0.8'/>
+<rect x='738' y='128' width='120' height='52' rx='8' fill='#ffffff' stroke='#e5534b' stroke-width='2'/>
+<text x='798' y='150' font-size='13' fill='#1f2328' font-weight='700' text-anchor='middle'>Tournament</text>
+<text x='798' y='168' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>plugin · 5 sockets</text>
+<rect x='738' y='228' width='120' height='52' rx='8' fill='#ffffff' stroke='#b07aa1' stroke-width='2'/>
+<text x='798' y='250' font-size='13' fill='#1f2328' font-weight='700' text-anchor='middle'>Coral Festival</text>
+<text x='798' y='268' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>plugin · 4 sockets</text>
+<rect x='738' y='328' width='120' height='52' rx='8' fill='#ffffff' stroke='#4e79a7' stroke-width='2'/>
+<text x='798' y='350' font-size='13' fill='#1f2328' font-weight='700' text-anchor='middle'>Night Fishing</text>
+<text x='798' y='368' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>plugin · 4 sockets</text>
+<text x='452' y='436' font-size='13' fill='#1a7f37' font-weight='600' text-anchor='start'>Add a mode: a new plugin folder, 0 core files edited.</text>
+<text x='452' y='456' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>The core loops over each socket and never names a mode.</text>
+<text x='24' y='504' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>ScoreSystem.cs alone has 10 checks. Night Fishing would edit 7 of the 9 files.</text>
+</svg>
