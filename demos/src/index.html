@@ -173,6 +173,13 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <ul><li>Seams and extension points (sockets)</li><li>Manifests and discovery: scan vs baked list</li><li>Scopes: the core owns registration</li><li>Declared phases vs arrival order</li><li>API versions, refused mods and crashes</li></ul>
       <span class="go">Open lab →</span>
     </a>
+    <a class="card" href="023-gpu-pipeline/index.html">
+      <div class="meta"><span class="tag live">live</span><span>Lesson 023</span><span>simulation</span></div>
+      <h3>GPU Pipeline Lab</h3>
+      <p>The Reef's Coral Garden needs 41 ms of GPU time on a mid-range phone. Halve the coral triangles and gain 0 ms. Then pull one lever at a time (triangles, render scale, a flat test shader, a 4-byte colour format) and find the station that sets the pace. Bake the caustics to reach 25 ms, and watch the bottleneck move to memory when murk layers arrive.</p>
+      <ul><li>The four stations: vertex, raster, pixel, output &amp; memory</li><li>The slowest station sets the GPU time</li><li>One lever per station; busy % per station</li><li>Fixing the limiter, then the next one in line</li><li>A budget per station, not only a total</li></ul>
+      <span class="go">Open lab →</span>
+    </a>
   </section>
 
   <section class="panel" aria-labelledby="planH">
@@ -195,6 +202,7 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
           <tr><td>Layers Lab</td><td class="mono">018</td><td>One assembly vs one per module, upward arrows and tangles, compile waits per edit, allow-lists and a headless replay server, and a layer check in CI. Live.</td></tr>
           <tr><td>Tuning Lab</td><td class="mono">019 · 020</td><td>Constants in code vs data files vs live reload, the copy-at-spawn trap, a validator with schema and IDs, and JSON vs baked binary on a phone; then a steal rule in C# vs a hot-reloaded Lua script, its reload traps, a guard, and the cost of crossing into the script. Both lessons are live.</td></tr>
           <tr><td>Plugin Lab</td><td class="mono">021</td><td>Modes built into the core vs as plugins in the Reef: checks per core file, scan vs baked discovery, leftovers after a round, arrival order vs phases, and an API version check for mods. Live.</td></tr>
+          <tr><td>GPU Pipeline Lab</td><td class="mono">023 · 033</td><td>The four GPU stations in the Reef's Coral Garden: the slowest station sets the GPU time, one lever per station, and the bottleneck that moves after a fix. Live. Later: reading real GPU profiler captures.</td></tr>
           <tr><td>Draw Call &amp; Overdraw Lab</td><td class="mono">024 · 025 · 027</td><td>Batching, instancing, transparency and culling.</td></tr>
           <tr><td>Netcode Lab</td><td class="mono">048 · 049</td><td>Lag, interpolation, prediction and rollback with a fake network.</td></tr>
         </tbody>

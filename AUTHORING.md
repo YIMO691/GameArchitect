@@ -73,6 +73,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `018-layers-lab` | 018 |
 | `019-tuning-lab` | 019, 020 (scripting and hot reload) |
 | `021-plugin-lab` | 021 |
+| `023-gpu-pipeline` | 023, 033 (GPU profiling tools) |
 | `024-draw-calls` | 024, 025, 027, 028 |
 | `048-netcode` | 048, 049 |
 

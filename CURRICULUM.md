@@ -45,7 +45,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 ## Module 3 — Rendering performance
 | # | Title | Status |
 |---|-------|--------|
-| 023 | The GPU pipeline mental model | ⬜ |
+| 023 | The GPU pipeline mental model: the Coral Garden that halved its triangles and gained 0 ms | ✅ |
 | 024 | Draw calls, batching and instancing | ⬜ |
 | 025 | Overdraw, fill rate and transparency | ⬜ |
 | 026 | Shader cost and shader variant explosion | ⬜ |
