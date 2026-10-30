@@ -2,7 +2,7 @@
 
 A daily course that takes a junior game developer to **game architect and performance optimizer** — one ~15-minute lesson a day, written to be read on a phone.
 
-Two new lessons every day, each with its own lab: ready by about 9 AM and 9 PM (New York time).
+A new lesson every 4 hours (six a day), each with its own lab: ready by about 12:50 AM, 4:50 AM, 8:50 AM, 12:50 PM, 4:50 PM and 8:50 PM (New York time). Read at your own pace; the lessons wait for you.
 
 ## Why this path
 AI tools write plausible code quickly. What they can't do on their own is make decisions under constraints that aren't in the prompt (frame budgets, memory per platform, save-file compatibility, team skills), measure reality on target hardware, and own the long-term consequences. That's the architect's and optimizer's job — and the focus of this course.
