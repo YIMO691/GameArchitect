@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="740" viewBox="0 0 880 740" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<rect x="0.5" y="0.5" width="879" height="739" rx="14" fill="#ffffff" stroke="#d0d7de"/>
+<text x="28" y="40" font-size="20" font-weight="700" fill="#1f2328">Module 2 on one page: the rule and the price</text>
+<text x="28" y="64" font-size="14" fill="#57606a">One structural rule per lesson, and the number that tells you what breaking it costs. Mid-range phone, approximate.</text>
+<text x="28" y="102" font-size="12" font-weight="700" fill="#57606a">LESSON</text>
+<text x="212" y="102" font-size="12" font-weight="700" fill="#57606a">THE RULE</text>
+<text x="552" y="102" font-size="12" font-weight="700" fill="#57606a">THE PRICE OF BREAKING IT</text>
+<rect x="16" y="118" width="848" height="52" rx="6" fill="#f6f8fa"/>
+<rect x="28" y="130" width="44" height="28" rx="6" fill="#4e79a7"/>
+<text x="50" y="149" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">011</text>
+<text x="84" y="149" font-size="15" font-weight="700" fill="#1f2328">Game loop</text>
+<text x="212" y="140" font-size="14" fill="#1f2328">Simulate in fixed 16.67 ms steps.</text>
+<text x="212" y="158" font-size="14" fill="#1f2328">Draw by interpolation; cap the steps.</text>
+<text x="552" y="140" font-size="14" font-weight="700" fill="#4e79a7">A 250 ms hitch = one 15× step:</text>
+<text x="552" y="158" font-size="14" font-weight="400" fill="#1f2328">things jump through walls</text>
+<rect x="28" y="182" width="44" height="28" rx="6" fill="#59a14f"/>
+<text x="50" y="201" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">012</text>
+<text x="84" y="201" font-size="15" font-weight="700" fill="#1f2328">Entities</text>
+<text x="212" y="192" font-size="14" fill="#1f2328">Data in components,</text>
+<text x="212" y="210" font-size="14" fill="#1f2328">code in systems.</text>
+<text x="552" y="192" font-size="14" font-weight="700" fill="#59a14f">Update() call ≈ 250 ns</text>
+<text x="552" y="210" font-size="14" font-weight="400" fill="#1f2328">system visit ≈ 10 ns</text>
+<rect x="16" y="222" width="848" height="52" rx="6" fill="#f6f8fa"/>
+<rect x="28" y="234" width="44" height="28" rx="6" fill="#59a14f"/>
+<text x="50" y="253" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">013</text>
+<text x="84" y="253" font-size="15" font-weight="700" fill="#1f2328">ECS storage</text>
+<text x="212" y="244" font-size="14" fill="#1f2328">Tables for stable data,</text>
+<text x="212" y="262" font-size="14" fill="#1f2328">sparse sets or fields for flicker.</text>
+<text x="552" y="244" font-size="14" font-weight="700" fill="#59a14f">Table move ≈ 0.5 µs</text>
+<text x="552" y="262" font-size="14" font-weight="400" fill="#1f2328">sparse add ≈ 20 ns · field ≈ 0</text>
+<rect x="28" y="286" width="44" height="28" rx="6" fill="#b07aa1"/>
+<text x="50" y="305" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">014</text>
+<text x="84" y="305" font-size="15" font-weight="700" fill="#1f2328">Events</text>
+<text x="212" y="296" font-size="14" fill="#1f2328">Queue gameplay news.</text>
+<text x="212" y="314" font-size="14" fill="#1f2328">Decide (claim) at once.</text>
+<text x="552" y="296" font-size="14" font-weight="700" fill="#b07aa1">Object bus ≈ 1,360 ns + 264 B a catch</text>
+<text x="552" y="314" font-size="14" font-weight="400" fill="#1f2328">queue ≈ 199 ns, 0 B</text>
+<rect x="16" y="326" width="848" height="52" rx="6" fill="#f6f8fa"/>
+<rect x="28" y="338" width="44" height="28" rx="6" fill="#b07aa1"/>
+<text x="50" y="357" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">015</text>
+<text x="84" y="357" font-size="15" font-weight="700" fill="#1f2328">Services</text>
+<text x="212" y="348" font-size="14" fill="#1f2328">Hand helpers in through</text>
+<text x="212" y="366" font-size="14" fill="#1f2328">the constructor.</text>
+<text x="552" y="348" font-size="14" font-weight="700" fill="#b07aa1">Locator lookup ≈ 40 ns</text>
+<text x="552" y="366" font-size="14" font-weight="400" fill="#1f2328">field ≈ 1 ns · DI ≈ 2 ms once</text>
+<rect x="28" y="390" width="44" height="28" rx="6" fill="#e5534b"/>
+<text x="50" y="409" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">016</text>
+<text x="84" y="409" font-size="15" font-weight="700" fill="#1f2328">Brains</text>
+<text x="212" y="400" font-size="14" fill="#1f2328">One state at a time;</text>
+<text x="212" y="418" font-size="14" fill="#1f2328">interrupts written on a parent.</text>
+<text x="552" y="400" font-size="14" font-weight="700" fill="#e5534b">n flags = 2ⁿ combinations</text>
+<text x="552" y="418" font-size="14" font-weight="400" fill="#1f2328">tree node ≈ 20 ns</text>
+<rect x="16" y="430" width="848" height="52" rx="6" fill="#f6f8fa"/>
+<rect x="28" y="442" width="44" height="28" rx="6" fill="#e5534b"/>
+<text x="50" y="461" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">017</text>
+<text x="84" y="461" font-size="15" font-weight="700" fill="#1f2328">Commands</text>
+<text x="212" y="452" font-size="14" fill="#1f2328">Input becomes commands</text>
+<text x="212" y="470" font-size="14" fill="#1f2328">stamped with a tick.</text>
+<text x="552" y="452" font-size="14" font-weight="700" fill="#e5534b">Replay: 24.1 KB, not 3.9 GB</text>
+<text x="552" y="470" font-size="14" font-weight="400" fill="#1f2328">(if deterministic)</text>
+<rect x="28" y="494" width="44" height="28" rx="6" fill="#4e79a7"/>
+<text x="50" y="513" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">018</text>
+<text x="84" y="513" font-size="15" font-weight="700" fill="#1f2328">Layers</text>
+<text x="212" y="504" font-size="14" fill="#1f2328">Arrows point down.</text>
+<text x="212" y="522" font-size="14" fill="#1f2328">A layer check runs in CI.</text>
+<text x="552" y="504" font-size="14" font-weight="700" fill="#4e79a7">Edit wait 48 s → 20.5 s</text>
+<text x="552" y="522" font-size="14" font-weight="400" fill="#1f2328">sim runs with no GPU</text>
+<rect x="16" y="534" width="848" height="52" rx="6" fill="#f6f8fa"/>
+<rect x="28" y="546" width="44" height="28" rx="6" fill="#f28e2b"/>
+<text x="50" y="565" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">019</text>
+<text x="84" y="565" font-size="15" font-weight="700" fill="#1f2328">Data</text>
+<text x="212" y="556" font-size="14" fill="#1f2328">Numbers in data: read, not copied;</text>
+<text x="212" y="574" font-size="14" fill="#1f2328">validated; baked for ship.</text>
+<text x="552" y="556" font-size="14" font-weight="700" fill="#f28e2b">Tweak 899 s → 15 s</text>
+<text x="552" y="574" font-size="14" font-weight="400" fill="#1f2328">JSON 1,900 ms → baked 40 ms</text>
+<rect x="28" y="598" width="44" height="28" rx="6" fill="#f28e2b"/>
+<text x="50" y="617" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">020</text>
+<text x="84" y="617" font-size="15" font-weight="700" fill="#1f2328">Scripts</text>
+<text x="212" y="608" font-size="14" fill="#1f2328">State in C#; rules by name;</text>
+<text x="212" y="626" font-size="14" fill="#1f2328">guarded; called in batches.</text>
+<text x="552" y="608" font-size="14" font-weight="700" fill="#f28e2b">Crossing ≈ 1.2 µs</text>
+<text x="552" y="626" font-size="14" font-weight="400" fill="#1f2328">rule body ≈ 0.9 µs</text>
+<rect x="16" y="638" width="848" height="52" rx="6" fill="#f6f8fa"/>
+<rect x="28" y="650" width="44" height="28" rx="6" fill="#57606a"/>
+<text x="50" y="669" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">021</text>
+<text x="84" y="669" font-size="15" font-weight="700" fill="#1f2328">Plugins</text>
+<text x="212" y="660" font-size="14" fill="#1f2328">No mode names in the core.</text>
+<text x="212" y="678" font-size="14" fill="#1f2328">Scopes, phases, API versions.</text>
+<text x="552" y="660" font-size="14" font-weight="700" fill="#57606a">23 checks → 5 sockets</text>
+<text x="552" y="678" font-size="14" font-weight="400" fill="#1f2328">scan 380 ms → list 3 ms</text>
+<text x="28" y="720" font-size="13" fill="#57606a">Today: one design doc breaks every rule once. The price list turns each finding into ms, bugs or hours.</text>
+</svg>

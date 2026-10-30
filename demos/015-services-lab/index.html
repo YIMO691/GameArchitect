@@ -223,6 +223,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <h3>Lesson 015: singletons, service locator, dependency injection</h3>
       <ol class="steps" id="steps"></ol>
     </div>
+    <div class="steps-group">
+      <h3>Lesson 022: Challenge · Whale Week (predict first, then tap Set up and check)</h3>
+      <ol class="steps" id="steps2" style="counter-reset: step 7"></ol>
+    </div>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -434,7 +438,25 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d.replace("<T>", "&lt;T&gt;")}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $("deps").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  // Lesson 022 review: Whale Week. Predict first, then check.
+  const STEPS2 = [
+    { t: "Whale Week: the phone book in the school loop", d: "Predict first: Whale Week's school system asks the locator for 3 helpers for each of the 2,000 fish near the whale. The lab counts gulls, so set 2,000. At 40 ns a lookup, what does it add? Then tap Set up: 6,000 × 40 ns = 0.24 ms, and the step grows from 0.33 to 0.57 ms.", s: { ...base, mode: "locator", gulls: 2000 } },
+    { t: "Whale Week: inject once", d: "Predict first: the same 2,000, with the 3 helpers handed in through the constructor and kept in fields. Then tap Set up: 6,000 × 1 ns = 0.006 ms, so the step stays at 0.34 ms, and the whale's helpers are visible in its header.", s: { ...base, mode: "di", gulls: 2000 } },
+  ];
+  const steps2El = $("steps2");
+  STEPS2.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d.replace("<T>", "&lt;T&gt;")}</p></div><button type="button" class="btn" id="step${STEPS.length + k}">Set up</button>`;
+    steps2El.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
       apply(s.s);
       $("deps").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });

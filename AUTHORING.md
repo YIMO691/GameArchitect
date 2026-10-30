@@ -65,11 +65,11 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `007-memory-gc` | 007, 010 (challenge), 040, 041, 042 |
 | `008-jobs-lab` | 008, 009, 010 (challenge) |
 | `011-game-loop` | 011 |
-| `012-ecs-lab` | 012, 013 |
-| `014-events-lab` | 014 |
-| `015-services-lab` | 015 |
+| `012-ecs-lab` | 012, 013, 022 (challenge) |
+| `014-events-lab` | 014, 022 (challenge) |
+| `015-services-lab` | 015, 022 (challenge) |
 | `016-gull-brain` | 016 |
-| `017-command-lab` | 017 |
+| `017-command-lab` | 017, 022 (challenge) |
 | `018-layers-lab` | 018 |
 | `019-tuning-lab` | 019, 020 (scripting and hot reload) |
 | `021-plugin-lab` | 021 |

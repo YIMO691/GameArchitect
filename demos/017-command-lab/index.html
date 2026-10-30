@@ -298,6 +298,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <h3>Lesson 017: commands for input, undo and replays</h3>
       <ol class="steps" id="steps"></ol>
     </div>
+    <div class="steps-group">
+      <h3>Lesson 022: Challenge · Whale Week (predict first, then tap Set up and check)</h3>
+      <ol class="steps" id="steps2" style="counter-reset: step 7"></ol>
+    </div>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -764,7 +768,25 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s, s.after);
+      $("viewH").scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  // Lesson 022 review: Whale Week. Predict first, then check.
+  const STEPS2 = [
+    { t: "Whale Week: Kai's 60 Hz test PC", d: "Predict first: Whale Week's \"Ride the wave\" button reads GetButtonDown inside the fixed step, just like the old Reel button here. Kai tests on a 60 Hz screen. How many of 100 taps work? Then tap Set up: 100 notches, 0 lost, 0 doubled. It works by luck: one frame, one tick.", s: { mode: "input", rate: 60, cmd: false } },
+    { t: "Whale Week: the players' phones", d: "Predict first: the same code on a 30 fps phone. Then tap Set up: 200 notches, 100 doubled, so every tap rides the wave twice. Tap 120 Hz: 50 lost. Then tick the command queue: 100 on every screen.", s: { mode: "input", rate: 30, cmd: false } },
+  ];
+  const steps2El = $("steps2");
+  STEPS2.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d.replace("<T>", "&lt;T&gt;")}</p></div><button type="button" class="btn" id="step${STEPS.length + k}">Set up</button>`;
+    steps2El.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
       apply(s.s, s.after);
       $("viewH").scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth", block: "nearest" });

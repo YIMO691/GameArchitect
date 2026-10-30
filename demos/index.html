@@ -123,24 +123,24 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="012-ecs-lab/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lessons 012 · 013</span><span>simulation</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 012 · 013 · 022</span><span>simulation</span></div>
       <h3>ECS Lab</h3>
       <p>The Reef: 10,000 fish, birds, crabs and gulls on a 30 fps phone. Store them as a fat base class (1.90 ms per step), as components (2.75 ms) or in ECS (0.11 ms), and watch how the CPU walks through memory. Lesson 013: a storm of status effects costs 1.31 ms on archetype tables, 0.54 ms on sparse sets and 0.21 ms on a hybrid.</p>
-      <ul><li>Class tree vs components vs ECS</li><li>Fat base class: 320 bytes per critter</li><li>Packed columns and systems</li><li>Structural changes: tag vs field</li><li>Archetype tables vs sparse sets vs hybrid</li></ul>
+      <ul><li>Class tree vs components vs ECS</li><li>Fat base class: 320 bytes per critter</li><li>Packed columns and systems</li><li>Structural changes: tag vs field</li><li>Archetype tables vs sparse sets vs hybrid</li><li>Lesson 022 challenge: Whale Week, predict then check</li></ul>
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="014-events-lab/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lesson 014</span><span>simulation</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 014 · 022</span><span>simulation</span></div>
       <h3>Events Lab</h3>
       <p>The Feeding Frenzy: 600 catches per step, and five systems want to know about each one. Tell them with direct calls (15 wires), an event bus (1.03 ms and a GC every 0.9 s), a typed bus or an event queue (0.33 ms, 0 B), and catch the bugs each one brings.</p>
-      <ul><li>Coupling: wires vs links</li><li>Boxing, list copies and garbage</li><li>Cascades and re-entrancy</li><li>Cold vs warm reaction work</li><li>Queues: delay, order and claiming</li></ul>
+      <ul><li>Coupling: wires vs links</li><li>Boxing, list copies and garbage</li><li>Cascades and re-entrancy</li><li>Cold vs warm reaction work</li><li>Queues: delay, order and claiming</li><li>Lesson 022 challenge: Whale Week, predict then check</li></ul>
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="015-services-lab/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lesson 015</span><span>simulation</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 015 · 022</span><span>simulation</span></div>
       <h3>Services Lab</h3>
       <p>The Reef's gull needs five helpers and the score needs the save system. Get them through singletons (1 bad cold start in 25, tests take 4 minutes), a service locator (0.12 ms of lookups per step, crashes on a missing fake) or dependency injection (0 bad starts, 40 tests in 20 ms).</p>
-      <ul><li>Hidden vs visible dependencies</li><li>Initialization order: who wakes first</li><li>Unit tests with fakes vs loading the scene</li><li>Lookups in a hot loop vs cached fields</li><li>Composition root and lifetimes</li></ul>
+      <ul><li>Hidden vs visible dependencies</li><li>Initialization order: who wakes first</li><li>Unit tests with fakes vs loading the scene</li><li>Lookups in a hot loop vs cached fields</li><li>Composition root and lifetimes</li><li>Lesson 022 challenge: Whale Week, predict then check</li></ul>
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="016-gull-brain/index.html">
@@ -151,10 +151,10 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="017-command-lab/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lesson 017</span><span>simulation + real mini replay</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 017 · 022</span><span>simulation + real mini replay</span></div>
       <h3>Command Lab</h3>
       <p>The hook's Reel taps are lost (50 of 100 on a 120 Hz tablet) or doubled (30 fps phone) until input becomes commands. Edit a reef and undo it with snapshots (576 MB) or commands (0.53 MB), then record a fishing run and replay it until every checksum matches.</p>
-      <ul><li>Commands and a command queue stamped with ticks</li><li>Undo and redo stacks, Do and Undo</li><li>Stable IDs vs object references</li><li>Replays from seed + commands, checksums</li><li>Determinism and snapshots for seeking</li></ul>
+      <ul><li>Commands and a command queue stamped with ticks</li><li>Undo and redo stacks, Do and Undo</li><li>Stable IDs vs object references</li><li>Replays from seed + commands, checksums</li><li>Determinism and snapshots for seeking</li><li>Lesson 022 challenge: Whale Week, predict then check</li></ul>
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="018-layers-lab/index.html">
@@ -192,11 +192,11 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
           <tr><td>Profiler Detective</td><td class="mono">003 · 035</td><td>Today: find the spike the average hides, read self time and calls. Later: hypothesis-driven profiling.</td></tr>
           <tr><td>Cache Lab</td><td class="mono">004 · 005 · 006 · 010</td><td>Access order, cache lines, AoS vs SoA, and branches and SIMD. All three lessons are live, plus the Module 1 challenge.</td></tr>
           <tr><td>Jobs Lab</td><td class="mono">008 · 009 · 010</td><td>Threads, locks and false sharing; then job systems, task graphs and job size. Both lessons are live, plus the Module 1 challenge.</td></tr>
-          <tr><td>ECS Lab</td><td class="mono">012 · 013</td><td>Inheritance vs components vs ECS and the cost of tags; then archetype tables vs sparse sets vs hybrid storage. Both lessons are live.</td></tr>
-          <tr><td>Events Lab</td><td class="mono">014</td><td>Direct calls vs event bus vs typed bus vs event queue in the Feeding Frenzy: wires, garbage, cold vs warm work, and the bugs of nesting and delay. Live.</td></tr>
-          <tr><td>Services Lab</td><td class="mono">015</td><td>Singletons vs service locator vs dependency injection in the Reef: hidden helpers, start-up order, test time and lookup cost. Live.</td></tr>
+          <tr><td>ECS Lab</td><td class="mono">012 · 013 · 022</td><td>Inheritance vs components vs ECS and the cost of tags; then archetype tables vs sparse sets vs hybrid storage. Both lessons are live, plus the Module 2 challenge.</td></tr>
+          <tr><td>Events Lab</td><td class="mono">014 · 022</td><td>Direct calls vs event bus vs typed bus vs event queue in the Feeding Frenzy: wires, garbage, cold vs warm work, and the bugs of nesting and delay. Live, plus the Module 2 challenge.</td></tr>
+          <tr><td>Services Lab</td><td class="mono">015 · 022</td><td>Singletons vs service locator vs dependency injection in the Reef: hidden helpers, start-up order, test time and lookup cost. Live, plus the Module 2 challenge.</td></tr>
           <tr><td>Gull Brain Lab</td><td class="mono">016</td><td>Flags vs flat state machine vs hierarchical state machine vs behavior tree in the Reef: impossible states, arrows by hand, and the cost of ticking a tree. Live.</td></tr>
-          <tr><td>Command Lab</td><td class="mono">017</td><td>Input as commands (lost and doubled taps), undo with snapshots vs commands and stable IDs, and replays from seed + commands with checksums and snapshots. Live.</td></tr>
+          <tr><td>Command Lab</td><td class="mono">017 · 022</td><td>Input as commands (lost and doubled taps), undo with snapshots vs commands and stable IDs, and replays from seed + commands with checksums and snapshots. Live, plus the Module 2 challenge.</td></tr>
           <tr><td>Layers Lab</td><td class="mono">018</td><td>One assembly vs one per module, upward arrows and tangles, compile waits per edit, allow-lists and a headless replay server, and a layer check in CI. Live.</td></tr>
           <tr><td>Tuning Lab</td><td class="mono">019 · 020</td><td>Constants in code vs data files vs live reload, the copy-at-spawn trap, a validator with schema and IDs, and JSON vs baked binary on a phone; then a steal rule in C# vs a hot-reloaded Lua script, its reload traps, a guard, and the cost of crossing into the script. Both lessons are live.</td></tr>
           <tr><td>Plugin Lab</td><td class="mono">021</td><td>Modes built into the core vs as plugins in the Reef: checks per core file, scan vs baked discovery, leftovers after a round, arrival order vs phases, and an API version check for mods. Live.</td></tr>

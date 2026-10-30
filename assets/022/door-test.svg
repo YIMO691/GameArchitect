@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="560" viewBox="0 0 880 560" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<rect x="0.5" y="0.5" width="879" height="559" rx="14" fill="#ffffff" stroke="#d0d7de"/>
+<text x="28" y="40" font-size="20" font-weight="700" fill="#1f2328">The door test: what must change if we ship it wrong?</text>
+<text x="28" y="64" font-size="14" fill="#57606a">A one-way door locks behind you. A two-way door you can walk back through. Sort every finding before you sort by ms.</text>
+<rect x="20" y="86" width="410" height="452" rx="10" fill="#fff5f5" stroke="#cf222e"/>
+<rect x="38" y="102" width="34" height="48" rx="3" fill="#ffffff" stroke="#cf222e" stroke-width="3"/>
+<circle cx="64" cy="128" r="3" fill="#cf222e"/>
+<path d="M82 126 h26 m-8 -7 l8 7 l-8 7" fill="none" stroke="#cf222e" stroke-width="3"/>
+<text x="130" y="124" font-size="18" font-weight="700" fill="#cf222e">One-way doors</text>
+<text x="130" y="144" font-size="13" fill="#57606a">Decide in the design review. Block until fixed.</text>
+<text x="38" y="178" font-size="12" font-weight="700" fill="#cf222e">D1 · 011</text>
+<text x="116" y="178" font-size="15" font-weight="700" fill="#1f2328">Whale moves in Update()</text>
+<text x="116" y="198" font-size="13" fill="#57606a">Later: every replay and leaderboard</text>
+<text x="116" y="215" font-size="13" fill="#57606a">record of the week</text>
+<text x="38" y="266" font-size="12" font-weight="700" fill="#cf222e">D6 · 017</text>
+<text x="116" y="266" font-size="15" font-weight="700" fill="#1f2328">Ride the wave read in the tick</text>
+<text x="116" y="286" font-size="13" fill="#57606a">Later: input on every device,</text>
+<text x="116" y="303" font-size="13" fill="#57606a">and all saved replays</text>
+<text x="38" y="354" font-size="12" font-weight="700" fill="#cf222e">D7 · 018</text>
+<text x="116" y="354" font-size="15" font-weight="700" fill="#1f2328">Simulation asks the camera</text>
+<text x="116" y="374" font-size="13" fill="#57606a">Later: the server test, and every result</text>
+<text x="116" y="391" font-size="13" fill="#57606a">that depended on the screen</text>
+<text x="38" y="442" font-size="12" font-weight="700" fill="#cf222e">D10 · 021</text>
+<text x="116" y="442" font-size="15" font-weight="700" fill="#1f2328">Whale Week inside the core</text>
+<text x="116" y="462" font-size="13" fill="#57606a">Later: 19 checks in 8 core files,</text>
+<text x="116" y="479" font-size="13" fill="#57606a">while players are playing</text>
+<rect x="450" y="86" width="410" height="452" rx="10" fill="#f3fbf5" stroke="#1a7f37"/>
+<rect x="468" y="102" width="34" height="48" rx="3" fill="#ffffff" stroke="#1a7f37" stroke-width="3"/>
+<circle cx="494" cy="128" r="3" fill="#1a7f37"/>
+<path d="M512 118 h26 m-8 -6 l8 6 l-8 6 M538 136 h-26 m8 -6 l-8 6 l8 6" fill="none" stroke="#1a7f37" stroke-width="3"/>
+<text x="560" y="124" font-size="18" font-weight="700" fill="#1a7f37">Two-way doors</text>
+<text x="560" y="144" font-size="13" fill="#57606a">Fix in the PR. Guard each with a number.</text>
+<text x="468" y="178" font-size="12" font-weight="700" fill="#1a7f37">D2 · 013</text>
+<text x="546" y="178" font-size="15" font-weight="700" fill="#1f2328">InWave tag → a field</text>
+<text x="546" y="198" font-size="13" fill="#57606a">Later: one component, one system</text>
+<text x="468" y="238" font-size="12" font-weight="700" fill="#1a7f37">D3 · 014</text>
+<text x="546" y="238" font-size="15" font-weight="700" fill="#1f2328">Object bus → event queue</text>
+<text x="546" y="258" font-size="13" fill="#57606a">Later: one sender, 5 listeners read the queue</text>
+<text x="468" y="298" font-size="12" font-weight="700" fill="#1a7f37">D4 · 015</text>
+<text x="546" y="298" font-size="15" font-weight="700" fill="#1f2328">Locator → constructor injection</text>
+<text x="546" y="318" font-size="13" fill="#57606a">Later: one constructor</text>
+<text x="468" y="358" font-size="12" font-weight="700" fill="#1a7f37">D5 · 016</text>
+<text x="546" y="358" font-size="15" font-weight="700" fill="#1f2328">4 flags → a state machine</text>
+<text x="546" y="378" font-size="13" fill="#57606a">Later: one whale brain</text>
+<text x="468" y="418" font-size="12" font-weight="700" fill="#1a7f37">D8 · 019</text>
+<text x="546" y="418" font-size="15" font-weight="700" fill="#1f2328">26 constants → data</text>
+<text x="546" y="438" font-size="13" fill="#57606a">Later: one config file and its schema</text>
+<text x="468" y="478" font-size="12" font-weight="700" fill="#1a7f37">D9 · 020</text>
+<text x="546" y="478" font-size="15" font-weight="700" fill="#1f2328">Lua per fish → one batch</text>
+<text x="546" y="498" font-size="13" fill="#57606a">Later: one bridge call</text>
+</svg>

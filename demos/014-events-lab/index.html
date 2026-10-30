@@ -216,6 +216,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <h3>Lesson 014: direct calls, event bus, event queue</h3>
       <ol class="steps" id="steps"></ol>
     </div>
+    <div class="steps-group">
+      <h3>Lesson 022: Challenge · Whale Week (predict first, then tap Set up and check)</h3>
+      <ol class="steps" id="steps2" style="counter-reset: step 7"></ol>
+    </div>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -437,7 +441,25 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $("wires").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  // Lesson 022 review: Whale Week. Predict first, then check.
+  const STEPS2 = [
+    { t: "Whale Week on the old bus", d: "Predict first: when the whale surfaces, it gulps 800 sardines per step, and each gulp is a catch on the object bus (3 publishes, 10 reactions). At 1.36 µs per catch, what is the step? Then tap Set up: 800 × 1.36 µs = 1.09 ms, plus 0.21 ms of critters: 1.30 ms per step ❌, and 413 KB of garbage per frame: a 12 ms GC every 0.7 s.", s: { ...base, mode: "bus", n: 800 } },
+    { t: "Whale Week on the queue", d: "Predict first: the same 800 gulps, written into the event queue, with the whale claiming each sardine at once. Then tap Set up: 800 × 199 ns = 0.16 ms, plus 0.21: 0.37 ms per step ✅, 0 B of garbage, 0 double catches.", s: { ...base, mode: "queue", n: 800, claim: true } },
+  ];
+  const steps2El = $("steps2");
+  STEPS2.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d.replace("<T>", "&lt;T&gt;")}</p></div><button type="button" class="btn" id="step${STEPS.length + k}">Set up</button>`;
+    steps2El.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
       apply(s.s);
       $("wires").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
