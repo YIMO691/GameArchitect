@@ -133,7 +133,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
 .threads rect.bar { transition: width 0.25s ease; }
 @media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
-.mode-ctl { max-width: 560px; }
+.mode-ctl { max-width: 780px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.sw.ring { background: transparent !important; border: 2px solid var(--p7); }
+.sw.disc { border-radius: 50%; }
 .sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
 </style>
 
@@ -143,13 +145,15 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/024-draw-calls-batching-and-instancing.md">Read Lesson 024 ↗</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/025-overdraw-fill-rate-and-transparency.md">Read Lesson 025 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/027-culling-frustum-occlusion-hlod.md">Read Lesson 027 ↗</a>
     </div>
-    <div class="eyebrow">Lab 024 · Lessons 024–025 · simulation using the lessons' numbers</div>
+    <div class="eyebrow">Lab 024 · Lessons 024, 025, 027 · simulation using the lessons' numbers</div>
     <h1>Draw Call Lab</h1>
-    <p class="lede">Two ways the Coral Garden gets slow. <strong>Draw calls</strong>: every slip the render thread writes for the GPU costs CPU time. <strong>Overdraw</strong>: every see-through pixel the GPU paints again costs GPU time. Pick a mode, change one thing, and watch the bars against their budgets.</p>
+    <p class="lede">Three ways a scene gets slow. <strong>Draw calls</strong>: every slip the render thread writes for the GPU costs CPU time. <strong>Overdraw</strong>: every see-through pixel the GPU paints again costs GPU time. <strong>Culling</strong>: every object nobody can see still costs both, until you stop sending it. Pick a mode, change one thing, and watch the bars against their budgets.</p>
     <div class="seg-ctl mode-ctl" role="group" aria-label="Mode">
       <button type="button" data-k="mode" data-v="dc">Draw calls<small>Lesson 024 · the 1,200 fish</small></button>
       <button type="button" data-k="mode" data-v="od">Overdraw<small>Lesson 025 · the Big Catch</small></button>
+      <button type="button" data-k="mode" data-v="cl">Culling<small>Lesson 027 · Lantern Harbor</small></button>
     </div>
   </header>
 
@@ -163,7 +167,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <div class="head-row">
         <h2 id="stageH">The Coral Garden</h2>
         <div class="seg-ctl small" role="group" aria-label="View">
-          <button type="button" data-k="view" data-v="game">Game</button>
+          <button type="button" data-k="view" data-v="game" id="vGame">Game</button>
+          <button type="button" data-k="view" data-v="map" id="vMap">Map</button>
+          <button type="button" data-k="view" data-v="sent" id="vSent">Sent to GPU</button>
           <button type="button" data-k="view" data-v="calls" id="vCalls">Draw calls</button>
           <button type="button" data-k="view" data-v="heat" id="vHeat">Overdraw</button>
         </div>
@@ -256,6 +262,37 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
           </div>
         </div>
       </div>
+      <div class="controls" id="ctlCL" hidden>
+        <div class="field-row">
+          <span class="lbl"><span>Camera</span><span class="mono">60° view</span></span>
+          <div class="seg-ctl" role="group" aria-label="Camera">
+            <button type="button" data-k="cam" data-v="street">Market street<small>players arrive here</small></button>
+            <button type="button" data-k="cam" data-v="light">Lighthouse<small>the fishing spot above the bay</small></button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Prop culling (3,000 instanced props)</span></span>
+          <div class="seg-ctl" role="group" aria-label="Prop culling">
+            <button type="button" data-k="pcull" data-v="off">Off<small>all sent every frame</small></button>
+            <button type="button" data-k="pcull" data-v="on">CullingGroup<small>spheres, like the houses</small></button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Occlusion culling</span></span>
+          <div class="seg-ctl" role="group" aria-label="Occlusion culling">
+            <button type="button" data-k="occ" data-v="off">Off<small>frustum only</small></button>
+            <button type="button" data-k="occ" data-v="on">Baked<small>+3.2 MB, +0.5 ms + 1 µs/test</small></button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>HLOD beyond 250 m</span></span>
+          <div class="seg-ctl" role="group" aria-label="HLOD">
+            <button type="button" data-k="hlod" data-v="off">Off<small>every house its own draw</small></button>
+            <button type="button" data-k="hlod" data-v="on">36 clusters<small>1 draw each, +21.6 MB</small></button>
+          </div>
+        </div>
+        <p class="hint" style="margin:0;font-size:12px;color:var(--muted)">The houses (1,200 in the lower town, 600 in the Old Town) always get the engine's frustum culling.</p>
+      </div>
     </div>
   </section>
 
@@ -280,6 +317,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <ol class="steps" id="steps"></ol>
     <p class="group-title">Lesson 025 · The Big Catch splash: overdraw</p>
     <ol class="steps" id="steps2"></ol>
+    <p class="group-title">Lesson 027 · Lantern Harbor: culling</p>
+    <ol class="steps" id="steps3"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -295,8 +334,15 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <div class="note"><h3>See-through layers are paid in full</h3><p>Opaque pixels can be skipped by the depth test. Every see-through layer runs the shader and does a read-mix-write: here 1 ms of pixel work and 4 ms of memory work per screen.</p></div>
       <div class="note"><h3>The fill budget is shared</h3><p>Before the splash, the Coral Garden has room for 0.5 screens. Fading the murk during the close-up frees 2.5, so a 2.0-screen splash fits at 27 ms.</p></div>
     </div>
+    <p class="group-title">Lesson 027 · Culling</p>
+    <div class="notes">
+      <div class="note"><h3>The GPU culls too late</h3><p>The GPU throws away off-screen triangles only after their vertex shader has run. 2,820 props nobody could see cost 14.1 ms of vertex work and 2.82 ms of render thread. Culling on the CPU stops them before they cost anything.</p></div>
+      <div class="note"><h3>Each kind of culling catches a different "unseen"</h3><p>Frustum: outside the view. Occlusion: behind a house. HLOD: so far away that 50 houses can be one simple mesh. In the street, occlusion does the work. At the lighthouse, only HLOD helps.</p></div>
+      <div class="note"><h3>Culling has a bill too</h3><p>Occlusion costs 2.24 ms of main thread and 3.2 MB in the street; at the lighthouse with HLOD it costs 0.54 ms and hides nothing. HLOD costs 21.6 MB. Check every camera, not one.</p></div>
+    </div>
     <p class="fine">This lab is a simulation, not a measurement. Costs come from Lesson 024: render thread = 2 ms + 0.01 ms per draw call + 0.02 ms per material switch + 0.001 ms per instanced fish; main thread 14 ms; GPU = 3 ms + the larger of the pixel load (24 ms) and the vertex load (6 ms + 3 ms per 400 fish); the game caps at 30 fps. Real per-draw costs depend on the graphics API, the driver and the engine (Vulkan and Metal are cheaper per draw than OpenGL ES), and real engines also spend main-thread time on culling and sorting each object.</p>
     <p class="fine">The Overdraw mode is also a simulation, using Lesson 025's numbers: 1 screen = 1600 × 720 = 1,152,000 painted pixels; each see-through screen costs 1 ms in the pixel station and 4 ms in the output &amp; memory station (2 ms with the 4-byte format); scene loads before see-through layers: vertex 15, raster 5.3, pixel 22, memory 15 ms; GPU = 3 ms + the slowest station. The heatmap is a sketch of the same 240 particles; its colours are not measured. On real phone GPUs, blending happens in on-chip tile memory and costs differ per vendor.</p>
+    <p class="fine">The Culling mode is also a simulation, using Lesson 027's numbers: render thread = 2 ms + 10 µs per draw + 20 µs per material switch (50, plus 1 per HLOD cluster) + 1 µs per instanced prop; GPU vertex load = 2 ms + 0.03 ms per house + 0.005 ms per prop + 0.15 ms per HLOD cluster; pixel 20, memory 18, raster 4 ms; GPU = 3 ms + the slowest station; main thread = 12 ms + 0.2 µs per frustum test + (occlusion) 0.5 ms + 1 µs per occlusion test. The map is a sketch: which objects are hidden was chosen to match the lesson's counts, not computed from real sight lines. Real engines cull on worker threads, and the cost per test depends on the engine.</p>
   </section>
 </div>
 
@@ -307,8 +353,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
   const MAIN = 14, BUDGET = 12, CAP = 30, FRAME = 1000 / 30;
   const SPECIES = 6, ENV = 300, ENV_MAT = 40, UI = 50, UI_MAT = 10;
   const OD0 = { splash: "on", bub: "200", shape: "quad", cap: "off", murk: "on", fmt: "8" };
-  const st = { mode: "dc", fish: 1200, tint: "clone", draw: "each", coral: "sep", view: "game", ...OD0 };
-  const DEFAULTS = { mode: "dc", fish: 1200, tint: "shared", draw: "each", coral: "sep", view: "game", ...OD0 };
+  const CL0 = { cam: "street", pcull: "off", occ: "off", hlod: "off" };
+  const st = { mode: "dc", fish: 1200, tint: "clone", draw: "each", coral: "sep", view: "game", ...OD0, ...CL0 };
+  const DEFAULTS = { mode: "dc", fish: 1200, tint: "shared", draw: "each", coral: "sep", view: "game", ...OD0, ...CL0 };
 
   // ---------- Lesson 025: overdraw model ----------
   const SCREEN = 1600 * 720; // 1,152,000 pixels = 1 screen
@@ -333,6 +380,144 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     const frame = Math.max(MAIN, RT_OD, gpu), raw = 1000 / frame;
     const room = Math.max(0, Math.min((STATION - M0) / (4 * fm), STATION - P0));
     return { on, groups, frag, S, murkN, fm, P0, M0, P, M, loads, limiter, gpu, frame, raw, fps: Math.min(CAP, raw), room };
+  }
+
+  // ---------- Lesson 027: Lantern Harbor culling model ----------
+  // Map in pixels 1600 x 900 (1 px = 0.5 m). Every count below comes from these arrays.
+  const HB = { render: 12, gpu: 28, game: 12, pixel: 20, memory: 18, raster: 4, fixedV: 2, fixedDraws: 50, mats: 50, propTypes: 10,
+    vHouse: 0.03, vProp: 0.005, vCluster: 0.15, ftest: 0.0002, ofixed: 0.5, otest: 0.001, hlodDist: 500, clusterMB: 0.6 };
+  const CAMS = {
+    street: { x: 1050, y: 880, dir: -Math.PI / 2, half: Math.PI / 6, name: "Market street" },
+    light: { x: 70, y: 850, dir: -29 * Math.PI / 180, half: Math.PI / 6, name: "Lighthouse" },
+  };
+  const harbor = (() => {
+    let sd = 2027;
+    const r = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; };
+    const inWedge = (c, x, y) => { let a = Math.atan2(y - c.y, x - c.x) - c.dir; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return Math.abs(a) <= c.half; };
+    const dist = (c, x, y) => Math.hypot(x - c.x, y - c.y);
+    const S = CAMS.street, L = CAMS.light;
+    const lowerOk = (x, y) => dist(S, x, y) <= 470 && y <= 830 && x >= 600 && Math.abs(x - S.x) > 26 && dist(L, x, y) > 530 && inWedge(L, x, y);
+    const oldOk = (x, y) => y >= 50 && y <= 330 && x >= 620 && x <= 1540 && dist(S, x, y) > 540 && inWedge(L, x, y);
+    function place(n, nIn, ok, kind) {
+      const out = [];
+      let a = 0, b = 0;
+      while (a < nIn || b < n - nIn) {
+        const x = 560 + r() * 1020, y = 30 + r() * 820;
+        if (!ok(x, y)) continue;
+        const w = inWedge(S, x, y);
+        if (w && a < nIn) { out.push({ x, y, kind, inS: true }); a++; }
+        else if (!w && b < n - nIn) { out.push({ x, y, kind, inS: false }); b++; }
+      }
+      return out;
+    }
+    const lower = place(1200, 360, lowerOk, "lower");
+    const old = place(600, 480, oldOk, "old");
+    const props = place(3000, 900, lowerOk, "prop");
+    // visibility by construction (a sketch): in the street view the front row along the street is seen
+    function markStreet(arr, nVis, byStreet) {
+      const ins = arr.filter((o) => o.inS);
+      if (byStreet) ins.sort((p, q) => Math.abs(p.x - S.x) - Math.abs(q.x - S.x));
+      else { ins.forEach((o) => { o.rk = r(); }); ins.sort((p, q) => p.rk - q.rk); }
+      arr.forEach((o) => { o.visS = false; });
+      ins.slice(0, nVis).forEach((o) => { o.visS = true; });
+    }
+    markStreet(lower, 90, true);
+    markStreet(props, 180, true);
+    markStreet(old, 450, false);
+    function markLight(arr, nVis) {
+      arr.forEach((o) => { o.rk = r(); o.visL = false; });
+      [...arr].sort((p, q) => p.rk - q.rk).slice(0, nVis).forEach((o) => { o.visL = true; });
+    }
+    markLight(lower, 1080); markLight(old, 570); markLight(props, 2400);
+    // HLOD clusters: k-means on houses, props join the nearest lower-town cluster
+    function kmeans(arr, k) {
+      const sorted = [...arr].sort((p, q) => p.x - q.x || p.y - q.y);
+      let cs = [];
+      for (let i = 0; i < k; i++) { const o = sorted[Math.floor((i + 0.5) * sorted.length / k)]; cs.push({ x: o.x, y: o.y }); }
+      for (let it = 0; it < 12; it++) {
+        const acc = cs.map(() => ({ x: 0, y: 0, n: 0 }));
+        for (const o of arr) { let bi = 0, bd = 1e9; cs.forEach((c, i) => { const d = (o.x - c.x) ** 2 + (o.y - c.y) ** 2; if (d < bd) { bd = d; bi = i; } }); o.cl = bi; acc[bi].x += o.x; acc[bi].y += o.y; acc[bi].n++; }
+        cs = cs.map((c, i) => (acc[i].n ? { x: acc[i].x / acc[i].n, y: acc[i].y / acc[i].n } : c));
+      }
+      return cs;
+    }
+    const cl = [];
+    kmeans(lower, 24).forEach((c) => cl.push({ ...c, town: "lower" }));
+    kmeans(old, 12).forEach((c) => cl.push({ ...c, town: "old" }));
+    old.forEach((o) => { o.cl += 24; });
+    for (const p of props) { let bi = 0, bd = 1e9; for (let i = 0; i < 24; i++) { const d = (p.x - cl[i].x) ** 2 + (p.y - cl[i].y) ** 2; if (d < bd) { bd = d; bi = i; } } p.cl = bi; }
+    for (const c of cl) { c.r = 0; c.n = 0; c.inS = false; c.visS = false; c.inL = true; c.visL = false; }
+    for (const o of [...lower, ...old, ...props]) {
+      const c = cl[o.cl]; c.r += Math.hypot(o.x - c.x, o.y - c.y); c.m = (c.m || 0) + 1;
+      if (o.kind !== "prop") c.n++;
+      if (o.inS) c.inS = true;
+      if (o.inS && o.visS) c.visS = true;
+      if (o.visL) c.visL = true;
+    }
+    for (const c of cl) { c.r = (c.r / c.m) * 1.35 + 6; }
+    for (const c of cl) { c.farS = dist(S, c.x, c.y) > HB.hlodDist; c.farL = dist(L, c.x, c.y) > HB.hlodDist; }
+    return { lower, old, props, cl };
+  })();
+
+  // fate of one object: "drawn" (sent and seen), "waste" (sent, not seen), "frustum", "hidden", "hlod"
+  function clFates(s) {
+    const cam = s.cam === "light" ? "L" : "S", occ = s.occ === "on", hl = s.hlod === "on";
+    const inF = (o) => (cam === "S" ? o.inS : true), vis = (o) => (cam === "S" ? o.visS : o.visL);
+    const far = (c) => (cam === "S" ? c.farS : c.farL);
+    const fate = (o, engineCulled) => {
+      if (hl && far(harbor.cl[o.cl])) return "hlod";
+      if (!engineCulled) return vis(o) && inF(o) ? "drawn" : "waste";
+      if (!inF(o)) return "frustum";
+      if (occ && !vis(o)) return "hidden";
+      return vis(o) ? "drawn" : "waste";
+    };
+    const cnt = { lower: {}, old: {}, prop: {} };
+    for (const o of harbor.lower) { const f = (o.f = fate(o, true)); cnt.lower[f] = (cnt.lower[f] || 0) + 1; }
+    for (const o of harbor.old) { const f = (o.f = fate(o, true)); cnt.old[f] = (cnt.old[f] || 0) + 1; }
+    for (const o of harbor.props) { const f = (o.f = fate(o, s.pcull === "on")); cnt.prop[f] = (cnt.prop[f] || 0) + 1; }
+    let clDrawn = 0, clTested = 0, clIn = 0;
+    for (const c of harbor.cl) {
+      c.f = "off";
+      if (!hl) continue;
+      clTested++;
+      if (!far(c)) { c.f = "near"; continue; }
+      const cin = cam === "S" ? c.inS : c.inL, cvis = cam === "S" ? c.visS : c.visL;
+      if (!cin) { c.f = "frustum"; continue; }
+      clIn++;
+      if (occ && !cvis) { c.f = "hidden"; continue; }
+      c.f = "drawn"; clDrawn++;
+    }
+    return { cnt, clDrawn, clTested, clIn };
+  }
+  function clModel(s) {
+    const F = clFates(s), c = F.cnt, g = (o, k) => o[k] || 0;
+    const sent = (o) => g(o, "drawn") + g(o, "waste");
+    const lowerN = sent(c.lower), oldN = sent(c.old), inst = sent(c.prop);
+    const propDraws = inst > 0 ? HB.propTypes : 0;
+    const draws = HB.fixedDraws + lowerN + oldN + F.clDrawn + propDraws;
+    const switches = HB.mats + F.clDrawn;
+    const parts = { fixed: 2, draw: 0.01 * draws, sw: 0.02 * switches, inst: 0.001 * inst };
+    const rt = parts.fixed + parts.draw + parts.sw + parts.inst;
+    const vparts = { fixed: HB.fixedV, houses: HB.vHouse * (lowerN + oldN), props: HB.vProp * inst, hlod: HB.vCluster * F.clDrawn };
+    const vert = vparts.fixed + vparts.houses + vparts.props + vparts.hlod;
+    const loads = { Vertex: vert, Raster: HB.raster, Pixel: HB.pixel, Memory: HB.memory };
+    let limiter = "Vertex";
+    for (const k of Object.keys(loads)) if (loads[k] > loads[limiter] + 1e-9) limiter = k;
+    const gpu = 3 + loads[limiter];
+    // culling's own bill on the main thread
+    const notH = (o) => (o.total || 0) - g(o, "hlod");
+    for (const k of ["lower", "old", "prop"]) c[k].total = Object.values(c[k]).reduce((a, b) => a + b, 0);
+    const fTested = notH(c.lower) + notH(c.old) + (s.pcull === "on" ? notH(c.prop) : 0) + F.clTested;
+    const passF = (o) => notH(o) - g(o, "frustum");
+    const oTested = s.occ === "on" ? passF(c.lower) + passF(c.old) + (s.pcull === "on" ? passF(c.prop) : 0) + F.clIn : 0;
+    const cull = { frustum: HB.ftest * fTested, occ: s.occ === "on" ? HB.ofixed + HB.otest * oTested : 0 };
+    const main = HB.game + cull.frustum + cull.occ;
+    const frame = Math.max(main, rt, gpu), raw = 1000 / frame;
+    let slow = "GPU";
+    if (rt >= gpu && rt >= main) slow = "render thread"; else if (main > gpu && main > rt) slow = "main thread";
+    const waste = g(c.lower, "waste") + g(c.old, "waste") + g(c.prop, "waste");
+    return { F, c, lowerN, oldN, inst, propDraws, draws, switches, parts, rt, vparts, vert, loads, limiter, gpu, fTested, oTested, cull, main, frame, raw, fps: Math.min(CAP, raw), slow, waste,
+      mem: s.hlod === "on" ? 36 * HB.clusterMB : 0, occMB: s.occ === "on" ? 3.2 : 0 };
   }
 
   function model(s) {
@@ -362,7 +547,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
   let col = {};
   function readColors() {
     const cs = getComputedStyle(document.documentElement);
-    for (const k of ["field", "ink", "muted", "line", "bad", "good", "sea1", "sea2", "sand", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "panel", "h0", "h1", "h2", "h3", "h4", "h5", "h6", "foam", "gold"]) col[k] = cs.getPropertyValue("--" + k).trim();
+    for (const k of ["field", "ink", "muted", "line", "bad", "good", "sea1", "sea2", "sand", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "panel", "h0", "h1", "h2", "h3", "h4", "h5", "h6", "foam", "gold", "accent", "cpu"]) col[k] = cs.getPropertyValue("--" + k).trim();
     dark = matchMedia("(prefers-color-scheme: dark)").matches && document.documentElement.dataset.theme !== "light" || document.documentElement.dataset.theme === "dark";
   }
   let dark = false;
@@ -398,6 +583,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
   function paint() {
     if (!W) return;
     if (st.mode === "od") { paintOD(); return; }
+    if (st.mode === "cl") { paintCL(); return; }
     const m = model(st), calls = st.view === "calls";
     // sea
     if (calls) { ctx.fillStyle = col.field; ctx.fillRect(0, 0, W, H); }
@@ -632,10 +818,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 
   // ---------- readouts ----------
   function syncMode() {
-    const od = st.mode === "od";
-    $("ctlDC").hidden = od; $("ctlOD").hidden = !od;
-    $("vCalls").hidden = od; $("vHeat").hidden = !od;
-    const want = od ? "20 / 9" : "";
+    const od = st.mode === "od", cl = st.mode === "cl", dc = st.mode === "dc";
+    $("ctlDC").hidden = !dc; $("ctlOD").hidden = !od; $("ctlCL").hidden = !cl;
+    $("vCalls").hidden = !dc; $("vHeat").hidden = !od; $("vGame").hidden = cl;
+    $("vMap").hidden = !cl; $("vSent").hidden = !cl;
+    const want = od ? "20 / 9" : cl ? "16 / 9" : "";
     if (stage.style.aspectRatio !== want) { stage.style.aspectRatio = want; resize(); }
     document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
   }
@@ -700,9 +887,202 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     $("maxFish").innerHTML = `Fill budget: <strong>${f2(m.room)}</strong> screens. ` + (m.on ? `The splash paints <strong>${f2(m.S)}</strong>: ${m.S > m.room + 1e-9 ? `over by ${f2(m.S - m.room)}.` : `${f2(m.room - m.S)} to spare.`}` : "Turn the splash on to spend it.");
   }
 
+
+  // ---------- Lesson 027: the harbor map ----------
+  let clKey = "";
+  function paintCL() {
+    const key = [st.cam, st.pcull, st.occ, st.hlod, st.view, W, H, dark].join("|");
+    if (key === clKey) return;
+    clKey = key;
+    const m = clModel(st), sc = W / 1600, Y = (y) => y * sc, X = (x) => x * sc, sent = st.view === "sent";
+    ctx.fillStyle = col.sea2; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = col.sand;
+    ctx.beginPath(); ctx.moveTo(X(1600), 0); ctx.lineTo(X(560), 0); ctx.lineTo(X(500), Y(300)); ctx.lineTo(X(560), Y(600)); ctx.lineTo(X(540), Y(900)); ctx.lineTo(X(1600), Y(900)); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, Y(900)); ctx.lineTo(0, Y(760)); ctx.lineTo(X(120), Y(790)); ctx.lineTo(X(190), Y(900)); ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 0.5; ctx.fillStyle = col.line;
+    ctx.beginPath(); ctx.ellipse(X(1080), Y(190), X(520), Y(170), 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    // street and pier
+    ctx.strokeStyle = col.panel; ctx.lineWidth = Math.max(3, 16 * sc);
+    ctx.beginPath(); ctx.moveTo(X(1050), Y(900)); ctx.lineTo(X(1050), Y(400)); ctx.stroke();
+    // camera wedge
+    const cam = CAMS[st.cam], other = CAMS[st.cam === "street" ? "light" : "street"];
+    const wedge = (c, len, a) => {
+      ctx.globalAlpha = a; ctx.fillStyle = col.accent;
+      ctx.beginPath(); ctx.moveTo(X(c.x), Y(c.y)); ctx.arc(X(c.x), Y(c.y), X(len), c.dir - c.half, c.dir + c.half); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 1;
+    };
+    wedge(cam, 1900, 0.13);
+    if (st.hlod === "on") {
+      ctx.strokeStyle = col.ink; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.arc(X(cam.x), Y(cam.y), X(HB.hlodDist), 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    }
+    // objects, batched by fate
+    const hs = Math.max(2.5, 9 * sc), ps = Math.max(1.6, 4 * sc);
+    const kindCol = { lower: col.p1, old: col.p4, prop: col.p3 };
+    const groups = {};
+    for (const arr of [harbor.lower, harbor.old, harbor.props]) for (const o of arr) {
+      const k = o.f + "|" + o.kind; (groups[k] || (groups[k] = [])).push(o);
+    }
+    const order = ["hlod", "frustum", "hidden", "drawn", "waste"];
+    for (const f of order) for (const kind of ["lower", "old", "prop"]) {
+      const g = groups[f + "|" + kind]; if (!g) continue;
+      if (sent && f !== "drawn" && f !== "waste") continue;
+      const s = kind === "prop" ? ps : hs;
+      ctx.beginPath();
+      for (const o of g) ctx.rect(X(o.x) - s / 2, Y(o.y) - s / 2, s, s);
+      if (f === "hidden") { ctx.strokeStyle = col.p7; ctx.lineWidth = 1; ctx.stroke(); continue; }
+      ctx.globalAlpha = f === "frustum" || f === "hlod" ? 0.22 : 1;
+      ctx.fillStyle = f === "waste" ? col.bad : f === "frustum" || f === "hlod" ? col.muted : kindCol[kind];
+      ctx.fill(); ctx.globalAlpha = 1;
+    }
+    // HLOD clusters
+    for (const c of harbor.cl) {
+      if (c.f === "off" || c.f === "near") continue;
+      if (sent && c.f !== "drawn") continue;
+      ctx.beginPath(); ctx.arc(X(c.x), Y(c.y), X(c.r), 0, Math.PI * 2);
+      if (c.f === "drawn") { ctx.globalAlpha = 0.28; ctx.fillStyle = col.p1; ctx.fill(); ctx.globalAlpha = 1; ctx.strokeStyle = col.p1; ctx.lineWidth = 2; ctx.stroke(); }
+      else { ctx.strokeStyle = col.muted; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]); }
+    }
+    // cameras
+    const camMark = (c, on) => {
+      ctx.globalAlpha = on ? 1 : 0.45;
+      ctx.fillStyle = col.ink; ctx.beginPath(); ctx.arc(X(c.x), Y(c.y), Math.max(4, 12 * sc), 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = col.panel; ctx.beginPath(); ctx.arc(X(c.x), Y(c.y), Math.max(1.5, 5 * sc), 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = col.ink; ctx.font = `600 ${Math.max(11, Math.round(24 * sc))}px ${getComputedStyle(document.body).fontFamily}`;
+      ctx.textAlign = c === CAMS.light ? "left" : "right"; ctx.textBaseline = "bottom";
+      ctx.fillText(c.name, X(c.x) + (c === CAMS.light ? 0 : -16 * sc), Y(c.y) - 14 * sc);
+      ctx.globalAlpha = 1;
+    };
+    camMark(other, false); camMark(cam, true);
+  }
+
+  function drawCullThreads(m) {
+    const box = $("threads").clientWidth || 600;
+    const Wd = Math.max(320, Math.min(680, Math.round(box))), narrow = Wd < 500;
+    const L = narrow ? 70 : 120, VR = narrow ? 56 : 70, x0 = L, x1 = Wd - VR;
+    const maxMs = Math.max(50, m.rt + 2, m.gpu + 2, m.main + 2);
+    const X = (ms) => x0 + (ms / maxMs) * (x1 - x0);
+    let g = `<text x="0" y="14" style="fill:var(--muted);font-size:12px">${narrow ? "Each thread's work (ms)" : "Each thread's work per frame (ms). Frame = the slowest."}</text>`;
+    const vk = m.limiter === "Vertex" ? "--p2" : "--p5";
+    const rows = [
+      { n: "Main", v: m.main, segs: [[HB.game, "--cpu", "game"], [m.cull.frustum, "--p4", "frustum tests"], [m.cull.occ, "--p7", "occlusion"]] },
+      { n: "Render", v: m.rt, segs: [[m.parts.fixed, "--muted", "fixed"], [m.parts.draw, "--p1", "draws"], [m.parts.sw, "--bad", "switches"], [m.parts.inst, "--p3", "prop data"]] },
+      { n: "GPU", v: m.gpu, segs: [[3, "--muted", "fixed"], [m.loads[m.limiter], vk, m.limiter.toLowerCase()]] },
+    ];
+    const top = 26, rh = 40;
+    rows.forEach((r, i) => {
+      const y = top + i * rh, slow = Math.abs(r.v - m.frame) < 1e-9;
+      g += `<text x="0" y="${y + 19}" style="fill:${slow ? "var(--bad)" : "var(--ink)"};font-weight:600">${r.n}${slow ? " ◀" : ""}</text>`;
+      g += `<rect x="${x0}" y="${y + 4}" width="${x1 - x0}" height="24" rx="4" style="fill:var(--field);stroke:var(--line)"/>`;
+      let cx = x0;
+      for (const [v, c, n] of r.segs) {
+        const w = (v / maxMs) * (x1 - x0);
+        if (w > 0) g += `<rect class="bar" x="${cx}" y="${y + 4}" width="${Math.max(0.5, w)}" height="24" style="fill:var(${c})"><title>${n}: ${f2(v)} ms</title></rect>`;
+        cx += w;
+      }
+      const over = (r.n === "Render" && r.v > HB.render + 1e-9) || (r.n === "GPU" && r.v > HB.gpu + 1e-9);
+      g += `<text x="${Wd}" y="${y + 21}" text-anchor="end" style="fill:${over || slow ? "var(--bad)" : "var(--ink)"};font-weight:600">${f2(r.v)}</text>`;
+    });
+    const bx = X(HB.render), gx = X(HB.gpu), fx = X(FRAME);
+    g += `<line x1="${bx}" x2="${bx}" y1="${top + rh}" y2="${top + rh + 32}" style="stroke:var(--good);stroke-width:2.5;stroke-dasharray:5 3"/>`;
+    g += `<line x1="${gx}" x2="${gx}" y1="${top + 2 * rh}" y2="${top + 2 * rh + 32}" style="stroke:var(--good);stroke-width:2.5;stroke-dasharray:5 3"/>`;
+    g += `<line x1="${fx}" x2="${fx}" y1="${top}" y2="${top + 3 * rh}" style="stroke:var(--muted);stroke-width:1.5;stroke-dasharray:2 3"/>`;
+    const ly = top + 3 * rh + 14;
+    g += `<text x="${bx}" y="${ly}" text-anchor="middle" style="fill:var(--good);font-size:12px">12</text>`;
+    g += `<text x="${gx}" y="${ly}" text-anchor="middle" style="fill:var(--good);font-size:12px">28</text>`;
+    g += `<text x="${Math.min(fx + 4, Wd - 40)}" y="${ly}" text-anchor="start" style="fill:var(--muted);font-size:12px">${narrow ? "30 fps" : "33.3 = 30 fps"}</text>`;
+    const lg = [["culling", "--p4"], ["occlusion", "--p7"], ["draws", "--p1"], ["switches", "--bad"], ["props", "--p3"], [m.limiter === "Vertex" ? "vertex" : "pixel", vk]];
+    let lx = 0, ly2 = ly + 22;
+    lg.forEach(([n, c], i) => {
+      if (narrow && i === 3) { lx = 0; ly2 += 18; }
+      g += `<rect x="${lx}" y="${ly2 - 10}" width="11" height="11" rx="2" style="fill:var(${c})"/><text x="${lx + 15}" y="${ly2}" style="fill:var(--muted);font-size:12px">${n}</text>`;
+      lx += 15 + n.length * 7.6 + (narrow ? 14 : 16);
+    });
+    $("threads").innerHTML = `<svg viewBox="0 0 ${Wd} ${ly2 + 8}" role="img" aria-label="Main thread ${f2(m.main)} ms, render thread ${f2(m.rt)} ms, GPU ${f2(m.gpu)} ms. Frame ${f2(m.frame)} ms.">${g}</svg>`;
+  }
+
+  function renderCL() {
+    const m = clModel(st);
+    drawCullThreads(m);
+    clKey = ""; paint();
+    const rOver = m.rt > HB.render + 1e-9, gOver = m.gpu > HB.gpu + 1e-9;
+    const camName = CAMS[st.cam].name;
+    $("goalText").innerHTML = "<strong>Lantern Harbor, mid-range phone.</strong> Goal at every camera: 30 fps, render thread ≤ 12 ms, GPU ≤ 28 ms.";
+    $("stageH").textContent = "Lantern Harbor · " + camName;
+    $("kRt").textContent = "Render thread";
+    $("sRt").textContent = f2(m.rt);
+    $("sRt").className = "v " + (rOver ? "bad" : "good");
+    $("sRtS").textContent = rOver ? `ms · ${f2(m.rt - HB.render)} over 12` : `ms · ${f2(HB.render - m.rt)} under 12`;
+    $("sFps").textContent = f1(m.fps).replace(/\.0$/, "");
+    $("sFps").className = "v " + (m.fps >= 29.95 ? "good" : "bad");
+    $("sFpsS").textContent = m.raw > 30.05 ? `fps, capped (could do ${Math.round(m.raw)})` : `fps · frame ${f2(m.frame)} ms (${m.slow})`;
+    $("kDraws").textContent = "GPU";
+    $("sDraws").textContent = f2(m.gpu);
+    $("sDraws").className = "v " + (gOver ? "bad" : "good");
+    $("sDrawsS").textContent = `ms · ${m.limiter.toLowerCase()} station ${f2(m.loads[m.limiter])} + 3`;
+    $("kSw").textContent = "Draw calls";
+    $("sSw").textContent = n0(m.draws);
+    $("sSw").className = "v " + (m.waste > 0 ? "bad" : "");
+    $("sSwS").textContent = `+ ${n0(m.inst)} instanced props sent`;
+    const sentV = st.view === "sent";
+    const shown = m.lowerN + m.oldN + m.inst;
+    $("stageTag").textContent = sentV ? `Sent: ${n0(shown)} objects${m.F.clDrawn ? " + " + m.F.clDrawn + " clusters" : ""}` : `${m.waste ? n0(m.waste) + " sent, not seen · " : ""}${m.fps >= 29.95 ? "30" : f1(m.fps)} fps`;
+    const sw = (c, n, cls = "") => `<span class="sw ${cls}" style="background:var(--${c})"></span>${n}`;
+    $("legend").innerHTML = (sentV ? "Only what the GPU receives this frame." : "Map view, from above.") + sw("p1", "lower town") + sw("p4", "Old Town") + sw("p3", "props") + sw("bad", "sent, not seen") + (sentV ? "" : sw("muted", "culled: outside the view") + sw("p7", "culled: hidden", "ring")) + (st.hlod === "on" ? sw("p1", "HLOD cluster (dashed ring: 250 m)", "disc") : "");
+    const goal = !rOver && !gOver && m.fps >= 29.95;
+    $("goalPill").className = "pill " + (goal ? "ok" : "over");
+    $("goalPill").textContent = goal ? `Goal met at the ${camName.toLowerCase()}` : m.fps < 29.95 ? "Below 30 fps" : "30 fps, but over a budget";
+    let coach = `Frame = max(main ${f2(m.main)}, render ${f2(m.rt)}, GPU ${f2(m.gpu)}) = <strong>${f2(m.frame)} ms</strong>: the <strong>${m.slow}</strong> sets the pace. `;
+    if (m.waste > 0) {
+      const wh = (m.c.lower.waste || 0) + (m.c.old.waste || 0), wp = m.c.prop.waste || 0;
+      coach += `<span class="warn">${n0(m.waste)} objects are sent to the GPU but nobody sees them</span>: ${f2(wh * 0.01 + wp * 0.001)} ms of render thread and ${f2(wh * HB.vHouse + wp * HB.vProp)} ms of vertex work for nothing. `;
+    }
+    if (st.pcull === "off") coach += "The instanced props skip the engine's culling: all 3,000 are sent, even behind the camera. ";
+    if (st.occ === "on" && m.F.clDrawn > 0 && m.lowerN + m.oldN + m.inst === 0) coach += `Occlusion costs ${f2(m.cull.occ)} ms here and hides nothing: switch it off for this camera. `;
+    else if (st.occ === "on") coach += `Occlusion culling costs ${f2(m.cull.occ)} ms of main thread and 3.2 MB. `;
+    if (st.hlod === "on") coach += "HLOD: +21.6 MB of cluster meshes.";
+    $("coach").innerHTML = coach;
+
+    $("capH").textContent = "The culling bill";
+    $("capFine").textContent = "What happens to every object this frame, then the bills. Render: 2 ms + 10 µs per draw + 20 µs per switch + 1 µs per prop. Vertex: 2 ms + 0.03 ms per house + 0.005 ms per prop + 0.15 ms per cluster.";
+    const pad = (v, n) => String(v).padStart(n, " ");
+    const row = (name, o) => `${name.padEnd(11, " ")}${pad(n0(o.total), 6)}${pad(n0(o.frustum || 0), 6)}${pad(n0(o.hidden || 0), 6)}${pad(n0(o.hlod || 0), 6)}${pad(n0((o.drawn || 0) + (o.waste || 0)), 6)}\n`;
+    let cap = `<span class="dim">${camName} · props ${st.pcull === "on" ? "culled" : "not culled"} · occlusion ${st.occ} · HLOD ${st.hlod}</span>\n`;
+    cap += `<span class="dim">            total   out   hid  hlod  sent</span>\n`;
+    cap += row("Lower town", m.c.lower) + row("Old Town", m.c.old) + row("Props", m.c.prop);
+    if (st.hlod === "on") { const near = harbor.cl.filter((c) => c.f === "near").length; cap += `HLOD: 36 clusters · ${m.F.clDrawn} drawn · ${near} near (real houses)\n`; }
+    cap += m.waste ? `<span class="warn">Sent but not seen: ${n0(m.waste)}</span>\n\n` : `<span class="ok">Sent but not seen: 0</span>\n\n`;
+    const houses = m.lowerN + m.oldN;
+    cap += `Render 2 + ${n0(m.draws)}×10µs + ${m.switches}×20µs + ${n0(m.inst)}×1µs\n`;
+    const rl = `       = ${f2(m.rt)} ms  ${rOver ? "◀ over 12" : "✓ under 12"}`;
+    cap += (rOver ? `<span class="warn">${rl}</span>` : `<span class="ok">${rl}</span>`) + "\n";
+    cap += `Vertex 2 + ${n0(houses)}×0.03 + ${n0(m.inst)}×0.005${m.F.clDrawn ? ` + ${m.F.clDrawn}×0.15` : ""} = ${f2(m.vert)} ms\n`;
+    const gl = `GPU    3 + ${m.limiter.toLowerCase()} ${f2(m.loads[m.limiter])} = ${f2(m.gpu)} ms  ${gOver ? "◀ over 28" : "✓ under 28"}`;
+    cap += (gOver ? `<span class="warn">${gl}</span>` : `<span class="ok">${gl}</span>`) + "\n";
+    cap += `Main   12 + ${n0(m.fTested)} tests×0.2µs${st.occ === "on" ? ` + 0.5 + ${n0(m.oTested)}×1µs` : ""} = ${f2(m.main)} ms\n`;
+    cap += `<span class="dim">Memory: occlusion data ${m.occMB} MB · HLOD ${f2(m.mem)} MB</span>`;
+    $("capture").innerHTML = cap;
+
+    $("scaleH").textContent = "Every camera";
+    $("scaleFine").textContent = "The same culling settings at both cameras. The game must hit its budgets at the worst one.";
+    let html = `<thead><tr><th>Camera</th><th class="num">Draws</th><th class="num">Render</th><th class="num">GPU</th><th class="num">FPS</th></tr></thead><tbody>`;
+    let worst = null;
+    for (const c of ["street", "light"]) {
+      const r = clModel({ ...st, cam: c });
+      if (!worst || r.frame > worst.r.frame) worst = { c, r };
+      html += `<tr class="${c === st.cam ? "cur" : ""}"><td>${CAMS[c].name}</td><td class="num">${n0(r.draws)}</td><td class="num ${r.rt > HB.render + 1e-9 ? "bad" : "good"}">${f2(r.rt)}</td><td class="num ${r.gpu > HB.gpu + 1e-9 ? "bad" : "good"}">${f2(r.gpu)}</td><td class="num ${r.fps < 29.95 ? "bad" : ""}">${f1(r.fps).replace(/\.0$/, "")}</td></tr>`;
+    }
+    $("scale").innerHTML = html + "</tbody>";
+    clFates(st); // restore fates for the map
+    const wr = worst.r, ok = wr.rt <= HB.render + 1e-9 && wr.gpu <= HB.gpu + 1e-9 && wr.fps >= 29.95;
+    $("maxFish").innerHTML = `Worst camera: <strong>${CAMS[worst.c].name}</strong>, frame ${f2(wr.frame)} ms. ` + (ok ? "Both cameras are inside every budget ✅" : `<span style="color:var(--bad);font-weight:600">Not shippable yet.</span>`);
+  }
+
   function render() {
     syncMode();
     if (st.mode === "od") { renderOD(); return; }
+    if (st.mode === "cl") { renderCL(); return; }
     $("goalText").innerHTML = "<strong>The Reef's Coral Garden, mid-range phone.</strong> Goal: 30 fps and a render thread of at most 12 ms.";
     $("stageH").textContent = "The Coral Garden";
     $("kRt").textContent = "Render thread"; $("kDraws").textContent = "Draw calls"; $("kSw").textContent = "Material switches";
@@ -777,7 +1157,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 
   // ---------- controls ----------
   document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => {
-    if (b.dataset.k === "mode" && st.mode !== b.dataset.v) st.view = "game";
+    if (b.dataset.k === "mode" && st.mode !== b.dataset.v) st.view = b.dataset.v === "cl" ? "map" : "game";
     st[b.dataset.k] = b.dataset.v; render();
   }));
   $("fish").addEventListener("input", (e) => { st.fish = +e.target.value; render(); });
@@ -799,7 +1179,15 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     { t: "Size cap: 40% of the screen height", d: "The 10 puffs at the lens shrink from 797 to 288 px. Splash 2.0 screens. Memory 31 ms, GPU 34 ms: 29.4 fps. Still over the 28 ms budget.", s: { mode: "od", view: "heat", shape: "cut", cap: "on" } },
     { t: "Fade the murk during the close-up", d: "The 2 murk layers fade out. Fill budget 0.5 → 2.5 screens; the splash uses 2.0. Pixel 24, memory 23, GPU 27 ms ✅ 30 fps. The pixel station is now the limiter.", s: { mode: "od", view: "game", shape: "cut", cap: "on", murk: "fade" } },
   ];
-  const lists = [[$("steps"), STEPS], [$("steps2"), STEPS2]];
+  const STEPS3 = [
+    { t: "Lantern Harbor, market street", d: "No culling for the 3,000 instanced props. 900 draws, 3,000 props sent. Render thread 15 ms, GPU 45.2 ms (vertex 42.2): 22.1 fps. On the map, red = sent but nobody sees it: 270 + 30 houses and 2,820 props.", s: { mode: "cl", view: "map" } },
+    { t: "Frustum-cull the props", d: "Each prop gets a bounding sphere in a CullingGroup. Props sent 3,000 → 900. Render 12.9 ms, GPU 34.7 ms: 28.8 fps. Main thread 12.36 → 12.96 ms: 3,000 more tests at 0.2 µs.", s: { mode: "cl", view: "map", pcull: "on" } },
+    { t: "Bake occlusion culling", d: "Houses behind the front row and props inside shops are hidden. Draws 900 → 600, props 900 → 180. Render 9.18 ms ✅, GPU 23 ms ✅ (pixel 20 is now the limiter): 30 fps. Main thread 15.2 ms: occlusion costs 2.24 ms.", s: { mode: "cl", view: "map", pcull: "on", occ: "on" } },
+    { t: "The lighthouse", d: "Same settings, the other camera: from above, almost nothing is hidden. 1,710 draws, 2,400 props. Render 22.5 ms, GPU 66.5 ms: 15 fps. Try occlusion off: 74 ms. It saves only 10% here and costs 5.3 ms of main thread.", s: { mode: "cl", view: "map", cam: "light", pcull: "on", occ: "on" } },
+    { t: "HLOD beyond 250 m", d: "Every 50 houses (and their props) far from the camera become one simple mesh. Draws 1,710 → 86. Render 4.58 ms, GPU 23 ms ✅ 30 fps. Price: +21.6 MB and a 12-minute bake.", s: { mode: "cl", view: "sent", cam: "light", pcull: "on", occ: "on", hlod: "on" } },
+    { t: "Check every camera", d: "Street with everything on: 162 draws, render 5.04 ms, GPU 23 ms. At the lighthouse, occlusion now hides nothing but costs 0.54 ms: turn it off there (main 12.54 → 12.01 ms). Look at the camera table.", s: { mode: "cl", view: "map", cam: "street", pcull: "on", occ: "on", hlod: "on" } },
+  ];
+  const lists = [[$("steps"), STEPS], [$("steps2"), STEPS2], [$("steps3"), STEPS3]];
   let k = 0;
   for (const [stepsEl, arr] of lists) arr.forEach((s) => {
     const li = document.createElement("li");

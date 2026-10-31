@@ -49,7 +49,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 024 | Draw calls, batching and instancing: the 1,200 fish that cost nothing on the GPU and 32 ms on the CPU | ✅ |
 | 025 | Overdraw, fill rate and transparency: the Big Catch splash that painted the screen 8 times | ✅ |
 | 026 | Shader cost and shader variant explosion: the uber shader that cost 9 ms, then 41 minutes | ✅ |
-| 027 | Culling: frustum, occlusion, HLOD | ⬜ |
+| 027 | Culling: frustum, occlusion, HLOD: the harbor that sent 3,120 objects nobody could see | ✅ |
 | 028 | LOD systems and impostors | ⬜ |
 | 029 | Texture memory, compression and mip streaming | ⬜ |
 | 030 | Lighting cost: forward vs deferred vs clustered | ⬜ |
