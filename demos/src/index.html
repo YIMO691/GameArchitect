@@ -187,6 +187,13 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <ul><li>Draw calls and material switches as CPU paperwork</li><li>Material copies vs shared materials + property blocks</li><li>Static batching and GPU instancing, and their prices</li><li>Overdraw heatmap: pixels, not particles</li><li>Cutout shapes, size caps and a fill budget in screens</li></ul>
       <span class="go">Open lab →</span>
     </a>
+    <a class="card" href="026-shader-lab/index.html">
+      <div class="meta"><span class="tag live">live</span><span>Lesson 026</span><span>simulation</span></div>
+      <h3>Shader Lab</h3>
+      <p>The Reef's all-in-one ReefLit shader computes all 10 features on every pixel: 35 cycles instead of 20, and the GPU jumps from 27 to 36 ms. Turn the features into 12 multi_compile keywords and the GPU is fine, but 4,096 variants take 41 minutes to build. Switch to shader_feature (24 variants, 14.4 s), then fix the night glow that went missing with a uniform branch: 27.84 ms.</p>
+      <ul><li>Shader cost in cycles per pixel</li><li>Why "× 0" is not free</li><li>Variant explosion: 2 to the power of keywords</li><li>multi_compile vs shader_feature, and missing variants</li><li>Uniform vs divergent branches</li></ul>
+      <span class="go">Open lab →</span>
+    </a>
   </section>
 
   <section class="panel" aria-labelledby="planH">
@@ -211,6 +218,7 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
           <tr><td>Plugin Lab</td><td class="mono">021</td><td>Modes built into the core vs as plugins in the Reef: checks per core file, scan vs baked discovery, leftovers after a round, arrival order vs phases, and an API version check for mods. Live.</td></tr>
           <tr><td>GPU Pipeline Lab</td><td class="mono">023 · 033</td><td>The four GPU stations in the Reef's Coral Garden: the slowest station sets the GPU time, one lever per station, and the bottleneck that moves after a fix. Live. Later: reading real GPU profiler captures.</td></tr>
           <tr><td>Draw Call Lab</td><td class="mono">024 · 025 · 027 · 028</td><td>Draw calls and material switches in the Reef's 1,200-fish shoal: material copies, shared materials, static batching and instancing; then overdraw in the Big Catch splash: a heatmap, cutout shapes, a size cap and a fill budget. Both lessons are live. Later: culling and LODs.</td></tr>
+          <tr><td>Shader Lab</td><td class="mono">026</td><td>The Reef's ReefLit uber shader: cycles per pixel when every feature always runs, the variant grid when every feature is a keyword, shader_feature and the missing night glow, and a uniform branch. Live.</td></tr>
           <tr><td>Netcode Lab</td><td class="mono">048 · 049</td><td>Lag, interpolation, prediction and rollback with a fake network.</td></tr>
         </tbody>
       </table>

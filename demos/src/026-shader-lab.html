@@ -1,0 +1,547 @@
+<title>Shader Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. The Coral Garden (picture or shader-cost heatmap) and the GPU stations on the left, readouts and controls on the right; the variant grid and the cost report below. One column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Shader Lab additions: material colours for the picture view, the variant grid and the scene. */
+:root { --m-sand: #e6d3a8; --m-rock: #8b939c; --m-coral: #e98a9b; --m-anem: #a77fd1; --m-shore: #6f8a7a; --m-wreck: #9a7350; --night: #061423; --glow: #7ff3e0; --deco: rgba(0,0,0,.18); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --m-sand: #8a7a55; --m-rock: #5d656e; --m-coral: #b5596b; --m-anem: #7c5aa6; --m-shore: #4b6455; --m-wreck: #6e5038; --night: #02070d; --glow: #5fe6d0; --deco: rgba(0,0,0,.28); } }
+:root[data-theme="dark"] { --m-sand: #8a7a55; --m-rock: #5d656e; --m-coral: #b5596b; --m-anem: #7c5aa6; --m-shore: #4b6455; --m-wreck: #6e5038; --night: #02070d; --glow: #5fe6d0; --deco: rgba(0,0,0,.28); }
+.scene svg { display: block; width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); }
+.scene text { font-family: var(--f-mono); font-size: 12px; }
+.stations svg { display: block; width: 100%; height: auto; }
+.stations text { font-family: var(--f-mono); font-size: 13px; }
+.stations rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .stations rect.bar { transition: none; } }
+.seg-ctl.four { grid-template-columns: repeat(2, 1fr); }
+.seg-ctl button:disabled { opacity: .45; cursor: not-allowed; }
+.gridbox { display: grid; gap: 8px; }
+.gridbox canvas { display: block; width: 100%; max-width: 520px; image-rendering: pixelated; border: 1px solid var(--line); border-radius: 6px; background: var(--field); }
+.tbl-wrap { overflow-x: auto; }
+.tbl td.feats { font-family: var(--f-mono); font-size: 12px; }
+.toggles { display: grid; gap: 8px; font-size: 14px; }
+.toggles label { display: flex; gap: 8px; align-items: flex-start; cursor: pointer; }
+.toggles input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 2px; flex: none; }
+.toggles small { display: block; color: var(--muted); font-size: 12px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/026-shader-cost-and-variant-explosion.md">Read Lesson 026 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 026 · Lesson 026 · simulation using the lesson's numbers</div>
+    <h1>Shader Lab</h1>
+    <p class="lede">The Reef's all-in-one <strong>ReefLit</strong> shader. Change how it switches its 10 features on, and watch two prices at once: <strong>cycles per pixel</strong> (GPU time) and <strong>variants built</strong> (build time and size).</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Coral Garden, mid-range phone.</strong> Goal: GPU ≤ 28 ms, at most 100 shader variants in the build, and the coral glows at night.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Coral Garden view and controls">
+    <div class="panel">
+      <div class="head-row">
+        <h2>The Coral Garden</h2>
+        <div class="seg-ctl small" role="group" aria-label="View">
+          <button type="button" data-k="view" data-v="pic">Picture</button>
+          <button type="button" data-k="view" data-v="cost">Shader cost</button>
+        </div>
+      </div>
+      <div class="scene" id="scene"></div>
+      <p class="legend" id="legend"></p>
+      <h3>GPU stations</h3>
+      <div class="stations" id="stations"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">GPU</span><span class="v" id="sGpu">0</span><span class="s" id="sGpuS">ms</span></div>
+        <div class="stat"><span class="k">Cycles per pixel</span><span class="v" id="sCyc">0</span><span class="s" id="sCycS">average</span></div>
+        <div class="stat"><span class="k">Variants built</span><span class="v" id="sVar">0</span><span class="s" id="sVarS">used</span></div>
+        <div class="stat"><span class="k">Shader build step</span><span class="v" id="sBuild">0</span><span class="s" id="sBuildS">size</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row">
+          <span class="lbl"><span>How features are switched</span></span>
+          <div class="seg-ctl four" role="group" aria-label="How features are switched">
+            <button type="button" data-k="mode" data-v="old">Old shaders<small>6 shaders, 1 per surface</small></button>
+            <button type="button" data-k="mode" data-v="v1">Always computed<small>ReefLit v1 · sliders</small></button>
+            <button type="button" data-k="mode" data-v="mc">multi_compile<small>v2 · every combination</small></button>
+            <button type="button" data-k="mode" data-v="sf">shader_feature<small>v3 · only what's used</small></button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>EMISSIVE (the glow) is a</span></span>
+          <div class="seg-ctl" role="group" aria-label="EMISSIVE is a">
+            <button type="button" data-k="emis" data-v="kw" class="kwonly">Keyword<small>0 cycles, ×2 variants</small></button>
+            <button type="button" data-k="emis" data-v="br" class="kwonly">Uniform branch<small>+1 cycle, 0 variants</small></button>
+          </div>
+        </div>
+        <div class="field-row">
+          <label for="extra"><span>New keywords nobody uses yet</span><span class="mono" id="extraLabel">0</span></label>
+          <input type="range" id="extra" min="0" max="2" step="1" value="0">
+          <p class="hint" id="extraHint">Feature requests waiting for an artist. Declared the same way as the other features.</p>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="night"><span>Night<small>NightCycle.cs calls EnableKeyword("_EMISSIVE_ON") on the coral</small></span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two-col">
+    <div class="panel">
+      <h2>Variant grid</h2>
+      <p class="fine" id="gridNote">One square = one combination of keywords.</p>
+      <div class="gridbox"><canvas id="grid" aria-label="Grid of shader variants: built, used and missing"></canvas></div>
+      <p class="legend"><span class="sw" style="background:var(--good)"></span>used <span class="sw" style="background:var(--muted)"></span>built, never used <span class="sw" style="background:var(--field)"></span>not built <span class="sw" style="background:var(--bad)"></span>needed but missing</p>
+    </div>
+    <div class="panel">
+      <h2>Cost report</h2>
+      <pre class="capture" id="report"></pre>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Look</th><th class="num">Pixels</th><th>Features</th><th class="num">Cycles</th></tr></thead>
+          <tbody id="looks"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 026: shader cost and variant explosion</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>× 0 is not free</h3><p>A feature switched off with a slider still runs on every pixel. In v1 every look pays 35 cycles; each cycle on every ReefLit pixel is 0.6 ms.</p></div>
+      <div class="note"><h3>Keywords double</h3><p>Every on/off keyword doubles the variants that <code>multi_compile</code> builds: 12 keywords, 4,096 copies, 41 minutes. The game uses 24.</p></div>
+      <div class="note"><h3>Pick the price per feature</h3><p>Set once on a material: <code>shader_feature</code>. Changed by a script and cheap: a uniform branch. Changed by a script and expensive: <code>multi_compile</code>.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. It uses the lesson's numbers: ReefLit covers 1,440,000 fragments, so 1 cycle = 0.6 ms; the other stations are vertex 15, raster 5.3, memory 23 ms, plus 12 ms of other pixel work and 3 ms fixed. Each variant takes 0.6 s and 30 KB, for one pass on one platform. Real compilers report cycles per unit (arithmetic, texture, load/store), real engines multiply variants by passes and graphics APIs, and a uniform branch's cost varies by GPU.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+  // ---------- the lesson's numbers ----------
+  const CORE = 12, MS_PER_CYCLE = 0.6, OTHER_PIXEL = 12, FIXED = 3;
+  const V = 15, R = 5.3, M = 23, BUDGET = 28, STATION_LIMIT = 25;
+  const SEC_PER_VAR = 0.6, KB_PER_VAR = 30;
+  const FEAT = { CAUSTICS: 3, MOSS: 5, SPARKLE: 4, DETAIL_NORMAL: 3, RIM: 2, EMISSIVE: 2, SWAY: 0, TINT_MASK: 1, SAND_RIPPLE: 2, SHORE_FOAM: 1 };
+  const KW = Object.keys(FEAT);
+  const LOOKS = [
+    { id: "sand", name: "Sand floor", short: "Sand", share: 0.40, f: ["CAUSTICS", "SAND_RIPPLE", "DETAIL_NORMAL"], c: "--m-sand" },
+    { id: "rock", name: "Rock", short: "Rock", share: 0.25, f: ["CAUSTICS", "MOSS"], c: "--m-rock" },
+    { id: "coral", name: "Coral", short: "Coral", share: 0.20, f: ["CAUSTICS", "DETAIL_NORMAL", "SWAY", "TINT_MASK"], c: "--m-coral" },
+    { id: "anem", name: "Anemone", short: "Anemone", share: 0.05, f: ["EMISSIVE", "SWAY", "RIM", "TINT_MASK"], c: "--m-anem" },
+    { id: "shore", name: "Shore rock", short: "Shore", share: 0.05, f: ["MOSS", "SPARKLE", "SHORE_FOAM"], c: "--m-shore" },
+    { id: "wreck", name: "Wreck", short: "Wreck", share: 0.05, f: ["MOSS", "SPARKLE", "DETAIL_NORMAL", "TINT_MASK"], c: "--m-wreck" },
+  ];
+  const st = { mode: "old", emis: "kw", extra: 0, night: false, view: "pic" };
+
+  function model(s) {
+    const kwModes = s.mode === "mc" || s.mode === "sf";
+    const branch = kwModes && s.emis === "br";
+    const extra = kwModes ? s.extra : 0;
+    const looks = LOOKS.map((L) => {
+      let cyc, glow = true, missing = false, note = "";
+      if (s.mode === "v1") { cyc = CORE + Object.values(FEAT).reduce((a, b) => a + b, 0); }
+      else {
+        cyc = CORE + L.f.reduce((a, k) => a + FEAT[k], 0) + (branch ? 1 : 0);
+        if (s.night && L.id === "coral") {
+          if (s.mode === "sf" && !branch) { missing = true; glow = false; note = "glow variant missing"; }
+          else cyc += FEAT.EMISSIVE;
+        }
+      }
+      return { ...L, cyc, glow, missing, note };
+    });
+    const avg = looks.reduce((a, L) => a + L.share * L.cyc, 0);
+    const reefMs = avg * MS_PER_CYCLE, P = OTHER_PIXEL + reefMs;
+    const gpu = FIXED + Math.max(V, R, P, M);
+    const frame = Math.max(1000 / 30, gpu, 14, 7.9);
+
+    // keywords and variants
+    let matKw = KW.filter((k) => !(branch && k === "EMISSIVE"));
+    for (let i = 1; i <= extra; i++) matKw.push("NEW_" + i);
+    const allKw = matKw.concat(["FOG", "SHADOWS"]);
+    const bit = (k) => 1 << allKw.indexOf(k);
+    const combo = (feats) => feats.filter((k) => matKw.includes(k)).reduce((a, k) => a | bit(k), 0);
+    const expand = (base) => [0, 1, 2, 3].map((r) => base | ((r & 1) ? bit("FOG") : 0) | ((r & 2) ? bit("SHADOWS") : 0));
+    let used = [], needed = [], built, possible, label;
+    if (kwModes) {
+      const bases = [...new Set(LOOKS.map((L) => combo(L.f)))];
+      used = bases.flatMap(expand);
+      if (s.night && !branch) needed = expand(combo(LOOKS[2].f.concat(["EMISSIVE"])));
+      possible = 2 ** allKw.length;
+      built = s.mode === "mc" ? possible : used.length;
+      label = s.mode === "mc" ? `${allKw.length} × multi_compile` : `${matKw.length} × shader_feature + 2 × multi_compile`;
+    } else if (s.mode === "v1") { possible = 4; built = 4; used = [0, 1, 2, 3]; label = "2 × multi_compile (FOG, SHADOWS)"; }
+    else { possible = 96; built = 96; used = null; label = "6 shaders × 16 variants"; }
+    const missingN = s.mode === "sf" ? needed.length : 0;
+    const usedN = used ? used.length + (s.mode === "mc" ? needed.length : 0) : null;
+    return { looks, avg, reefMs, P, gpu, frame, fps: 1000 / frame, kwModes, branch, matKw, allKw, used, needed, built, possible, label, missingN, usedN,
+      secs: built * SEC_PER_VAR, kb: built * KB_PER_VAR };
+  }
+
+  // ---------- formatting ----------
+  const f1 = (v) => v.toFixed(1), f2 = (v) => (Math.abs(v - Math.round(v)) < 1e-9 ? v.toFixed(0) : (Math.abs(v * 10 - Math.round(v * 10)) < 1e-9 ? v.toFixed(1) : v.toFixed(2)));
+  const n0 = (v) => Math.round(v).toLocaleString("en-US");
+  function fmtTime(sec) {
+    if (sec < 60) return f2(Math.round(sec * 10) / 10) + " s";
+    const min = Math.round(sec / 60);
+    if (min < 120) return min + " min";
+    return Math.floor(min / 60) + " h " + (min % 60) + " min";
+  }
+  const fmtSize = (kb) => (kb < 1024 ? n0(kb) + " KB" : f1(kb / 1024).replace(/\.0$/, "") + " MB");
+
+  // ---------- scene (treemap: area = share of ReefLit pixels) ----------
+  function heat(c) { return c <= 20 ? "--h2" : c <= 22 ? "--h3" : c <= 25 ? "--h4" : "--h5"; }
+  function scene(m) {
+    const box = $("scene").clientWidth || 600;
+    const W = Math.max(300, Math.round(box)), H = Math.round(W * 0.5), narrow = (W * 0.35) / 3 < 95;
+    const x1 = W * 0.4, x2 = W * 0.65, yc = H * (0.2 / 0.35);
+    const rects = { sand: [0, 0, x1, H], rock: [x1, 0, x2 - x1, H], coral: [x2, 0, W - x2, yc] };
+    const sw = W - x2, sh = H - yc;
+    ["anem", "shore", "wreck"].forEach((id, i) => {
+      rects[id] = narrow ? [x2, yc + (sh / 3) * i, sw, sh / 3] : [x2 + (sw / 3) * i, yc, sw / 3, sh];
+    });
+    let g = "";
+    const pic = st.view === "pic";
+    for (const L of m.looks) {
+      const [x, y, w, h] = rects[L.id];
+      const fill = pic ? `var(${L.c})` : `var(${heat(L.cyc)})`;
+      g += `<rect x="${x}" y="${y}" width="${w}" height="${h}" style="fill:${fill};stroke:var(--panel);stroke-width:2"><title>${L.name}: ${f2(L.cyc)} cycles per pixel, ${Math.round(L.share * 100)}% of ReefLit pixels</title></rect>`;
+      if (pic) g += deco(L.id, x, y, w, h);
+    }
+    if (pic && st.night) {
+      g += `<rect x="0" y="0" width="${W}" height="${H}" style="fill:var(--night);opacity:.62"/>`;
+      for (const L of m.looks) {
+        const [x, y, w, h] = rects[L.id];
+        const glowing = (L.id === "anem") || (L.id === "coral" && L.glow);
+        if (glowing) g += `<rect x="${x + 3}" y="${y + 3}" width="${w - 6}" height="${h - 6}" rx="6" style="fill:var(--glow);opacity:.55"/>` + deco(L.id, x, y, w, h);
+      }
+    }
+    for (const L of m.looks) {
+      const [x, y, w, h] = rects[L.id];
+      if (L.missing) g += `<rect x="${x + 3}" y="${y + 3}" width="${w - 6}" height="${h - 6}" style="fill:none;stroke:var(--bad);stroke-width:3;stroke-dasharray:8 5"/>`;
+      const small = h < 40 || w < 70;
+      const lbl = small ? `${L.short} ${f2(L.cyc)}` : L.name;
+      const tx = x + 8, ty = y + (small ? h / 2 + 4 : 20);
+      g += `<text x="${tx}" y="${ty}" style="fill:var(--ink);font-weight:600;paint-order:stroke;stroke:var(--panel);stroke-width:3px">${lbl}</text>`;
+      if (!small) {
+        g += `<text x="${tx}" y="${ty + 18}" style="fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:3px">${w < 120 ? f2(L.cyc) + " cyc" : f2(L.cyc) + " cyc · " + Math.round(L.share * 100) + "%"}</text>`;
+        if (L.missing) g += `<text x="${tx}" y="${ty + 36}" style="fill:var(--bad);font-weight:600;paint-order:stroke;stroke:var(--panel);stroke-width:3px">${w < 130 ? "missing!" : "glow variant missing!"}</text>`;
+      }
+    }
+    $("scene").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="The Coral Garden split by material; each area's size is its share of ReefLit pixels">${g}</svg>`;
+    $("legend").innerHTML = pic
+      ? `Area = share of ReefLit pixels. ${st.night ? "Night: glowing surfaces are bright." : "Switch to <strong>Shader cost</strong> to see cycles per pixel."}`
+      : `Cycles per pixel: <span class="sw" style="background:var(--h2)"></span>≤ 20 <span class="sw" style="background:var(--h3)"></span>21–22 <span class="sw" style="background:var(--h4)"></span>23–25 <span class="sw" style="background:var(--h5)"></span>over 25`;
+  }
+  function deco(id, x, y, w, h) {
+    let d = "";
+    const ln = (a, b, c, e) => `<line x1="${a}" y1="${b}" x2="${c}" y2="${e}" style="stroke:var(--deco);stroke-width:2;stroke-linecap:round"/>`;
+    if (id === "sand") for (let k = 1; k < 6; k++) { const yy = y + (h * k) / 6 + 8; d += `<path d="M${x + 10} ${yy} q ${w / 8} -8 ${w / 4} 0 t ${w / 4} 0 t ${w / 4} 0" style="fill:none;stroke:var(--deco);stroke-width:2"/>`; }
+    if (id === "rock") for (const [a, b, r] of [[0.3, 0.45, 0.16], [0.7, 0.7, 0.2], [0.45, 0.85, 0.12]]) d += `<circle cx="${x + w * a}" cy="${y + h * b}" r="${Math.min(w, h) * r}" style="fill:var(--deco)"/>`;
+    if (id === "coral") for (let k = 0; k < 4; k++) { const bx = x + w * (0.15 + k * 0.22), by = y + h - 6; d += ln(bx, by, bx, by - h * 0.55) + ln(bx, by - h * 0.3, bx - w * 0.07, by - h * 0.5) + ln(bx, by - h * 0.4, bx + w * 0.07, by - h * 0.65); }
+    if (id === "anem") for (let k = -2; k <= 2; k++) d += ln(x + w / 2, y + h - 4, x + w / 2 + k * w * 0.12, y + h * 0.35);
+    if (id === "shore") for (let k = 0; k < 6; k++) d += `<circle cx="${x + w * (0.15 + 0.14 * k)}" cy="${y + h * (k % 2 ? 0.3 : 0.45)}" r="2.5" style="fill:var(--foam)"/>`;
+    if (id === "wreck") for (let k = 1; k < 4; k++) d += ln(x + 4, y + (h * k) / 4, x + w - 4, y + (h * k) / 4 + 4);
+    return d;
+  }
+
+  // ---------- GPU stations ----------
+  function stations(m) {
+    const box = $("stations").clientWidth || 600;
+    const W = Math.max(300, Math.min(700, Math.round(box))), L = 92, Rm = 64, rowH = 30, H = 4 * rowH + 26;
+    const max = 40, X = (v) => L + (v / max) * (W - L - Rm);
+    const rows = [["Vertex", V, "--p1"], ["Raster", R, "--p3"], ["Pixel", m.P, "--p2"], ["Memory", M, "--p7"]];
+    const slow = Math.max(V, R, m.P, M);
+    let g = "";
+    rows.forEach(([name, v, c], i) => {
+      const y = i * rowH + 4, hot = v === slow;
+      g += `<text x="0" y="${y + 16}" style="fill:var(--ink);font-weight:${hot ? 700 : 400}">${name}</text>`;
+      g += `<rect x="${L}" y="${y + 3}" width="${W - L - Rm}" height="18" rx="3" style="fill:var(--field);stroke:var(--line)"/>`;
+      g += `<rect class="bar" x="${L}" y="${y + 3}" width="${Math.max(1, X(v) - L)}" height="18" rx="3" style="fill:var(${v > STATION_LIMIT ? "--bad" : c})"/>`;
+      g += `<text x="${W - Rm + 6}" y="${y + 16}" style="fill:var(${v > STATION_LIMIT ? "--bad" : "--ink"});font-weight:${hot ? 700 : 400}">${f2(v)}</text>`;
+    });
+    const xl = X(STATION_LIMIT);
+    g += `<line x1="${xl}" x2="${xl}" y1="0" y2="${4 * rowH + 6}" style="stroke:var(--good);stroke-width:2;stroke-dasharray:5 4"/>`;
+    g += `<text x="${xl}" y="${H - 4}" text-anchor="middle" style="fill:var(--good)">25 ms per station</text>`;
+    $("stations").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="GPU station loads in ms against a 25 ms line">${g}</svg>`;
+  }
+
+  // ---------- variant grid ----------
+  function grid(m) {
+    const cv = $("grid"), ctx = cv.getContext("2d");
+    const n = m.possible;
+    let cols, rows;
+    if (st.mode === "old") { cols = 16; rows = 6; }
+    else { const b = Math.round(Math.log2(n)); cols = 2 ** Math.ceil(b / 2); rows = 2 ** Math.floor(b / 2); }
+    const avail = Math.min(520, cv.parentElement.clientWidth || 360);
+    const cell = Math.min(st.mode === "old" ? 20 : 28, avail / cols);
+    const Wc = cols * cell, Hc = rows * cell, dpr = window.devicePixelRatio || 1;
+    cv.style.width = Wc + "px"; cv.style.height = Hc + "px";
+    cv.width = Math.round(Wc * dpr); cv.height = Math.round(Hc * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = css("--field"); ctx.fillRect(0, 0, Wc, Hc);
+    const gap = cell >= 4 ? 1 : 0;
+    const usedSet = new Set(m.used || []), needSet = new Set(m.needed);
+    const muted = css("--muted"), good = css("--good"), bad = css("--bad"), line = css("--line");
+    const builtAll = st.mode !== "sf";
+    ctx.globalAlpha = 0.35; ctx.fillStyle = builtAll ? muted : line;
+    for (let i = 0; i < n; i++) {
+      if (usedSet.has(i) || needSet.has(i)) continue;
+      const r = Math.floor(i / cols), c = i % cols;
+      if (builtAll || cell >= 4) { ctx.globalAlpha = builtAll ? 0.35 : 0.5; ctx.fillStyle = builtAll ? muted : line; ctx.fillRect(c * cell, r * cell, cell - gap, cell - gap); }
+    }
+    ctx.globalAlpha = 1;
+    const big = Math.max(cell, 4);
+    const mark = (i, col) => { const r = Math.floor(i / cols), c = i % cols; const o = (big - cell) / 2; ctx.fillStyle = col; ctx.fillRect(c * cell - o, r * cell - o, big - gap, big - gap); };
+    if (st.mode === "old") { for (let i = 0; i < n; i++) mark(i, good); }
+    else {
+      for (const i of usedSet) mark(i, good);
+      for (const i of needSet) mark(i, st.mode === "sf" ? bad : good);
+    }
+    let note;
+    if (st.mode === "old") note = "6 old shaders × 16 variants each = 96 squares, all built.";
+    else if (st.mode === "v1") note = "Only FOG and SHADOWS are keywords: 2 × 2 = 4 squares. The 10 features are paid per pixel instead.";
+    else note = `${m.allKw.length} on/off keywords → 2^${m.allKw.length} = ${n0(n)} squares (${cols} × ${rows}). ${st.mode === "mc" ? "multi_compile builds every square." : "shader_feature builds only the squares materials use."}`;
+    $("gridNote").textContent = note;
+  }
+
+  // ---------- readouts ----------
+  function render() {
+    const m = model(st);
+    scene(m); stations(m); grid(m);
+    $("sGpu").textContent = f2(m.gpu);
+    $("sGpu").className = "v " + (m.gpu <= BUDGET + 1e-9 ? "good" : "bad");
+    $("sGpuS").textContent = `ms · ${f1(m.fps)} fps · budget ${BUDGET}`;
+    $("sCyc").textContent = f2(m.avg);
+    $("sCycS").textContent = `× 0.6 = ${f2(m.reefMs)} ms of pixel work`;
+    $("sVar").textContent = n0(m.built);
+    $("sVar").className = "v " + (m.built <= 100 ? "good" : "bad");
+    $("sVarS").textContent = m.usedN == null ? "in 6 shaders" : `used ${m.usedN}${m.missingN ? ` · missing ${m.missingN}` : ""}`;
+    $("sBuild").textContent = fmtTime(m.secs);
+    $("sBuild").className = "v " + (m.secs <= 120 ? "good" : "bad");
+    $("sBuildS").textContent = `${fmtSize(m.kb)} of shader data`;
+
+    const glowOk = !m.looks.some((L) => L.missing);
+    const goal = m.gpu <= BUDGET + 1e-9 && m.built <= 100 && glowOk;
+    $("goalPill").className = "pill " + (goal ? "ok" : "over");
+    $("goalPill").textContent = goal ? (st.night ? "Goal met" : "Goal met (by day)") : !glowOk ? "Glow missing" : m.gpu > BUDGET ? "GPU over budget" : "Too many variants";
+
+    for (const b of document.querySelectorAll("[data-k]")) b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v));
+    for (const b of document.querySelectorAll(".kwonly")) b.disabled = !m.kwModes;
+    $("extra").disabled = !m.kwModes; $("extra").value = st.extra;
+    $("extraLabel").textContent = m.kwModes ? String(st.extra) : "—";
+    $("extraHint").textContent = m.kwModes ? `Each one adds a keyword: ${st.mode === "mc" ? "×2 variants with multi_compile" : "0 variants with shader_feature, until a material uses it"}.` : "Only for the keyword modes (multi_compile, shader_feature).";
+    $("night").checked = st.night;
+
+    let coach;
+    if (st.mode === "old") coach = `Six old shaders, each doing only its own job: ${f2(m.avg)} cycles on average, GPU ${f2(m.gpu)} ms. Fast, but artists can't mix features across surfaces.`;
+    else if (st.mode === "v1") coach = `<span class="warn">Every pixel pays all 10 features.</span> Sliders at 0 hide moss on the sand, but the moss code still runs: 35 cycles everywhere, pixel station ${f2(m.P)} ms, GPU ${f2(m.gpu)} ms.`;
+    else if (st.mode === "mc") coach = `Each look pays only its own features (${f2(m.avg)} cycles), but <span class="warn">${n0(m.built)} variants</span> are built for ${m.usedN} that are used: ${fmtTime(m.secs)} and ${fmtSize(m.kb)} every build.`;
+    else if (m.missingN) coach = `<span class="warn">The coral asks for a variant that was never built.</span> No material had "coral + EMISSIVE", so shader_feature skipped it. The engine picks the nearest variant: no glow. GPU ${f2(m.gpu)} ms only because the glow is missing.`;
+    else coach = `Only the ${m.built} combinations materials use are built (${fmtTime(m.secs)}, ${fmtSize(m.kb)}). ${m.branch ? `EMISSIVE is a uniform branch: +1 cycle everywhere, nothing can go missing.` : "Anything a script switches on at run time is not in the build."}`;
+    $("coach").innerHTML = coach;
+
+    // report
+    const kwLine = st.mode === "old" ? "6 separate shaders, ~4 keywords each" : m.label;
+    let rep = `<span class="dim">ReefLit · ${{ old: "old shaders", v1: "v1 always computed", mc: "v2 multi_compile", sf: "v3 shader_feature" }[st.mode]}${st.night ? " · night" : " · day"}</span>\n`;
+    rep += `Keywords      ${kwLine}\n`;
+    if (m.branch) rep += `Branch        EMISSIVE (dynamic_branch, +1 cycle)\n`;
+    rep += `Combinations  ${n0(m.possible)} possible · ${n0(m.built)} built${m.usedN != null ? " · " + m.usedN + " used" : ""}\n`;
+    rep += `Build step    ${n0(m.built)} × 0.6 s = ${fmtTime(m.secs)}\n`;
+    rep += `Shader data   ${n0(m.built)} × 30 KB = ${fmtSize(m.kb)}\n`;
+    rep += `Pixel cost    ${f2(m.avg)} cycles × 0.6 = ${f2(m.reefMs)} ms\n`;
+    rep += `GPU           3 + max(15, 5.3, ${f2(m.P)}, 23) = ${m.gpu > BUDGET ? '<span class="warn">' + f2(m.gpu) + " ms</span>" : '<span class="ok">' + f2(m.gpu) + " ms</span>"}\n`;
+    if (m.missingN) rep += `<span class="warn">MISSING       coral + EMISSIVE: ${m.missingN} variants not built</span>\n`;
+    $("report").innerHTML = rep;
+
+    $("looks").innerHTML = m.looks.map((L) => {
+      const feats = st.mode === "v1" ? "all 10 (most × 0)" : L.f.filter((k) => !(m.branch && k === "EMISSIVE")).map((k) => k.replace("_NORMAL", "").replace("_MASK", "").replace("SAND_", "").replace("SHORE_", "")).join(" ") + (m.branch && L.f.includes("EMISSIVE") ? " +glow branch" : "") + (st.night && L.id === "coral" && st.mode !== "v1" ? (L.missing ? " +EMISSIVE?" : " +EMISSIVE") : "");
+      return `<tr class="${L.missing ? "cur" : ""}"><td>${L.name}</td><td class="num">${Math.round(L.share * 100)}%</td><td class="feats">${feats}</td><td class="num ${L.missing ? "bad" : ""}">${f2(L.cyc)}</td></tr>`;
+    }).join("") + `<tr><td><strong>Average</strong></td><td class="num">100%</td><td></td><td class="num"><strong>${f2(m.avg)}</strong></td></tr>`;
+  }
+
+  // ---------- controls ----------
+  for (const b of document.querySelectorAll("[data-k]")) b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); });
+  $("extra").addEventListener("input", (e) => { st.extra = +e.target.value; render(); });
+  $("night").addEventListener("change", (e) => { st.night = e.target.checked; render(); });
+
+  // ---------- guided steps ----------
+  const STEPS = [
+    { t: "Before: six old shaders", d: "One shader per surface. Average 20 cycles, GPU 27 ms. 96 variants, 57.6 s of shader build. The goal is met, but artists hate six different shaders.", s: { mode: "old", emis: "kw", extra: 0, night: false, view: "pic" } },
+    { t: "ReefLit v1: every feature, every pixel", d: "All 10 features always run, then sliders multiply most of them by 0. 35 cycles everywhere: the heatmap is red. Pixel station 33 ms, GPU 36 ms, 27.8 fps. Only 4 variants.", s: { mode: "v1", emis: "kw", extra: 0, night: false, view: "cost" } },
+    { t: "Ben's fix: 12 multi_compile keywords", d: "Each look pays only its own features: 20 cycles, GPU 27 ms. But the grid fills up: 4,096 variants, 41 min, 120 MB. Only 24 squares are green.", s: { mode: "mc", emis: "kw", extra: 0, night: false, view: "cost" } },
+    { t: "One more feature request", d: "A 13th keyword that no material uses yet. Variants double to 8,192: 82 min and 240 MB per build. The GPU doesn't move: 27 ms.", s: { mode: "mc", emis: "kw", extra: 1, night: false, view: "cost" } },
+    { t: "Build only what's used: shader_feature", d: "Material features become shader_feature; FOG and SHADOWS stay multi_compile. 24 variants, 14.4 s, 720 KB. The unused 13th keyword now costs 0 variants.", s: { mode: "sf", emis: "kw", extra: 1, night: false, view: "cost" } },
+    { t: "Night: the coral won't glow", d: "NightCycle.cs switches EMISSIVE on the coral. No material had that combination, so it was never built: 4 red squares, and the coral stays dark. GPU 27 ms only because the glow is missing.", s: { mode: "sf", emis: "kw", extra: 0, night: true, view: "pic" } },
+    { t: "Make the glow a uniform branch", d: "EMISSIVE stops being a keyword. +1 cycle everywhere, +2 on the coral at night: 21.4 cycles, GPU 27.84 ms. Still 24 variants, none missing. Goal met.", s: { mode: "sf", emis: "br", extra: 0, night: true, view: "pic" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      Object.assign(st, s.s);
+      render();
+      $("scene").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("scene").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("scene"));
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+})();
+</script>

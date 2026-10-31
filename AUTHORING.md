@@ -75,6 +75,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `021-plugin-lab` | 021 |
 | `023-gpu-pipeline` | 023, 033 (GPU profiling tools) |
 | `024-draw-calls` | 024, 025, 027, 028 |
+| `026-shader-lab` | 026 |
 | `048-netcode` | 048, 049 |
 
 Lessons not in the map get a new lab when their main idea is something that changes on screen or in numbers. For lessons about process or communication (e.g. writing design docs, estimating risk), build a small interactive tool instead: a decision table, a budget calculator, a trade-off picker with the lesson's real numbers. When a new lab spans later lessons too, add its row to this map.
