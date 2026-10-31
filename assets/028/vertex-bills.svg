@@ -1,0 +1,54 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='860' height='486' viewBox='0 0 860 486' font-family='Segoe UI, Helvetica, Arial, sans-serif'>
+<rect x='0.5' y='0.5' width='859' height='485' rx='14' fill='#ffffff' stroke='#d0d7de'/>
+<text x='24' y='38' font-size='20' font-weight='700' fill='#1f2328'>The vertex bill, step by step</text>
+<text x='24' y='62' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Vertex station load (ms) per step. GPU = 3 + the slowest station. Each station may use 25 ms (GPU budget 28 − 3).</text>
+<text x='24' y='112' font-size='14' fill='#1f2328' font-weight='600' text-anchor='start'>Start: houses one mesh</text>
+<rect x='230' y='94' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de'/>
+<rect x='230.0' y='94' width='41.8' height='26' fill='#9aa0a6'/><rect x='271.8' y='94' width='156.7' height='26' fill='#4e79a7'/><rect x='428.4' y='94' width='240.2' height='26' fill='#59a14f'/>
+<line x1='438.9' x2='438.9' y1='90' y2='124' stroke='#b07aa1' stroke-width='3'/>
+<text x='712' y='106' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>vertex 42</text>
+<text x='712' y='122' font-size='13' fill='#cf222e' font-weight='700' text-anchor='start'>GPU 45 · 22.2 fps</text>
+<text x='24' y='164' font-size='14' fill='#1f2328' font-weight='600' text-anchor='start'>+ house LOD Group</text>
+<rect x='230' y='146' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de'/>
+<rect x='230.0' y='146' width='41.8' height='26' fill='#9aa0a6'/><rect x='271.8' y='146' width='52.6' height='26' fill='#4e79a7'/><rect x='324.4' y='146' width='240.2' height='26' fill='#59a14f'/>
+<line x1='438.9' x2='438.9' y1='142' y2='176' stroke='#b07aa1' stroke-width='3'/>
+<text x='712' y='158' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>vertex 32.04</text>
+<text x='712' y='174' font-size='13' fill='#cf222e' font-weight='700' text-anchor='start'>GPU 35.04 · 28.5 fps</text>
+<text x='24' y='216' font-size='14' fill='#1f2328' font-weight='600' text-anchor='start'>+ impostors for far pines</text>
+<rect x='230' y='198' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de'/>
+<rect x='230.0' y='198' width='41.8' height='26' fill='#9aa0a6'/><rect x='271.8' y='198' width='52.6' height='26' fill='#4e79a7'/><rect x='324.4' y='198' width='14.6' height='26' fill='#59a14f'/>
+<line x1='454.0' x2='454.0' y1='194' y2='228' stroke='#b07aa1' stroke-width='3'/>
+<text x='712' y='210' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>vertex 10.44</text>
+<text x='712' y='226' font-size='13' fill='#1a7f37' font-weight='700' text-anchor='start'>GPU 24.45 · 30 fps ✓</text>
+<text x='24' y='268' font-size='14' fill='#1f2328' font-weight='600' text-anchor='start'>+ cross-fade</text>
+<rect x='230' y='250' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de'/>
+<rect x='230.0' y='250' width='41.8' height='26' fill='#9aa0a6'/><rect x='271.8' y='250' width='52.6' height='26' fill='#4e79a7'/><rect x='324.4' y='250' width='14.6' height='26' fill='#59a14f'/><rect x='339.0' y='250' width='2.4' height='26' fill='#e5534b'/>
+<line x1='454.0' x2='454.0' y1='246' y2='280' stroke='#b07aa1' stroke-width='3'/>
+<text x='712' y='262' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>vertex 10.66</text>
+<text x='712' y='278' font-size='13' fill='#1a7f37' font-weight='700' text-anchor='start'>GPU 24.45 · 30 fps ✓</text>
+<text x='24' y='320' font-size='14' fill='#1f2328' font-weight='600' text-anchor='start'>Low-end phone, bias 1</text>
+<rect x='230' y='302' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de'/>
+<rect x='230.0' y='302' width='125.3' height='26' fill='#9aa0a6'/><rect x='355.3' y='302' width='157.9' height='26' fill='#4e79a7'/><rect x='513.3' y='302' width='43.7' height='26' fill='#59a14f'/><rect x='557.0' y='302' width='7.2' height='26' fill='#e5534b'/>
+<line x1='454.0' x2='454.0' y1='298' y2='332' stroke='#b07aa1' stroke-width='3'/>
+<text x='712' y='314' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>vertex 31.99</text>
+<text x='712' y='330' font-size='13' fill='#cf222e' font-weight='700' text-anchor='start'>GPU 34.99 · 28.6 fps</text>
+<text x='24' y='372' font-size='14' fill='#1f2328' font-weight='600' text-anchor='start'>Low-end phone, bias 0.5</text>
+<rect x='230' y='354' width='470' height='26' rx='4' fill='#f6f8fa' stroke='#d0d7de'/>
+<rect x='230.0' y='354' width='125.3' height='26' fill='#9aa0a6'/><rect x='355.3' y='354' width='99.6' height='26' fill='#4e79a7'/><rect x='455.0' y='354' width='4.7' height='26' fill='#59a14f'/><rect x='459.7' y='354' width='3.0' height='26' fill='#e5534b'/>
+<line x1='454.6' x2='454.6' y1='350' y2='384' stroke='#b07aa1' stroke-width='3'/>
+<text x='712' y='366' font-size='12' fill='#57606a' font-weight='400' text-anchor='start'>vertex 22.28</text>
+<text x='712' y='382' font-size='13' fill='#1a7f37' font-weight='700' text-anchor='start'>GPU 25.28 · 30 fps ✓</text>
+<line x1='491.1111111111111' x2='491.1111111111111' y1='72' y2='402' stroke='#1a7f37' stroke-width='2.5' stroke-dasharray='6 4'/>
+<text x='497.1111111111111' y='82' font-size='12' fill='#1a7f37' font-weight='600' text-anchor='start'>25 ms station limit</text>
+<text x='230.0' y='418' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>0</text>
+<text x='334.44444444444446' y='418' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>10</text>
+<text x='438.8888888888889' y='418' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>20</text>
+<text x='543.3333333333333' y='418' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>30</text>
+<text x='647.7777777777778' y='418' font-size='12' fill='#57606a' font-weight='400' text-anchor='middle'>40 ms</text>
+<rect x='24' y='429' width='14' height='14' rx='3' fill='#9aa0a6'/><text x='44' y='440' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>everything else</text>
+<rect x='184' y='429' width='14' height='14' rx='3' fill='#4e79a7'/><text x='204' y='440' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>houses</text>
+<rect x='344' y='429' width='14' height='14' rx='3' fill='#59a14f'/><text x='364' y='440' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>pines</text>
+<rect x='504' y='429' width='14' height='14' rx='3' fill='#e5534b'/><text x='524' y='440' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>cross-fade extra</text>
+<rect x='664' y='429' width='14' height='14' rx='3' fill='#b07aa1'/><text x='684' y='440' font-size='13' fill='#1f2328' font-weight='400' text-anchor='start'>pixel station load</text>
+<text x='24' y='466' font-size='13' fill='#57606a' font-weight='400' text-anchor='start'>Low-end phone: vertices 3× slower. It renders fewer pixels, so its pixel station stays near 20 ms, but the vertices are the same.</text>
+</svg>

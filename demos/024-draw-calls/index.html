@@ -138,7 +138,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
 .threads rect.bar { transition: width 0.25s ease; }
 @media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
-.mode-ctl { max-width: 780px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mode-ctl { max-width: 980px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 620px) { .mode-ctl { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.seg-ctl.three { grid-template-columns: repeat(3, 1fr); }
+.sw.tri { width: 0; height: 0; border-radius: 0; background: transparent !important; border: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 11px solid var(--tc); }
 .sw.ring { background: transparent !important; border: 2px solid var(--p7); }
 .sw.disc { border-radius: 50%; }
 .sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
@@ -151,14 +154,16 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/024-draw-calls-batching-and-instancing.md">Read Lesson 024 ↗</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/025-overdraw-fill-rate-and-transparency.md">Read Lesson 025 ↗</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/027-culling-frustum-occlusion-hlod.md">Read Lesson 027 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/028-lod-systems-and-impostors.md">Read Lesson 028 ↗</a>
     </div>
-    <div class="eyebrow">Lab 024 · Lessons 024, 025, 027 · simulation using the lessons' numbers</div>
+    <div class="eyebrow">Lab 024 · Lessons 024, 025, 027, 028 · simulation using the lessons' numbers</div>
     <h1>Draw Call Lab</h1>
-    <p class="lede">Three ways a scene gets slow. <strong>Draw calls</strong>: every slip the render thread writes for the GPU costs CPU time. <strong>Overdraw</strong>: every see-through pixel the GPU paints again costs GPU time. <strong>Culling</strong>: every object nobody can see still costs both, until you stop sending it. Pick a mode, change one thing, and watch the bars against their budgets.</p>
+    <p class="lede">Four ways a scene gets slow. <strong>Draw calls</strong>: every slip the render thread writes for the GPU costs CPU time. <strong>Overdraw</strong>: every see-through pixel the GPU paints again costs GPU time. <strong>Culling</strong>: every object nobody can see still costs both, until you stop sending it. <strong>Level of detail</strong>: a far house with all its vertices pays for detail nobody can see. Pick a mode, change one thing, and watch the bars against their budgets.</p>
     <div class="seg-ctl mode-ctl" role="group" aria-label="Mode">
       <button type="button" data-k="mode" data-v="dc">Draw calls<small>Lesson 024 · the 1,200 fish</small></button>
       <button type="button" data-k="mode" data-v="od">Overdraw<small>Lesson 025 · the Big Catch</small></button>
       <button type="button" data-k="mode" data-v="cl">Culling<small>Lesson 027 · Lantern Harbor</small></button>
+      <button type="button" data-k="mode" data-v="ld">LOD<small>Lesson 028 · the ferry ride</small></button>
     </div>
   </header>
 
@@ -177,6 +182,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
           <button type="button" data-k="view" data-v="sent" id="vSent">Sent to GPU</button>
           <button type="button" data-k="view" data-v="calls" id="vCalls">Draw calls</button>
           <button type="button" data-k="view" data-v="heat" id="vHeat">Overdraw</button>
+          <button type="button" data-k="view" data-v="lods" id="vLods">LOD levels</button>
+          <button type="button" data-k="view" data-v="ppv" id="vPpv">Pixels per vertex</button>
         </div>
       </div>
       <div class="stage" id="stage">
@@ -298,6 +305,45 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
         </div>
         <p class="hint" style="margin:0;font-size:12px;color:var(--muted)">The houses (1,200 in the lower town, 600 in the Old Town) always get the engine's frustum culling.</p>
       </div>
+      <div class="controls" id="ctlLD" hidden>
+        <div class="field-row">
+          <span class="lbl"><span>Houses (500 in view, 15–250 m)</span></span>
+          <div class="seg-ctl" role="group" aria-label="Houses">
+            <button type="button" data-k="houses" data-v="one">One mesh<small>2,400 vertices at any distance</small></button>
+            <button type="button" data-k="houses" data-v="lod">LOD Group<small>2,400 · 1,200 · 360</small></button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Pines (3,000 in view, instanced)</span></span>
+          <div class="seg-ctl" role="group" aria-label="Pines">
+            <button type="button" data-k="pines" data-v="lods">Mesh LODs<small>2,000 · 1,000 · 600</small></button>
+            <button type="button" data-k="pines" data-v="imp">+ Impostors<small>last LOD: a 4-vertex card</small></button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>LOD switches</span></span>
+          <div class="seg-ctl" role="group" aria-label="LOD switches">
+            <button type="button" data-k="fade" data-v="snap">Snap<small>one mesh, it pops</small></button>
+            <button type="button" data-k="fade" data-v="fade">Cross-fade<small>both drawn in the last 10%</small></button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>LOD bias</span><span class="mono">switch distances × bias</span></span>
+          <div class="seg-ctl three" role="group" aria-label="LOD bias">
+            <button type="button" data-k="bias" data-v="0.5">0.5<small>30 · 60 m</small></button>
+            <button type="button" data-k="bias" data-v="1">1<small>60 · 120 m</small></button>
+            <button type="button" data-k="bias" data-v="2">2<small>120 · 240 m</small></button>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="lbl"><span>Phone</span></span>
+          <div class="seg-ctl" role="group" aria-label="Phone">
+            <button type="button" data-k="phone" data-v="mid">Mid-range<small>80,000 vertices per ms</small></button>
+            <button type="button" data-k="phone" data-v="low">Low-end<small>vertices 3× slower, CPU 2×</small></button>
+          </div>
+        </div>
+        <p class="hint" style="margin:0;font-size:12px;color:var(--muted)">Culling and HLOD from Lesson 027 are on. Beyond 250 m the Old Town is drawn as HLOD proxies (in "everything else").</p>
+      </div>
     </div>
   </section>
 
@@ -324,6 +370,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <ol class="steps" id="steps2"></ol>
     <p class="group-title">Lesson 027 · Lantern Harbor: culling</p>
     <ol class="steps" id="steps3"></ol>
+    <p class="group-title">Lesson 028 · The ferry ride: LOD and impostors</p>
+    <ol class="steps" id="steps4"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -345,9 +393,16 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <div class="note"><h3>Each kind of culling catches a different "unseen"</h3><p>Frustum: outside the view. Occlusion: behind a house. HLOD: so far away that 50 houses can be one simple mesh. In the street, occlusion does the work. At the lighthouse, only HLOD helps.</p></div>
       <div class="note"><h3>Culling has a bill too</h3><p>Occlusion costs 2.24 ms of main thread and 3.2 MB in the street; at the lighthouse with HLOD it costs 0.54 ms and hides nothing. HLOD costs 21.6 MB. Check every camera, not one.</p></div>
     </div>
+    <p class="group-title">Lesson 028 · Level of detail</p>
+    <div class="notes">
+      <div class="note"><h3>Pay for the pixels, not the model</h3><p>A house 180 m away is 77 px tall but still sends 2,400 vertices: about 3 pixels per vertex. 82% of the ferry view's vertices went to objects beyond 120 m.</p></div>
+      <div class="note"><h3>Every level has a floor</h3><p>House LODs cut the houses from 15 to 5.04 ms. The pines' last mesh LOD still needs 600 vertices to look like a pine; a 4-vertex impostor card takes 2,900 far pines from 21.75 ms to 0.145 ms, for 1.45 ms of pixel work and 2.7 MB.</p></div>
+      <div class="note"><h3>LOD bias is a quality dial</h3><p>The low-end phone does vertices 3× slower, and a lower resolution doesn't help vertices. Bias 0.5 brings its GPU from 34.99 to 25.28 ms. Cross-fades hide pops but draw both meshes while they fade.</p></div>
+    </div>
     <p class="fine">This lab is a simulation, not a measurement. Costs come from Lesson 024: render thread = 2 ms + 0.01 ms per draw call + 0.02 ms per material switch + 0.001 ms per instanced fish; main thread 14 ms; GPU = 3 ms + the larger of the pixel load (24 ms) and the vertex load (6 ms + 3 ms per 400 fish); the game caps at 30 fps. Real per-draw costs depend on the graphics API, the driver and the engine (Vulkan and Metal are cheaper per draw than OpenGL ES), and real engines also spend main-thread time on culling and sorting each object.</p>
     <p class="fine">The Overdraw mode is also a simulation, using Lesson 025's numbers: 1 screen = 1600 × 720 = 1,152,000 painted pixels; each see-through screen costs 1 ms in the pixel station and 4 ms in the output &amp; memory station (2 ms with the 4-byte format); scene loads before see-through layers: vertex 15, raster 5.3, pixel 22, memory 15 ms; GPU = 3 ms + the slowest station. The heatmap is a sketch of the same 240 particles; its colours are not measured. On real phone GPUs, blending happens in on-chip tile memory and costs differ per vendor.</p>
     <p class="fine">The Culling mode is also a simulation, using Lesson 027's numbers: render thread = 2 ms + 10 µs per draw + 20 µs per material switch (50, plus 1 per HLOD cluster) + 1 µs per instanced prop; GPU vertex load = 2 ms + 0.03 ms per house + 0.005 ms per prop + 0.15 ms per HLOD cluster; pixel 20, memory 18, raster 4 ms; GPU = 3 ms + the slowest station; main thread = 12 ms + 0.2 µs per frustum test + (occlusion) 0.5 ms + 1 µs per occlusion test. The map is a sketch: which objects are hidden was chosen to match the lesson's counts, not computed from real sight lines. Real engines cull on worker threads, and the cost per test depends on the engine.</p>
+    <p class="fine">The LOD mode is also a simulation, using Lesson 028's numbers: the ferry camera sees 500 houses (15–250 m) and 3,000 pines (60–450 m), spread evenly inside each distance band; the map uses a square-root distance scale. Vertex load = all vertices ÷ 80,000 per ms (3× slower on the low-end phone), with 320,000 vertices (4 ms) for everything else; pixel = 20 ms + 0.5 µs per impostor; GPU = 3 ms + the slowest station; render thread = 2 ms + 10 µs per draw + 20 µs per material + 1 µs per pine instance (2× on the low-end phone); main thread 14 ms (28 ms on the low-end phone). A cross-fading object draws both meshes; the extra dithered pixel work is not counted. Pixels per vertex use a 12 × 10 m box for a house and a 6 × 15 m triangle for a pine on a 1600 × 720 screen with a 60° view. Real LOD selection and costs differ per engine and GPU.</p>
   </section>
 </div>
 
@@ -359,8 +414,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
   const SPECIES = 6, ENV = 300, ENV_MAT = 40, UI = 50, UI_MAT = 10;
   const OD0 = { splash: "on", bub: "200", shape: "quad", cap: "off", murk: "on", fmt: "8" };
   const CL0 = { cam: "street", pcull: "off", occ: "off", hlod: "off" };
-  const st = { mode: "dc", fish: 1200, tint: "clone", draw: "each", coral: "sep", view: "game", ...OD0, ...CL0 };
-  const DEFAULTS = { mode: "dc", fish: 1200, tint: "shared", draw: "each", coral: "sep", view: "game", ...OD0, ...CL0 };
+  const LD0 = { houses: "one", pines: "lods", fade: "snap", bias: "1", phone: "mid" };
+  const st = { mode: "dc", fish: 1200, tint: "clone", draw: "each", coral: "sep", view: "game", ...OD0, ...CL0, ...LD0 };
+  const DEFAULTS = { mode: "dc", fish: 1200, tint: "shared", draw: "each", coral: "sep", view: "game", ...OD0, ...CL0, ...LD0 };
 
   // ---------- Lesson 025: overdraw model ----------
   const SCREEN = 1600 * 720; // 1,152,000 pixels = 1 screen
@@ -525,6 +581,70 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       mem: s.hlod === "on" ? 36 * HB.clusterMB : 0, occMB: s.occ === "on" ? 3.2 : 0 };
   }
 
+
+  // ---------- Lesson 028: the ferry ride, LOD model ----------
+  // Every count comes from these two arrays: objects spread evenly inside each distance band (metres from the ferry camera).
+  const LD = { rate: 80000, otherV: 320000, otherDraws: 50, otherMats: 50, pixel: 20, impPx: 0.0005, memory: 18, raster: 4,
+    hv: [2400, 1200, 360], pv: [2000, 1000, 600], impV: 4, t1: 60, t2: 120, fadeW: 0.1, ppvMin: 10 };
+  const ferry = (() => {
+    let sd = 2028;
+    const r = () => { sd = (sd * 1664525 + 1013904223) >>> 0; return sd / 4294967296; };
+    const band = (arr, kind, lo, hi, n, a0, a1) => { for (let i = 0; i < n; i++) arr.push({ kind, d: lo + ((i + 0.5) * (hi - lo)) / n, a: a0 + r() * (a1 - a0) }); };
+    const houses = [], pines = [];
+    band(houses, "house", 15, 30, 20, -26, 4); band(houses, "house", 30, 60, 40, -28, 2); band(houses, "house", 60, 120, 120, -28, 0);
+    band(houses, "house", 120, 240, 300, -28, -2); band(houses, "house", 240, 250, 20, -28, -4);
+    band(pines, "pine", 60, 120, 100, 6, 28); band(pines, "pine", 120, 240, 400, 4, 28); band(pines, "pine", 250, 450, 2500, -6, 28);
+    return { houses, pines };
+  })();
+  const PXM = 1385.64; // pixels per metre at 1 m: 1600 / (2 tan 30°)
+  const areaPx = (o) => (o.kind === "house" ? 120 : 45) * (PXM * PXM) / (o.d * o.d);
+  function ldLevel(d, b) { return d < LD.t1 * b ? 0 : d < LD.t2 * b ? 1 : 2; }
+  function ldFade(d, b) { for (const [k, T] of [[0, LD.t1 * b], [1, LD.t2 * b]]) if (d >= (1 - LD.fadeW) * T && d < T) return k; return -1; }
+  function ldModel(s) {
+    const b = +s.bias, low = s.phone === "low", fade = s.fade === "fade", hl = s.houses === "lod", imp = s.pines === "imp";
+    let hV = 0, pV = 0, fxV = 0, fH = 0, fP = 0, nImp = 0, tiny = 0;
+    const lists = new Set(), bands = {};
+    const bandOf = (d) => (d < 60 ? "15–60" : d < 120 ? "60–120" : d < 250 ? "120–250" : "250–450");
+    for (const k of ["15–60", "60–120", "120–250", "250–450"]) bands[k] = { h: 0, p: 0, v: 0, hm: new Set(), pm: new Set() };
+    const meshName = (kind, l) => (l === "imp" ? "card" : "LOD" + l);
+    for (const o of ferry.houses) {
+      const l = hl ? ldLevel(o.d, b) : 0, v = LD.hv[l];
+      o.lv = l; o.v = v; hV += v; o.fz = false;
+      const B = bands[bandOf(o.d)]; B.h++; B.v += v; B.hm.add(hl ? meshName("h", l) : "one mesh");
+      if (hl && fade) { const k = ldFade(o.d, b); if (k >= 0) { o.fz = true; fH++; fxV += LD.hv[k + 1]; } }
+      o.ppv = areaPx(o) / v; if (o.ppv < LD.ppvMin) tiny++;
+    }
+    for (const o of ferry.pines) {
+      const l0 = ldLevel(o.d, b), l = l0 === 2 && imp ? "imp" : l0, v = l === "imp" ? LD.impV : LD.pv[l];
+      o.lv = l; o.v = v; pV += v; lists.add(l); o.fz = false;
+      if (l === "imp") nImp++;
+      const B = bands[bandOf(o.d)]; B.p++; B.v += v; B.pm.add(meshName("p", l));
+      if (fade) { const k = ldFade(o.d, b); if (k >= 0) { const nx = k + 1 === 2 && imp ? "imp" : k + 1; o.fz = true; fP++; fxV += nx === "imp" ? LD.impV : LD.pv[nx]; lists.add(nx); } }
+      o.ppv = areaPx(o) / v; if (o.ppv < LD.ppvMin) tiny++;
+    }
+    const pineMats = ([...lists].some((x) => x !== "imp") ? 1 : 0) + (lists.has("imp") ? 1 : 0);
+    const draws = LD.otherDraws + ferry.houses.length + fH + lists.size;
+    const switches = LD.otherMats + pineMats;
+    const inst = ferry.pines.length + fP;
+    const cpu = low ? 2 : 1, vs = low ? 3 : 1;
+    const parts = { fixed: 2 * cpu, draw: 0.01 * draws * cpu, sw: 0.02 * switches * cpu, inst: 0.001 * inst * cpu };
+    const rt = parts.fixed + parts.draw + parts.sw + parts.inst;
+    const totalV = LD.otherV + hV + pV + fxV;
+    const vparts = { other: (LD.otherV * vs) / LD.rate, houses: (hV * vs) / LD.rate, pines: (pV * vs) / LD.rate, fade: (fxV * vs) / LD.rate };
+    const vert = (totalV * vs) / LD.rate;
+    const pix = LD.pixel + LD.impPx * nImp;
+    const loads = { Vertex: vert, Raster: LD.raster, Pixel: pix, Memory: LD.memory };
+    let limiter = "Vertex";
+    for (const k of Object.keys(loads)) if (loads[k] > loads[limiter] + 1e-9) limiter = k;
+    const gpu = 3 + loads[limiter];
+    const main = 14 * cpu, rBudget = 12 * cpu;
+    const frame = Math.max(main, rt, gpu), raw = 1000 / frame;
+    let slow = "GPU";
+    if (rt > gpu + 1e-9 && rt >= main) slow = "render thread"; else if (main > gpu + 1e-9 && main > rt) slow = "main thread";
+    const mem = (hl ? 2.6 : 0) + (imp ? 2.7 : 0);
+    return { b, low, hV, pV, fxV, fH, fP, nImp, tiny, bands, lists, draws, switches, inst, parts, rt, rBudget, totalV, vparts, vert, pix, loads, limiter, gpu, main, frame, raw, fps: Math.min(CAP, raw), slow, mem };
+  }
+
   function model(s) {
     const N = s.fish, clones = s.tint === "clone";
     const inst = s.draw === "inst" && !clones;
@@ -545,6 +665,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     return { N, clones, inst, instBlocked: s.draw === "inst" && clones, envDraws, fishDraws, draws, switches, instN, parts, rt, vert, gpu, frame, raw, fps: Math.min(CAP, raw), slow, mem: s.coral === "static" ? 18 : 0 };
   }
   const f2 = (v) => { const r = Math.round(v * 100) / 100; return Number.isInteger(r) ? r.toFixed(1) : String(r); };
+  const g2 = (v) => { const r = Math.round(v * 100 + 1e-7) / 100; return Number.isInteger(r) ? r.toFixed(1) : String(r); };
   const f1 = (v) => (Math.round(v * 10) / 10).toFixed(1);
   const n0 = (v) => Math.round(v).toLocaleString("en-US");
 
@@ -589,6 +710,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     if (!W) return;
     if (st.mode === "od") { paintOD(); return; }
     if (st.mode === "cl") { paintCL(); return; }
+    if (st.mode === "ld") { paintLD(); return; }
     const m = model(st), calls = st.view === "calls";
     // sea
     if (calls) { ctx.fillStyle = col.field; ctx.fillRect(0, 0, W, H); }
@@ -823,11 +945,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 
   // ---------- readouts ----------
   function syncMode() {
-    const od = st.mode === "od", cl = st.mode === "cl", dc = st.mode === "dc";
-    $("ctlDC").hidden = !dc; $("ctlOD").hidden = !od; $("ctlCL").hidden = !cl;
-    $("vCalls").hidden = !dc; $("vHeat").hidden = !od; $("vGame").hidden = cl;
-    $("vMap").hidden = !cl; $("vSent").hidden = !cl;
-    const want = od ? "20 / 9" : cl ? "16 / 9" : "";
+    const od = st.mode === "od", cl = st.mode === "cl", dc = st.mode === "dc", ld = st.mode === "ld";
+    $("ctlDC").hidden = !dc; $("ctlOD").hidden = !od; $("ctlCL").hidden = !cl; $("ctlLD").hidden = !ld;
+    $("vCalls").hidden = !dc; $("vHeat").hidden = !od; $("vGame").hidden = cl || ld;
+    $("vMap").hidden = !cl; $("vSent").hidden = !cl; $("vLods").hidden = !ld; $("vPpv").hidden = !ld;
+    const want = od ? "20 / 9" : cl || ld ? "16 / 9" : "";
     if (stage.style.aspectRatio !== want) { stage.style.aspectRatio = want; resize(); }
     document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
   }
@@ -1084,10 +1206,205 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     $("maxFish").innerHTML = `Worst camera: <strong>${CAMS[worst.c].name}</strong>, frame ${f2(wr.frame)} ms. ` + (ok ? "Both cameras are inside every budget ✅" : `<span style="color:var(--bad);font-weight:600">Not shippable yet.</span>`);
   }
 
+
+  // ---------- Lesson 028: the ferry map ----------
+  let ldKey = "";
+  function paintLD() {
+    const key = [st.houses, st.pines, st.fade, st.bias, st.phone, st.view, W, H, dark].join("|");
+    if (key === ldKey) return;
+    ldKey = key;
+    const m = ldModel(st), sc = W / 1600, ppvV = st.view === "ppv";
+    const cx = 800 * sc, cy = 870 * sc, R = 830 * sc;
+    const rr = (d) => R * Math.sqrt(d / 450);
+    const pos = (o) => { const a = (o.a * Math.PI) / 180, r = rr(o.d); return [cx + Math.sin(a) * r, cy - Math.cos(a) * r]; };
+    ctx.fillStyle = col.sea2; ctx.fillRect(0, 0, W, H);
+    // land inside the view: the town on the left, the ridge on the right
+    ctx.fillStyle = col.sand;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, -Math.PI / 2 - Math.PI / 6, -Math.PI / 2 + Math.PI / 6); ctx.closePath();
+    ctx.save(); ctx.clip();
+    ctx.beginPath(); ctx.moveTo(0, cy - rr(12)); ctx.lineTo(W, cy - rr(40)); ctx.lineTo(W, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    // view wedge outline
+    ctx.strokeStyle = col.accent; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.6;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, -Math.PI / 2 - Math.PI / 6, -Math.PI / 2 + Math.PI / 6); ctx.closePath(); ctx.stroke();
+    ctx.globalAlpha = 1;
+    // distance rings: the two LOD switches and the HLOD line
+    const fs = Math.max(11, Math.round(22 * sc));
+    ctx.font = `600 ${fs}px ${getComputedStyle(document.body).fontFamily}`;
+    const ring = (d, label, dash, c) => {
+      ctx.strokeStyle = c; ctx.lineWidth = 1.5; ctx.setLineDash(dash);
+      ctx.beginPath(); ctx.arc(cx, cy, rr(d), -Math.PI / 2 - Math.PI / 6 - 0.35, -Math.PI / 2 + Math.PI / 6 + 0.35); ctx.stroke(); ctx.setLineDash([]);
+      const a = -Math.PI / 6 - 0.36, x = cx + Math.sin(a) * rr(d), y = cy - Math.cos(a) * rr(d);
+      ctx.fillStyle = c; ctx.textAlign = "right"; ctx.textBaseline = "middle"; ctx.fillText(label, Math.max(x - 4, ctx.measureText(label).width + 4), y);
+    };
+    const b = +st.bias;
+    ring(LD.t1 * b, `${n0(LD.t1 * b)} m`, [], col.ink);
+    ring(LD.t2 * b, `${n0(LD.t2 * b)} m`, [], col.ink);
+    if (LD.t2 * b !== 250) ring(250, "250 m HLOD", [5, 4], col.muted);
+    // Old Town HLOD proxies beyond 250 m (context only)
+    ctx.globalAlpha = 0.35; ctx.fillStyle = col.muted;
+    for (let i = 0; i < 12; i++) { const a = ((-28 + i * 2.2) * Math.PI) / 180, r = rr(300 + (i % 4) * 35); ctx.beginPath(); ctx.arc(cx + Math.sin(a) * r, cy - Math.cos(a) * r, Math.max(3, 11 * sc), 0, Math.PI * 2); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    const lvCol = { 0: col.p1, 1: col.p3, 2: col.p4, imp: col.p7 };
+    const ppvCol = (v) => (v < 2 ? col.h6 : v < 5 ? col.h5 : v < 10 ? col.h4 : col.good);
+    const fillOf = (o) => (ppvV ? ppvCol(o.ppv) : lvCol[o.lv]);
+    // pines: small triangles, batched by colour
+    const ps = Math.max(2.2, 6 * sc), hs = Math.max(3, 10 * sc);
+    const byCol = new Map();
+    for (const o of ferry.pines) { const c = fillOf(o); (byCol.get(c) || byCol.set(c, []).get(c)).push(o); }
+    for (const [c, arr] of byCol) {
+      ctx.fillStyle = c; ctx.beginPath();
+      for (const o of arr) { const [x, y] = pos(o); ctx.moveTo(x, y - ps); ctx.lineTo(x + ps * 0.7, y + ps * 0.6); ctx.lineTo(x - ps * 0.7, y + ps * 0.6); ctx.closePath(); }
+      ctx.fill();
+    }
+    byCol.clear();
+    for (const o of ferry.houses) { const c = fillOf(o); (byCol.get(c) || byCol.set(c, []).get(c)).push(o); }
+    for (const [c, arr] of byCol) {
+      ctx.fillStyle = c; ctx.beginPath();
+      for (const o of arr) { const [x, y] = pos(o); ctx.rect(x - hs / 2, y - hs / 2, hs, hs); }
+      ctx.fill();
+    }
+    // cross-fading objects: drawn twice this frame
+    ctx.strokeStyle = col.bad; ctx.lineWidth = 1.5; ctx.beginPath();
+    for (const o of [...ferry.houses, ...ferry.pines]) if (o.fz) { const [x, y] = pos(o); ctx.moveTo(x + hs, y); ctx.arc(x, y, hs, 0, Math.PI * 2); }
+    ctx.stroke();
+    // the ferry
+    ctx.fillStyle = col.ink; ctx.beginPath(); ctx.ellipse(cx, cy + 6 * sc, Math.max(8, 30 * sc), Math.max(4, 12 * sc), 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = col.ink; ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillText("Ferry camera", cx + Math.max(12, 40 * sc), cy);
+    ctx.fillStyle = col.ink; ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.fillText("Town", Math.max(6, 200 * sc), Math.max(26, 380 * sc)); ctx.textAlign = "right"; ctx.fillText("Pine Ridge", W - Math.max(6, 160 * sc), Math.max(44, 140 * sc));
+  }
+
+  function drawLodThreads(m) {
+    const box = $("threads").clientWidth || 600;
+    const Wd = Math.max(320, Math.min(680, Math.round(box))), narrow = Wd < 500;
+    const L = narrow ? 70 : 120, VR = narrow ? 56 : 70, x0 = L, x1 = Wd - VR;
+    const maxMs = Math.max(50, m.rt + 2, m.gpu + 2);
+    const X = (ms) => x0 + (ms / maxMs) * (x1 - x0);
+    let g = `<text x="0" y="14" style="fill:var(--muted);font-size:12px">${narrow ? "Work per frame (ms)" : "Render thread and GPU stations (ms). GPU = 3 + the slowest station."}</text>`;
+    const rows = [
+      { n: "Render", v: m.rt, segs: [[m.parts.fixed, "--muted", "fixed"], [m.parts.draw, "--cpu", "draws"], [m.parts.sw, "--accent", "switches"], [m.parts.inst, "--h1", "pine data"]] },
+      { n: "Vertex", v: m.vert, segs: [[m.vparts.other, "--muted", "everything else"], [m.vparts.houses, "--p1", "houses"], [m.vparts.pines, "--p3", "pines"], [m.vparts.fade, "--bad", "cross-fade"]] },
+      { n: "Pixel", v: m.pix, segs: [[LD.pixel, "--muted", "scene"], [m.pix - LD.pixel, "--p7", "impostors"]] },
+      { n: "GPU", v: m.gpu, segs: [[3, "--muted", "fixed"], [m.loads[m.limiter], m.limiter === "Vertex" ? "--p2" : "--p5", m.limiter.toLowerCase()]] },
+    ];
+    const top = 26, rh = 40;
+    rows.forEach((r, i) => {
+      const y = top + i * rh, lim = r.n === m.limiter;
+      const over = (r.n === "Render" && r.v > m.rBudget + 1e-9) || (r.n === "GPU" && r.v > HB.gpu + 1e-9) || ((r.n === "Vertex" || r.n === "Pixel") && r.v > 25 + 1e-9);
+      g += `<text x="0" y="${y + 19}" style="fill:${lim || over ? "var(--bad)" : "var(--ink)"};font-weight:600">${r.n}${lim ? " ◀" : ""}</text>`;
+      g += `<rect x="${x0}" y="${y + 4}" width="${x1 - x0}" height="24" rx="4" style="fill:var(--field);stroke:var(--line)"/>`;
+      let px = x0;
+      for (const [v, c, n] of r.segs) {
+        const w = (v / maxMs) * (x1 - x0);
+        if (w > 0) g += `<rect class="bar" x="${px}" y="${y + 4}" width="${Math.max(0.5, w)}" height="24" style="fill:var(${c})"><title>${n}: ${g2(v)} ms</title></rect>`;
+        px += w;
+      }
+      g += `<text x="${Wd}" y="${y + 21}" text-anchor="end" style="fill:${over ? "var(--bad)" : "var(--ink)"};font-weight:600">${g2(r.v)}</text>`;
+    });
+    const bx = X(m.rBudget), sx = X(25), gx = X(HB.gpu), fx = X(FRAME);
+    g += `<line x1="${bx}" x2="${bx}" y1="${top}" y2="${top + 32}" style="stroke:var(--good);stroke-width:2.5;stroke-dasharray:5 3"/>`;
+    g += `<line x1="${sx}" x2="${sx}" y1="${top + rh}" y2="${top + 3 * rh - 8}" style="stroke:var(--good);stroke-width:2.5;stroke-dasharray:5 3"/>`;
+    g += `<line x1="${gx}" x2="${gx}" y1="${top + 3 * rh}" y2="${top + 3 * rh + 32}" style="stroke:var(--good);stroke-width:2.5;stroke-dasharray:5 3"/>`;
+    g += `<line x1="${fx}" x2="${fx}" y1="${top}" y2="${top + 4 * rh}" style="stroke:var(--muted);stroke-width:1.5;stroke-dasharray:2 3"/>`;
+    const ly = top + 4 * rh + 14;
+    const labels = [[bx, String(m.rBudget)], [sx, "25"], [gx, "28"]].sort((p, q) => p[0] - q[0]);
+    let lastX = -99;
+    for (const [x, t] of labels) { const xx = Math.max(x, lastX + 22); g += `<text x="${xx}" y="${ly}" text-anchor="middle" style="fill:var(--good);font-size:12px">${t}</text>`; lastX = xx; }
+    g += `<text x="${Math.min(Math.max(fx + 4, lastX + 16), Wd - 44)}" y="${ly}" text-anchor="start" style="fill:var(--muted);font-size:12px">${narrow ? "30 fps" : "33.3 = 30 fps"}</text>`;
+    const lg = [["houses", "--p1"], ["pines", "--p3"], ["cross-fade", "--bad"], ["impostors", "--p7"], ["draws", "--cpu"], ["switches", "--accent"], ["pine data", "--h1"]];
+    let lx = 0, ly2 = ly + 22;
+    lg.forEach(([n, c]) => {
+      if (lx + 15 + n.length * 7.6 > Wd) { lx = 0; ly2 += 18; }
+      g += `<rect x="${lx}" y="${ly2 - 10}" width="11" height="11" rx="2" style="fill:var(${c})"/><text x="${lx + 15}" y="${ly2}" style="fill:var(--muted);font-size:12px">${n}</text>`;
+      lx += 15 + n.length * 7.6 + (narrow ? 14 : 16);
+    });
+    $("threads").innerHTML = `<svg viewBox="0 0 ${Wd} ${ly2 + 8}" role="img" aria-label="Render thread ${g2(m.rt)} ms, vertex ${g2(m.vert)} ms, pixel ${g2(m.pix)} ms, GPU ${g2(m.gpu)} ms.">${g}</svg>`;
+  }
+
+  function renderLD() {
+    const m = ldModel(st);
+    drawLodThreads(m);
+    ldKey = ""; paint();
+    const rOver = m.rt > m.rBudget + 1e-9, gOver = m.gpu > HB.gpu + 1e-9;
+    const phone = m.low ? "low-end phone" : "mid-range phone";
+    $("goalText").innerHTML = `<strong>Lantern Harbor, the ferry ride, ${phone}.</strong> Goal: 30 fps, GPU ≤ 28 ms, render thread ≤ ${m.rBudget} ms${m.low ? " (12 ms on the mid-range phone, the CPU is 2× slower)" : ""}.`;
+    $("stageH").textContent = "Lantern Harbor · Ferry ride";
+    $("kRt").textContent = "Render thread";
+    $("sRt").textContent = g2(m.rt);
+    $("sRt").className = "v " + (rOver ? "bad" : "good");
+    $("sRtS").textContent = rOver ? `ms · ${g2(m.rt - m.rBudget)} over ${m.rBudget}` : `ms · ${g2(m.rBudget - m.rt)} under ${m.rBudget}`;
+    $("sFps").textContent = f1(m.fps).replace(/\.0$/, "");
+    $("sFps").className = "v " + (m.fps >= 29.95 ? "good" : "bad");
+    $("sFpsS").textContent = m.raw > 30.05 ? `fps, capped (could do ${Math.round(m.raw)})` : `fps · frame ${g2(m.frame)} ms (${m.slow})`;
+    $("kDraws").textContent = "GPU";
+    $("sDraws").textContent = g2(m.gpu);
+    $("sDraws").className = "v " + (gOver ? "bad" : "good");
+    $("sDrawsS").textContent = `ms · ${m.limiter.toLowerCase()} station ${g2(m.loads[m.limiter])} + 3`;
+    $("kSw").textContent = "Vertices sent";
+    $("sSw").textContent = n0(m.totalV / 1000) + "k";
+    $("sSw").className = "v " + (m.tiny > 350 ? "bad" : "good");
+    $("sSwS").textContent = `${n0(m.totalV)} · ${n0(m.tiny)} objects under 10 px per vertex`;
+    const ppvV = st.view === "ppv";
+    $("stageTag").textContent = ppvV ? `${n0(m.tiny)} of 3,500 under 10 px/vertex` : `${n0(m.totalV)} vertices · ${m.fps >= 29.95 ? "30" : f1(m.fps)} fps`;
+    const sw = (c, n, cls = "") => `<span class="sw ${cls}" style="background:var(--${c})"></span>${n}`;
+    $("legend").innerHTML = (ppvV
+      ? "Pixels on screen per vertex sent:" + sw("h6", "under 2") + sw("h5", "2–5") + sw("h4", "5–10") + sw("good", "10 or more (the rule)")
+      : "Map from above, square-root distance scale. Squares = houses, triangles = pines:" + sw("p1", "LOD0") + sw("p3", "LOD1") + sw("p4", "LOD2") + sw("p7", "impostor card"))
+      + (st.fade === "fade" ? `<span class="sw ring disc" style="border-color:var(--bad)"></span>cross-fading: both drawn` : "") + " · grey dots: Old Town HLOD.";
+    const goal = !rOver && !gOver && m.fps >= 29.95;
+    $("goalPill").className = "pill " + (goal ? "ok" : "over");
+    $("goalPill").textContent = goal ? `Goal met on the ${phone}` : m.fps < 29.95 ? "Below 30 fps" : "30 fps, but over a budget";
+    let coach = `GPU = 3 + max(vertex ${g2(m.vert)}, pixel ${g2(m.pix)}, memory 18, raster 4) = <strong>${g2(m.gpu)} ms</strong>. Frame = max(main ${m.main}, render ${g2(m.rt)}, GPU ${g2(m.gpu)}) = <strong>${g2(m.frame)} ms</strong>: the <strong>${m.slow}</strong> sets the pace. `;
+    if (m.tiny > 0) coach += `<span class="warn">${n0(m.tiny)} objects send more than 1 vertex per 10 pixels they cover.</span> `;
+    if (st.houses === "one") coach += "Every house sends 2,400 vertices, even at 250 m where it is 55 px tall. ";
+    if (st.pines === "lods") coach += `The pines' last mesh LOD still has 600 vertices. `;
+    if (st.pines === "imp") coach += `${n0(m.nImp)} impostor cards: ${g2(LD.impPx * m.nImp)} ms of pixel work, +2.7 MB atlas. `;
+    if (st.fade === "fade") coach += `Cross-fade: ${m.fH} houses and ${m.fP} pines are drawn twice this frame. `;
+    if (m.low) coach += "The low-end phone renders fewer pixels, but the same vertices, 3× slower. ";
+    $("coach").innerHTML = coach;
+
+    $("capH").textContent = "The LOD bill";
+    $("capFine").textContent = "Vertices sent per distance band, then the bills. Vertex: all vertices ÷ 80,000 per ms (÷ 26,667 on the low-end phone). Pixel: 20 ms + 0.5 µs per impostor card.";
+    const pad = (v, n) => String(v).padStart(n, " ");
+    let cap = `<span class="dim">Ferry ride · houses ${st.houses === "lod" ? "LOD Group" : "one mesh"} · pines ${st.pines === "imp" ? "+ impostors" : "mesh LODs"} · bias ${st.bias} · ${st.fade}</span>\n`;
+    cap += `<span class="dim">band (m)  houses  pines       vertices</span>\n`;
+    for (const [k, B] of Object.entries(m.bands)) {
+      const hm = B.h ? [...B.hm].join("/") : "", pm = B.p ? [...B.pm].join("/") : "";
+      cap += `${k.padEnd(9, " ")}${pad(n0(B.h), 4)}  ${pad(n0(B.p), 5)}  ${pad(n0(B.v), 13)}\n`;
+      cap += `<span class="dim">${"".padEnd(9, " ")}${(hm ? "h " + hm : "").padEnd(16, " ")}${pm ? "p " + pm : ""}</span>\n`;
+    }
+    if (m.fxV) cap += `Cross-fade extra (${m.fH} h, ${m.fP} p) ${pad(n0(m.fxV), 9)}\n`;
+    cap += `Everything else              ${pad(n0(LD.otherV), 9)}\n`;
+    cap += `Total                        ${pad(n0(m.totalV), 9)}\n\n`;
+    cap += `Vertex ${n0(m.totalV)}${m.low ? " × 3" : ""} ÷ 80,000 = ${g2(m.vert)} ms\n`;
+    cap += `Pixel  20 + ${n0(m.nImp)} cards × 0.5 µs = ${g2(m.pix)} ms\n`;
+    const gl = `GPU    3 + ${m.limiter.toLowerCase()} ${g2(m.loads[m.limiter])} = ${g2(m.gpu)} ms  ${gOver ? "◀ over 28" : "✓ under 28"}`;
+    cap += (gOver ? `<span class="warn">${gl}</span>` : `<span class="ok">${gl}</span>`) + "\n";
+    const rl = `Render (2 + ${n0(m.draws)}×10µs + ${m.switches}×20µs + ${n0(m.inst)}×1µs)${m.low ? " × 2" : ""} = ${g2(m.rt)} ms`;
+    cap += (rOver ? `<span class="warn">${rl}</span>` : `<span class="ok">${rl}</span>`) + "\n";
+    cap += `<span class="dim">Extra memory: house LODs ${st.houses === "lod" ? "2.6" : "0"} MB · impostor atlas ${st.pines === "imp" ? "2.7" : "0"} MB</span>`;
+    $("capture").innerHTML = cap;
+
+    $("scaleH").textContent = "Every phone, every bias";
+    $("scaleFine").textContent = "GPU time with the current houses, pines and switches, for each LOD bias on both phones. A quality level picks one bias per phone.";
+    let html = `<thead><tr><th>LOD bias</th><th class="num">Mid GPU</th><th class="num">Low GPU</th><th class="num">Low fps</th></tr></thead><tbody>`;
+    for (const bb of ["0.5", "1", "2"]) {
+      const a = ldModel({ ...st, bias: bb, phone: "mid" }), c = ldModel({ ...st, bias: bb, phone: "low" });
+      html += `<tr class="${bb === st.bias ? "cur" : ""}"><td class="mono">${bb}</td><td class="num ${a.gpu > 28 + 1e-9 ? "bad" : "good"}">${g2(a.gpu)}</td><td class="num ${c.gpu > 28 + 1e-9 ? "bad" : "good"}">${g2(c.gpu)}</td><td class="num ${c.fps < 29.95 ? "bad" : ""}">${f1(c.fps).replace(/\.0$/, "")}</td></tr>`;
+    }
+    $("scale").innerHTML = html + "</tbody>";
+    ldModel(st); // restore per-object state for the map
+    const okB = ["2", "1", "0.5"].filter((bb) => { const c = ldModel({ ...st, bias: bb, phone: "low" }); return c.gpu <= 28 + 1e-9 && c.rt <= c.rBudget + 1e-9 && c.fps >= 29.95; });
+    ldModel(st);
+    $("maxFish").innerHTML = okB.length ? `The low-end phone meets its budgets with bias <strong>${okB[0]}</strong>${okB[0] === "2" ? "" : " or lower"}.` : `<span style="color:var(--bad);font-weight:600">No bias makes the low-end phone fit with these settings.</span>`;
+  }
+
   function render() {
     syncMode();
     if (st.mode === "od") { renderOD(); return; }
     if (st.mode === "cl") { renderCL(); return; }
+    if (st.mode === "ld") { renderLD(); return; }
     $("goalText").innerHTML = "<strong>The Reef's Coral Garden, mid-range phone.</strong> Goal: 30 fps and a render thread of at most 12 ms.";
     $("stageH").textContent = "The Coral Garden";
     $("kRt").textContent = "Render thread"; $("kDraws").textContent = "Draw calls"; $("kSw").textContent = "Material switches";
@@ -1162,7 +1479,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 
   // ---------- controls ----------
   document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => {
-    if (b.dataset.k === "mode" && st.mode !== b.dataset.v) st.view = b.dataset.v === "cl" ? "map" : "game";
+    if (b.dataset.k === "mode" && st.mode !== b.dataset.v) st.view = b.dataset.v === "cl" ? "map" : b.dataset.v === "ld" ? "lods" : "game";
     st[b.dataset.k] = b.dataset.v; render();
   }));
   $("fish").addEventListener("input", (e) => { st.fish = +e.target.value; render(); });
@@ -1192,7 +1509,15 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     { t: "HLOD beyond 250 m", d: "Every 50 houses (and their props) far from the camera become one simple mesh. Draws 1,710 → 86. Render 4.58 ms, GPU 23 ms ✅ 30 fps. Price: +21.6 MB and a 12-minute bake.", s: { mode: "cl", view: "sent", cam: "light", pcull: "on", occ: "on", hlod: "on" } },
     { t: "Check every camera", d: "Street with everything on: 162 draws, render 5.04 ms, GPU 23 ms. At the lighthouse, occlusion now hides nothing but costs 0.54 ms: turn it off there (main 12.54 → 12.01 ms). Look at the camera table.", s: { mode: "cl", view: "map", cam: "street", pcull: "on", occ: "on", hlod: "on" } },
   ];
-  const lists = [[$("steps"), STEPS], [$("steps2"), STEPS2], [$("steps3"), STEPS3]];
+  const STEPS4 = [
+    { t: "The ferry ride", d: "Culling and HLOD are on, but the houses have one mesh. 3,360,000 vertices: vertex 42 ms, GPU 45 ms, 22.2 fps. The render thread is fine (11.54 ms). On the map, 3,309 of 3,500 objects send more than 1 vertex per 10 pixels they cover.", s: { mode: "ld", view: "ppv" } },
+    { t: "LOD Group on the houses", d: "2,400 vertices under 60 m, 1,200 to 120 m, 360 beyond. Houses 15 → 5.04 ms. Vertex 32.04 ms, GPU 35.04 ms: 28.5 fps. Now the pines are the problem: 23 ms.", s: { mode: "ld", view: "lods", houses: "lod" } },
+    { t: "Impostors for the far pines", d: "Beyond 120 m each pine becomes a 4-vertex card. Pines 23 → 1.4 ms. Vertex 10.44 ms; pixel 21.45 ms (cards cost 1.45 ms). GPU 24.45 ms ✅ 30 fps. Price: +2.7 MB atlas.", s: { mode: "ld", view: "ppv", houses: "lod", pines: "imp" } },
+    { t: "Cross-fade the switches", d: "Objects in the last 10% before a switch draw both meshes: 32 houses and 20 pines. Render 11.56 → 11.9 ms, still under 12. Vertex 10.66 ms. GPU stays 24.45 ms: the pixel station is the limiter.", s: { mode: "ld", view: "lods", houses: "lod", pines: "imp", fade: "fade" } },
+    { t: "The low-end phone", d: "Same settings: vertices 3× slower, CPU 2× slower. Vertex 31.99 ms, GPU 34.99 ms: 28.6 fps. Render 23.8 ms fits its 24 ms. A lower resolution would not help: vertices don't shrink.", s: { mode: "ld", view: "lods", houses: "lod", pines: "imp", fade: "fade", phone: "low" } },
+    { t: "LOD bias 0.5 on Low quality", d: "Switches at 30 and 60 m. Vertex 22.28 ms, GPU 25.28 ms ✅ 30 fps. The frame is now the main thread's 28 ms. Then try bias 2 on the mid-range phone: GPU 25.5 ms, but render 12.51 ms, over 12.", s: { mode: "ld", view: "lods", houses: "lod", pines: "imp", fade: "fade", phone: "low", bias: "0.5" } },
+  ];
+  const lists = [[$("steps"), STEPS], [$("steps2"), STEPS2], [$("steps3"), STEPS3], [$("steps4"), STEPS4]];
   let k = 0;
   for (const [stepsEl, arr] of lists) arr.forEach((s) => {
     const li = document.createElement("li");
