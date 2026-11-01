@@ -143,8 +143,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/002-anatomy-of-a-frame.md">Read Lesson 002 ↗</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/059-frame-pacing-and-stutter.md">Read Lesson 059 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/060-shader-compilation-stutter-and-pso-caching.md">Read Lesson 060 ↗</a>
     </div>
-    <div class="eyebrow">Lab 002 · Lessons 002, 059 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 002 · Lessons 002, 059, 060 · simulation using the lesson's numbers</div>
     <h1>Frame Pipeline Lab</h1>
     <p class="lede">The CPU and the GPU work at the same time, one frame apart. The slower one sets your frame rate. Change the work on each side and watch who ends up waiting.</p>
   </header>
@@ -212,6 +213,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <ol class="steps" id="steps"></ol>
     <p class="group-title">Lesson 059: frame pacing</p>
     <ol class="steps" id="steps59"></ol>
+    <p class="group-title">Lesson 060: shader compilation stutter</p>
+    <ol class="steps" id="steps60"></ol>
   </section>
 
   <section class="lab" id="l059" aria-label="Lesson 059: frame pacing">
@@ -256,6 +259,48 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     </div>
   </section>
 
+  <section class="lab" id="l060" aria-label="Lesson 060: shader compilation stutter">
+    <div class="panel">
+      <h2>Lesson 060: a player's first 30 minutes</h2>
+      <p class="fine">The Reef's first session on a PC with an empty shader cache. Each bar is a moment when something appears for the first time: a new lake, night, a storm, a new lure. Its height is that frame's time.</p>
+      <div class="timeline" id="pso"></div>
+      <div class="legend" id="psoLegend"></div>
+      <p class="coach" id="coach60"></p>
+    </div>
+    <div class="panel">
+      <div class="goal" style="margin:0">
+        <p>Goal for the first session: <strong>no frame over 50 ms</strong>, a fallback shader shows for <strong>at most 20 ms</strong> (about one frame), and pipeline compiling adds <strong>at most 3 s</strong> to start-up.</p>
+        <span id="goalPill60" class="pill over">Not yet</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="k">Hitches over 50 ms</span><span class="v" id="qHitch">0</span><span class="s">in 30 minutes</span></div>
+        <div class="stat"><span class="k">Worst frame</span><span class="v" id="qWorst">0</span><span class="s">ms</span></div>
+        <div class="stat"><span class="k">Start-up added</span><span class="v" id="qBoot">0</span><span class="s" id="qBootS">seconds</span></div>
+        <div class="stat"><span class="k">Compiled mid-frame</span><span class="v" id="qPlay">0</span><span class="s">pipelines, while playing</span></div>
+        <div class="stat"><span class="k">Drawn with a fallback</span><span class="v" id="qFb">0</span><span class="s" id="qFbS">pipelines</span></div>
+        <div class="stat"><span class="k">Pipelines compiled</span><span class="v" id="qList">0</span><span class="s">at start-up</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>When pipelines are compiled</span></span>
+          <div class="seg-ctl" role="group" aria-label="When pipelines are compiled">
+            <button type="button" data-k60="when" data-v="first">First draw<small>while playing</small></button>
+            <button type="button" data-k60="when" data-v="recorded">Recorded list<small>at start-up</small></button>
+            <button type="button" data-k60="when" data-v="every">Every variant<small>at start-up</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Shader variants in the build</span></span>
+          <div class="seg-ctl two" role="group" aria-label="Shader variants in the build">
+            <button type="button" data-k60="var" data-v="all">24,000<small>as shipped</small></button>
+            <button type="button" data-k60="var" data-v="strip">6,000<small>after stripping</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>A pipeline that isn't ready</span></span>
+          <div class="seg-ctl two" role="group" aria-label="A pipeline that isn't ready">
+            <button type="button" data-k60="miss" data-v="wait">Wait<small>compile in the frame</small></button>
+            <button type="button" data-k60="miss" data-v="async">Fallback<small>compile in background</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
   <section class="panel" aria-labelledby="whatH">
     <h2 id="whatH">What this shows</h2>
     <div class="notes">
@@ -265,6 +310,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     </div>
     <p class="fine">This lab is a model, not a measurement. Pass costs come from Lesson 002: fixed GPU work 5 ms (shadows 3 ms, 2 ms of geometry) and per-pixel work 20 ms at 2560×1440. Per-pixel work scales with the number of pixels, so 50% render scale means ¼ of the cost. Real GPUs are less tidy, but the rules are the same.</p>
     <p class="fine"><strong>Lesson 059 section.</strong> Also a model. Frame work is 12–13 ms, plus the water reflection: +5 ms on every 4th frame, or +1.25 ms on every frame when time-sliced. The sleep cap wakes 0–2.5 ms late; after a VSync wait the game loop also starts 0–2.5 ms late. Counts are for one second of a camera turn; the picture shows its first 300 ms. A camera step is "uneven" when it is more than 1 ms away from the time between the two refreshes.</p>
+    <p class="fine"><strong>Lesson 060 section.</strong> Also a model. A normal frame is 14 ms. Each new graphics pipeline takes 11 ms to compile; at start-up or in the background, 4 threads compile at once. A first session meets 300 pipelines in 40 first-time moments; QA's recorded list holds 270 of them. Real compile times vary a lot by GPU, driver and shader.</p>
   </section>
 </div>
 
@@ -610,5 +656,100 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
   render();
   let lastW = 0;
   new ResizeObserver(() => { const w = $("pace").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; draw(model(st)); } }).observe($("pace"));
+})();
+</script>
+<script>
+(() => {
+  "use strict";
+  // Lesson 060: shader compilation stutter. A model, not a measurement.
+  const $ = (id) => document.getElementById(id);
+  const BASE = 14, C = 11, TH = 4, MIN = 30;
+  // [minute, new pipelines, pipelines missing from the recorded list, label]
+  const EV=[ [0.5,15,0,"first lake"],[1.5,6,0,""],[2.5,9,0,""],[3.2,5,0,""],[4,14,0,"second lake"],[5,5,0,""],[6,8,0,""],[6.8,4,0,""], [8,15,0,"forest river"],[9,6,0,""],[9.8,10,6,"night falls"],[10.5,5,0,""],[12,13,0,"harbour"],[13,6,0,""],[13.8,9,0,""],[14.6,5,5,"golden fish"], [15.5,8,0,""],[17,15,0,"mountain lake"],[18,5,0,""],[18.8,9,6,"storm"],[19.6,4,0,""],[20.5,10,0,""],[21.3,6,0,""],[22,14,0,"ice lake"], [23,5,0,""],[23.8,9,0,""],[24.5,5,0,""],[25.2,8,6,"festival lure"],[26,4,0,""],[27,12,7,"late-game lake"],[27.8,4,0,""],[28.4,9,0,""], [29,5,0,""],[29.5,6,0,""],[2,4,0,""],[11,4,0,""],[16.2,4,0,""],[20,5,0,""],[24.1,4,0,""],[28.8,6,0,""]];
+  const TOT = EV.reduce((a, e) => a + e[1], 0), MISS = EV.reduce((a, e) => a + e[2], 0);
+  const st = { when: "first", var: "all", miss: "wait" };
+  function model(s) {
+    const variants = s.var === "all" ? 24000 : 6000;
+    let list = 0;
+    if (s.when === "recorded") list = TOT - MISS;
+    if (s.when === "every") list = variants;
+    const boot = (list * C) / TH / 1000;
+    let hitches = 0, worst = BASE, play = 0, fb = 0, fbLong = 0;
+    const bars = EV.map((e) => {
+      const n = s.when === "first" ? e[1] : s.when === "recorded" ? e[2] : 0;
+      let ms = BASE, late = 0;
+      if (n && s.miss === "wait") { ms = BASE + n * C; play += n; if (ms > 50) hitches++; worst = Math.max(worst, ms); }
+      else if (n) { fb += n; late = (n * C) / TH; fbLong = Math.max(fbLong, late); }
+      return { min: e[0], n, ms, late, label: e[3] };
+    });
+    return { bars, hitches, worst, play, boot, list, fb, fbLong };
+  }
+  function draw(m) {
+    const box = $("pso").clientWidth || 640, W = Math.max(320, Math.min(680, Math.round(box))), narrow = W < 480;
+    const L = 40, Rr = W - 8, H = 240, T = 26, B = H - 40, X = (mn) => L + (mn / MIN) * (Rr - L), Y = (ms) => B - (Math.min(ms, 200) / 200) * (B - T);
+    let g = "";
+    for (const v of [0, 50, 100, 150, 200]) g += `<line x1="${L}" x2="${Rr}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--line)"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" style="fill:var(--muted)">${v}</text>`;
+    g += `<line x1="${L}" x2="${Rr}" y1="${Y(50)}" y2="${Y(50)}" style="stroke:var(--bad);stroke-dasharray:5 4;stroke-width:1.5"/>`;
+    const bw = Math.max(3, (Rr - L) / 110);
+    for (const b of m.bars) {
+      const x = X(b.min) - bw / 2, bad = b.ms > 50;
+      g += `<rect x="${x}" y="${Y(b.ms)}" width="${bw}" height="${B - Y(b.ms)}" rx="1.5" style="fill:var(${bad ? "--bad" : "--good"})"><title>${b.min} min${b.label ? " · " + b.label : ""}: ${b.n} new pipelines, frame ${b.ms.toFixed(0)} ms</title></rect>`;
+      if (b.late > 0) g += `<circle cx="${X(b.min)}" cy="${B + 8}" r="${b.late > 30 ? 5 : 3.5}" style="fill:var(--p4)"><title>Fallback shader for ${b.late.toFixed(1)} ms</title></circle>`;
+      if (bad && b.ms >= 150 && b.label && !narrow) g += `<text x="${X(b.min) - (X(b.min) < L + 40 ? 3 : 0)}" y="${Y(b.ms) - 5}" text-anchor="${X(b.min) < L + 40 ? "start" : "middle"}" style="fill:var(--bad);font-size:11px">${b.label}</text>`;
+    }
+    for (let mn = 0; mn <= MIN; mn += narrow ? 10 : 5) g += `<text x="${X(mn)}" y="${H - 8}" text-anchor="${mn === 0 ? "start" : mn === MIN ? "end" : "middle"}" style="fill:var(--muted)">${mn}${mn === MIN ? " min" : ""}</text>`;
+    g += `<text x="0" y="12" style="fill:var(--muted)">frame ms</text>`;
+    $("pso").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Frame time of every first-time moment in a 30-minute session">${g}</svg>`;
+  }
+  function render() {
+    const m = model(st);
+    draw(m);
+    const set = (id, bad, v) => { $(id).textContent = v; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("qHitch", m.hitches > 0, m.hitches);
+    set("qWorst", m.worst > 50, Math.round(m.worst));
+    set("qBoot", m.boot > 3, m.boot < 10 ? m.boot.toFixed(2) : m.boot.toFixed(1));
+    $("qBootS").textContent = m.boot > 3 ? "seconds: too long" : "seconds";
+    set("qPlay", m.play > 0, m.play);
+    $("qFb").textContent = m.fb; $("qFb").className = "v" + (m.fbLong > 20 ? " bad" : m.fb ? " good" : "");
+    $("qFbS").textContent = m.fb ? `pipelines; up to ${m.fbLong.toFixed(1)} ms late` : "pipelines";
+    $("qList").textContent = m.list.toLocaleString("en-US"); $("qList").className = "v";
+    const ok = m.hitches === 0 && m.boot <= 3 && m.fbLong <= 20;
+    $("goalPill60").className = "pill " + (ok ? "ok" : "over"); $("goalPill60").textContent = ok ? "Goal met" : "Not yet";
+    let c;
+    if (st.when === "first" && st.miss === "wait") c = `Every first-time moment makes the driver compile new pipelines in the middle of a frame, ${C} ms each. ${m.hitches} hitches in 30 minutes; the first lake alone is 15 pipelines: ${Math.round(m.worst)} ms. The second time, they're cached, so QA on their own PCs never sees it.`;
+    else if (st.when === "first") c = `Nothing waits: missing pipelines compile on ${TH} background threads, and objects are drawn with a simple fallback shader until they're ready. No hitches, but ${m.fb} pipelines pop in late, up to ${m.fbLong.toFixed(1)} ms (2–3 frames) at the first lake. Visible.`;
+    else if (st.when === "every") c = `Compile all ${m.list.toLocaleString("en-US")} variants at start-up on ${TH} threads: ${m.boot.toFixed(1)} s. No hitches, but ${st.var === "all" ? "over a minute of waiting" : "still far too long"}, and most of these variants never appear in a session.`;
+    else if (st.miss === "wait") c = `QA's play-tests recorded the ${m.list} pipelines they saw. Compiling those at start-up takes ${m.boot.toFixed(2)} s. But QA never saw ${MISS}: ${m.hitches} hitches remain, up to ${Math.round(m.worst)} ms, all in moments QA rarely reached.`;
+    else c = `Recorded list at start-up (${m.boot.toFixed(2)} s), and the ${m.fb} pipelines QA missed compile in the background with a fallback for up to ${m.fbLong.toFixed(1)} ms, about one frame. 0 hitches. Goal met. Send the ${MISS} misses back into the list for the next build.`;
+    if (st.when === "recorded" && st.var === "all") c += " (Stripping doesn't change the recorded list: it only holds what was used.)";
+    $("coach60").textContent = c;
+    $("psoLegend").innerHTML = `<span><i style="background:var(--good)"></i>frame under 50 ms</span><span><i style="background:var(--bad)"></i>hitch: over 50 ms (dashed line)</span><span><i style="background:var(--p4);border-radius:50%"></i>drawn with a fallback</span>`;
+    document.querySelectorAll("[data-k60]").forEach((b) => b.setAttribute("aria-pressed", st[b.dataset.k60] === b.dataset.v));
+  }
+  function apply(s) { Object.assign(st, { when: "first", var: "all", miss: "wait" }, s); render(); }
+  document.querySelectorAll("[data-k60]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k60] = b.dataset.v; render(); }));
+
+  const STEPS = [
+    { t: "As shipped: compile on first draw", d: "300 pipelines appear for the first time in 30 minutes, 11 ms each to compile, inside the frame. 40 hitches; the first lake (15 pipelines) takes 179 ms. A second session is smooth, because the driver cached them.", s: {} },
+    { t: "Compile every variant at start-up", d: "24,000 variants × 11 ms on 4 threads = 66 s of start-up. No hitches, but nobody waits a minute.", s: { when: "every" } },
+    { t: "Strip variants first", d: "Remove variants no material uses (Lesson 026): 6,000 left, 16.5 s. Better, still too long, and most still never appear.", s: { when: "every", var: "strip" } },
+    { t: "Compile a recorded list", d: "QA's play-tests record every pipeline they use: 270. Compiling them at start-up takes 0.74 s. 5 hitches remain from the 30 pipelines QA never saw, up to 91 ms.", s: { when: "recorded", var: "strip" } },
+    { t: "Fallback for the misses", d: "The 30 missing pipelines compile in the background; until then, objects use a simple shader for up to 19.3 ms. 0 hitches, 0.74 s start-up. Goal met.", s: { when: "recorded", var: "strip", miss: "async" } },
+    { t: "Compare: fallback alone", d: "No list, everything compiles in the background: 0 hitches, but 300 pipelines pop in late, up to 41.3 ms at the first lake. Not met: the list keeps fallbacks rare and short.", s: { when: "first", var: "strip", miss: "async" } },
+  ];
+  const base = document.querySelectorAll("#steps li, #steps59 li").length, stepsEl = $("steps60");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${base + k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("l060").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("pso").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; draw(model(st)); } }).observe($("pso"));
 })();
 </script>

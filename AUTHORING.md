@@ -59,7 +59,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | Lab folder | Lessons |
 |---|---|
 | `001-zombie-horde` | 001, 037 (quadtree vs grid), 053 (AI LOD / time slicing) |
-| `002-frame-pipeline` | 002, 059, 060 (shader compile stutter) |
+| `002-frame-pipeline` | 002, 059, 060 |
 | `003-profiler-detective` | 003, 035 |
 | `004-cache-lab` | 004, 005, 006, 010 (challenge) |
 | `007-memory-gc` | 007, 010 (challenge), 040, 041, 042 |

@@ -80,3 +80,4 @@ AI tools write plausible code quickly. What they can't do on their own is make d
 | 057 | [Memory Budgets per Platform: The Build That Died on Two Phones](lessons/057-memory-budgets-per-platform.md) | [Memory Budget Lab](https://yimo691.github.io/GameArchitect/demos/057-memory-budget-lab/) | 2026-11-01 |
 | 058 | [Mobile Thermal Throttling and Battery](lessons/058-mobile-thermal-throttling-and-battery.md) | [Thermal Lab](https://yimo691.github.io/GameArchitect/demos/058-thermal-lab/) | 2026-11-01 |
 | 059 | [Frame Pacing and Stutter](lessons/059-frame-pacing-and-stutter.md) | [Frame Pipeline Lab](https://yimo691.github.io/GameArchitect/demos/002-frame-pipeline/) | 2026-11-01 |
+| 060 | [Shader Compilation Stutter and PSO Caching](lessons/060-shader-compilation-stutter-and-pso-caching.md) | [Frame Pipeline Lab](https://yimo691.github.io/GameArchitect/demos/002-frame-pipeline/) | 2026-11-01 |
