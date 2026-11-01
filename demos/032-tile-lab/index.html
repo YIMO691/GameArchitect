@@ -240,6 +240,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 032: tile-based rendering and bandwidth</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 034 · Challenge · predict first, then tap Set up</p>
+    <ol class="steps" id="stepsC" style="counter-reset: step 7"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -382,6 +384,26 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      Object.assign(st, base, s.s);
+      render();
+      $("passes").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  // Lesson 034 review: predict first, then check.
+  const STEPSC = [
+    { t: "Every fix but the water copy", d: "Predict first: Clear, tile resolve, UI in post and a 1024 shadow, but the water still copies the screen. Under 180 MB? Then tap Set up: 286.65 MB, 8.4 GB/s. The copy alone is the biggest bill: it breaks the render pass.", s: { load: "clear", res: "tile", water: "copy", ui: "post", shadow: "1024" } },
+    { t: "Every fix but the shadow map", d: "Predict first: everything fixed, but the shadow map stays at 2048. Then tap Set up: 184.39 MB, 4.39 MB over the 180 MB budget. A 12 MB item decides the verdict when the rest is tight.", s: { load: "clear", res: "tile", water: "fetch", ui: "post", shadow: "2048" } },
+    { t: "Every fix but Clear", d: "Predict first: the opaque pass still Loads last frame's screen. Then tap Set up: 207.55 MB, 6.08 GB/s. One wrong load action is 35.16 MB per frame.", s: { load: "load", res: "tile", water: "fetch", ui: "post", shadow: "1024" } },
+  ];
+  const stepsCEl = $("stepsC");
+  STEPSC.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${STEPS.length + k}">Set up</button>`;
+    stepsCEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
       Object.assign(st, base, s.s);
       render();

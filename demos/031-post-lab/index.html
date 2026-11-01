@@ -247,6 +247,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 031: post-processing budgets</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 034 · Challenge · predict first, then tap Set up</p>
+    <ol class="steps" id="stepsC" style="counter-reset: step 7"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -424,6 +426,26 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      Object.assign(st, base, s.s);
+      render();
+      $("cv").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  // Lesson 034 review: predict first, then check.
+  const STEPSC = [
+    { t: "The art director wants TAA back", d: "Predict first: every fix, but TAA instead of FXAA, walking. Then tap Set up: post 3.5 ms, under 4. Looks fine, until you check the other camera.", s: { merge: "uber", dof: "zoomg", cam: "walk", bloom: "half", aa: "taa", hdr: "32" } },
+    { t: "TAA, in the zoom", d: "Predict first: the same settings in the rod zoom. Then tap Set up: post 4.25 ms, over the 4 ms budget. Budgets are checked at every camera, and the zoom is the worst one.", s: { merge: "uber", dof: "zoomg", cam: "zoom", bloom: "half", aa: "taa", hdr: "32" } },
+    { t: "Every fix but the merge", d: "Predict first: all fixes, but the three lens effects keep their own passes. Then tap Set up: walking post 4.05 ms, zoom 4.8 ms. Three full-screen floors, both cameras over.", s: { merge: "sep", dof: "zoomg", cam: "walk", bloom: "half", aa: "fxaa", hdr: "32" } },
+  ];
+  const stepsCEl = $("stepsC");
+  STEPSC.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${STEPS.length + k}">Set up</button>`;
+    stepsCEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
       Object.assign(st, base, s.s);
       render();

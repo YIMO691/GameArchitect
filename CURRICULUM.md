@@ -56,7 +56,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 031 | Post-processing budgets: the festival look that cost 18.4 ms after the frame was done | ✅ |
 | 032 | Mobile GPUs, tile-based rendering and bandwidth: the harbor that ran at 30 fps for eight minutes | ✅ |
 | 033 | GPU profiling tools: RenderDoc, PIX, vendor tools: the day spent optimizing the wrong draw | ✅ |
-| 034 | Review: Module 3 + rendering case study | ⬜ |
+| 034 | Review: Module 3 + rendering case study: the Coral Garden that was only 0.64 ms over | ✅ |
 
 ## Module 4 — CPU & memory optimization
 | # | Title | Status |

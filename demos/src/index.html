@@ -174,10 +174,10 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="023-gpu-pipeline/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lessons 023, 033</span><span>simulation</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 023 · 033 · 034</span><span>simulation</span></div>
       <h3>GPU Pipeline Lab</h3>
       <p>The Reef's Coral Garden needs 41 ms of GPU time on a mid-range phone. Halve the coral triangles and gain 0 ms. Then pull one lever at a time (triangles, render scale, a flat test shader, a 4-byte colour format) and find the station that sets the pace. Bake the caustics to reach 25 ms, and watch the bottleneck move to memory when murk layers arrive. Then the night capture: open four kinds of GPU tool on a 31.2 ms frame, see what each can and can't tell you, and fix the caustics pass the right tool points at.</p>
-      <ul><li>The four stations: vertex, raster, pixel, output &amp; memory</li><li>The slowest station sets the GPU time</li><li>One lever per station; busy % per station</li><li>Fixing the limiter, then the next one in line</li><li>A budget per station, not only a total</li><li>Which GPU tool answers which question</li><li>Per-pass counters vs per-draw timings on tile GPUs</li></ul>
+      <ul><li>The four stations: vertex, raster, pixel, output &amp; memory</li><li>The slowest station sets the GPU time</li><li>One lever per station; busy % per station</li><li>Fixing the limiter, then the next one in line</li><li>A budget per station, not only a total</li><li>Which GPU tool answers which question</li><li>Per-pass counters vs per-draw timings on tile GPUs</li><li>Lesson 034 challenge: predict, then check</li></ul>
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="024-draw-calls/index.html">
@@ -209,17 +209,17 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="031-post-lab/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lesson 031</span><span>simulation</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 031 · 034</span><span>simulation</span></div>
       <h3>Post Lab</h3>
       <p>The festival look adds seven full-screen effects to the Lantern Festival street: 18.4 ms of post, GPU 34.21 ms. Merge the lens effects into the uber pass, run depth of field only in the rod zoom, start bloom at half resolution, swap TAA for FXAA and halve the bytes with 32-bit HDR, until post fits its 4 ms budget walking and zoomed.</p>
-      <ul><li>The bandwidth floor of a full-screen pass</li><li>Merging cheap effects into the uber pass</li><li>Effects only when visible</li><li>Half-resolution blurs: bloom and DoF</li><li>TAA vs FXAA, 64-bit vs 32-bit HDR</li><li>A post budget line in the frame</li></ul>
+      <ul><li>The bandwidth floor of a full-screen pass</li><li>Merging cheap effects into the uber pass</li><li>Effects only when visible</li><li>Half-resolution blurs: bloom and DoF</li><li>TAA vs FXAA, 64-bit vs 32-bit HDR</li><li>A post budget line in the frame</li><li>Lesson 034 challenge: predict, then check</li></ul>
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="032-tile-lab/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lesson 032</span><span>simulation</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 032 · 034</span><span>simulation</span></div>
       <h3>Tile Lab</h3>
       <p>Lantern Harbor with MSAA 4× moves 395 MB per frame on a tile-based phone GPU: GPU time is fine, but the phone is hot after 8 minutes. Clear instead of Load, resolve on the tile, let the water read the tile instead of copying the screen, and watch the trips to memory shrink to 172 MB, while MSAA ends up costing 0 MB.</p>
-      <ul><li>Immediate-mode vs tile-based GPUs</li><li>Load and store actions per render pass</li><li>Render pass breaks and screen copies</li><li>MSAA resolved on the tile</li><li>Bytes per frame as a budget (heat, battery)</li></ul>
+      <ul><li>Immediate-mode vs tile-based GPUs</li><li>Load and store actions per render pass</li><li>Render pass breaks and screen copies</li><li>MSAA resolved on the tile</li><li>Bytes per frame as a budget (heat, battery)</li><li>Lesson 034 challenge: predict, then check</li></ul>
       <span class="go">Open lab →</span>
     </a>
   </section>
