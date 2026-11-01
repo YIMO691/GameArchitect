@@ -76,7 +76,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | # | Title | Status |
 |---|-------|--------|
 | 045 | Asset pipeline architecture: the fish that made the build 300 MB bigger | ✅ |
-| 046 | Build pipelines and CI for games | ⬜ |
+| 046 | Build pipelines and CI for games: the nightly build nobody could blame | ✅ |
 | 047 | Save systems and serialization versioning | ⬜ |
 | 048 | Networking architecture: authority models | ⬜ |
 | 049 | Netcode: interpolation, prediction, rollback | ⬜ |
