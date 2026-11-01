@@ -1,0 +1,307 @@
+<title>Audio Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Voices and the audio buffer on the left, readouts and choices on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Audio Lab additions: voice grid and buffer bar. */
+.seg-ctl.three { grid-template-columns: repeat(3, 1fr); }
+.viz svg { display: block; width: 100%; height: auto; }
+.viz text { font-family: var(--f-mono); font-size: 12px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/052-audio-system-budgets.md">Read Lesson 052 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 052 · Lesson 052 · simulation using the lesson's numbers</div>
+    <h1>Audio Lab</h1>
+    <p class="lede">The fireworks finale asks for 180 sounds at once. Choose how many voices play, which ones win, and how sounds are loaded, and watch the audio thread, crackles and sound memory.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Fireworks finale.</strong> Goal: audio thread under <strong>5 ms</strong> of each 10.7 ms buffer, <strong>0</strong> crackles, <strong>0</strong> important sounds cut, sound memory under <strong>30 MB</strong>.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Voices, audio buffer and controls">
+    <div class="panel">
+      <h2>180 sounds requested</h2>
+      <div class="viz" id="voices"></div>
+      <div class="viz" id="buffer"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Audio thread</span><span class="v" id="sCpu">0</span><span class="s">ms of each 10.7 ms buffer</span></div>
+        <div class="stat"><span class="k">Crackles</span><span class="v" id="sCrack">0</span><span class="s">a minute of finale</span></div>
+        <div class="stat"><span class="k">Important cut</span><span class="v" id="sCut">0</span><span class="s">music, reel, announcer</span></div>
+        <div class="stat"><span class="k">Sound memory</span><span class="v" id="sMem">0</span><span class="s">MB</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>Voices</span></span>
+          <div class="seg-ctl three" role="group" aria-label="Voices">
+            <button type="button" data-k="voices" data-v="all">All 180<small>play everything</small></button>
+            <button type="button" data-k="voices" data-v="oldest">Cap 32<small>steal the oldest</small></button>
+            <button type="button" data-k="voices" data-v="prio">Cap 32<small>by priority</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>How sounds are loaded</span></span>
+          <div class="seg-ctl three" role="group" aria-label="How sounds are loaded">
+            <button type="button" data-k="load" data-v="pcm">Decompressed<small>all in memory</small></button>
+            <button type="button" data-k="load" data-v="vorbis">Compressed<small>all Vorbis</small></button>
+            <button type="button" data-k="load" data-v="mixed">Per type<small>stream music, ADPCM sfx</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>What is asking to play</h2>
+    <div style="overflow-x:auto"><table class="tbl" id="tbl"></table></div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 052: audio budgets</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Audio has a hard deadline</h3><p>The sound card needs a new buffer every 10.7 ms. Miss it once and the player hears a click. Unlike a slow frame, it can't be hidden.</p></div>
+      <div class="note"><h3>Ears can't count to 180</h3><p>Past a few dozen sounds, nobody hears the difference. A voice cap with priorities keeps what matters and drops the rest.</p></div>
+      <div class="note"><h3>Choose loading per sound</h3><p>Long music streams from disk; short, frequent effects stay in memory in a cheap format. One setting for everything wastes either memory or CPU.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. It uses Lesson 052's numbers: 180 requests in the finale (1 music, 1 reel loop, 1 announcer, 120 bangs, 40 splashes, 17 cheers); a 10.7 ms buffer (512 samples at 48 kHz) and a 5 ms budget; 0.4 ms mixing overhead; per voice 0.06 ms decompressed, 0.07 ms ADPCM, 0.15 ms Vorbis, 0.2 ms for a streamed track; memory 220 MB decompressed (music 207.4, effects 12.6), 22 MB all Vorbis, 4 MB with streamed music and ADPCM effects; 5,600 buffers a minute.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const BUF = 10.7, BUDGET = 5, MIX = 0.4, BUFS_MIN = 5600;
+  const KINDS = [
+    { k: "music", n: 1, imp: true, label: "Music" }, { k: "reel", n: 1, imp: true, label: "Your reel" }, { k: "voice", n: 1, imp: true, label: "Announcer" },
+    { k: "bang", n: 120, label: "Firework bangs" }, { k: "splash", n: 40, label: "Splashes" }, { k: "cheer", n: 17, label: "Cheers" },
+  ];
+  const COST = { pcm: { music: 0.06, sfx: 0.06 }, vorbis: { music: 0.15, sfx: 0.15 }, mixed: { music: 0.2, sfx: 0.07 } };
+  const MEM = { pcm: 220, vorbis: 22, mixed: 4 };
+  const st = { voices: "all", load: "pcm" };
+  function model(s) {
+    // playing counts per kind
+    const play = {};
+    KINDS.forEach((x) => (play[x.k] = x.n));
+    if (s.voices !== "all") {
+      if (s.voices === "oldest") { // important sounds started first: they are the oldest and get stolen
+        play.music = 0; play.reel = 0; play.voice = 0; play.bang = 20; play.splash = 8; play.cheer = 4;
+      } else { play.bang = 18; play.splash = 8; play.cheer = 3; }
+    }
+    const n = Object.values(play).reduce((a, b) => a + b, 0);
+    const c = COST[s.load];
+    const cpu = MIX + play.music * c.music + (n - play.music) * c.sfx;
+    const cut = KINDS.filter((x) => x.imp && play[x.k] === 0).length;
+    return { play, n, cpu: Math.round(cpu * 100) / 100, crack: cpu > BUF ? BUFS_MIN : 0, cut, mem: MEM[s.load] };
+  }
+  function drawVoices(m) {
+    const box = $("voices").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box)));
+    const cols = W < 420 ? 20 : 30, cell = W / cols, rows = Math.ceil(180 / cols);
+    const colOf = { music: "--p1", reel: "--p2", voice: "--p7", bang: "--bad", splash: "--accent", cheer: "--good" };
+    let g = "", i = 0;
+    KINDS.forEach((x) => {
+      for (let j = 0; j < x.n; j++, i++) {
+        const on = j < m.play[x.k], cx = (i % cols) * cell, cy = 18 + Math.floor(i / cols) * cell;
+        g += `<rect x="${cx + 1}" y="${cy + 1}" width="${cell - 2}" height="${cell - 2}" rx="2" style="fill:${on ? `var(${colOf[x.k]})` : "none"};stroke:var(${colOf[x.k]});stroke-width:${x.imp ? 2.5 : 1};opacity:${on ? 1 : 0.45}"/>`;
+      }
+    });
+    const H = 18 + rows * cell;
+    g = `<text x="0" y="12" style="fill:var(--ink);font-weight:600">${m.n} voices playing · filled = playing</text>` + g;
+    $("voices").innerHTML = `<svg viewBox="0 0 ${W} ${H + 4}" role="img" aria-label="Voices requested and playing">${g}</svg>`;
+  }
+  function drawBuffer(m) {
+    const box = $("buffer").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box))), H = 70;
+    const MAX = 14, X = (ms) => (Math.min(ms, MAX) / MAX) * W;
+    let g = `<text x="0" y="13" style="fill:var(--ink);font-weight:600">Audio thread, one buffer</text>`;
+    g += `<rect x="0" y="22" width="${W}" height="22" rx="4" style="fill:var(--field);stroke:var(--line)"/>`;
+    g += `<rect x="0" y="22" width="${X(m.cpu)}" height="22" rx="4" style="fill:var(${m.cpu > BUF ? "--bad" : m.cpu > BUDGET ? "--accent" : "--good"})"/>`;
+    g += `<line x1="${X(BUDGET)}" y1="16" x2="${X(BUDGET)}" y2="50" style="stroke:var(--ink);stroke-dasharray:4 3"/><text x="${X(BUDGET)}" y="${H - 6}" text-anchor="middle" style="fill:var(--ink)">5 ms budget</text>`;
+    g += `<line x1="${X(BUF)}" y1="16" x2="${X(BUF)}" y2="50" style="stroke:var(--bad);stroke-width:2"/><text x="${X(BUF)}" y="${H - 6}" text-anchor="middle" style="fill:var(--bad)">10.7 deadline</text>`;
+    $("buffer").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Audio thread time in one buffer">${g}</svg>`;
+  }
+  function render() {
+    const m = model(st);
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
+    drawVoices(m); drawBuffer(m);
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("sCpu", m.cpu > BUDGET, m.cpu.toFixed(2)); set("sCrack", m.crack, m.crack.toLocaleString("en-US")); set("sCut", m.cut, m.cut); set("sMem", m.mem > 30, m.mem);
+    const ok = m.cpu <= BUDGET && !m.crack && !m.cut && m.mem <= 30;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    $("coach").textContent = st.voices === "all" ? `All 180 sounds play: ${m.cpu} ms per buffer${m.cpu > BUF ? ", past the 10.7 ms deadline. Every buffer is late: the finale crackles" : ""}.${st.load === "pcm" ? " And 220 MB of sound sits in memory." : ""}`
+      : st.voices === "oldest" ? "32 voices fit easily. But the music, your reel and the announcer started first, so they are the oldest, and the finale steals them: the music stops at the climax."
+      : st.load === "pcm" ? "32 voices, the important three always win. The thread is happy. Memory is not: 220 MB of decompressed sound, most of it 6 music tracks."
+      : st.load === "vorbis" ? `Everything compressed: 22 MB. But every voice now decodes Vorbis: ${m.cpu} ms, over the 5 ms budget.`
+      : "Music streams from disk (one track playing), effects stay in memory as ADPCM: 4 MB, and the thread uses about half its budget.";
+    $("tbl").innerHTML = `<thead><tr><th>Sound</th><th class="num">Asking</th><th class="num">Playing</th><th>Priority</th></tr></thead><tbody>` +
+      KINDS.map((x) => `<tr><td>${x.label}</td><td class="num">${x.n}</td><td class="num">${m.play[x.k]}</td><td>${x.imp ? "must play" : x.k === "bang" ? "nearest and loudest" : "a few are enough"}</td></tr>`).join("") +
+      `<tr><td><strong>Total</strong></td><td class="num"><strong>180</strong></td><td class="num"><strong>${m.n}</strong></td><td></td></tr></tbody>`;
+  }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); }));
+  function apply(s) { Object.assign(st, { voices: "all", load: "pcm" }, s); render(); }
+  const STEPS = [
+    { t: "Play everything", d: "180 voices × 0.06 ms + 0.4 ms mixing = 11.2 ms, past the 10.7 ms deadline: every buffer is late, 5,600 crackles a minute. All sound is decompressed: 220 MB.", s: {} },
+    { t: "Cap at 32, steal the oldest", d: "32 voices: 2.32 ms, no crackles. But music, reel and announcer started first, so they are stolen: 3 important sounds cut.", s: { voices: "oldest" } },
+    { t: "Cap at 32 by priority", d: "Music, reel and announcer must play; then the nearest and loudest bangs, a few splashes and cheers. 0 cut, 2.32 ms. Memory still 220 MB.", s: { voices: "prio" } },
+    { t: "Compress everything", d: "All Vorbis: 22 MB. But decoding costs 0.15 ms a voice: 32 × 0.15 + 0.4 = 5.2 ms, over the 5 ms budget.", s: { voices: "prio", load: "vorbis" } },
+    { t: "Choose per type", d: "Stream the music (one track, 0.2 ms), keep effects as ADPCM in memory (0.07 ms each): 0.2 + 31 × 0.07 + 0.4 = 2.77 ms, 4 MB. Goal met.", s: { voices: "prio", load: "mixed" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("voices").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("voices").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("voices"));
+})();
+</script>

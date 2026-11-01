@@ -72,3 +72,4 @@ AI tools write plausible code quickly. What they can't do on their own is make d
 | 049 | [Netcode: Interpolation, Prediction, Rollback: Fishing From Sydney](lessons/049-netcode-interpolation-prediction-rollback.md) | [Netcode Lab](https://yimo691.github.io/GameArchitect/demos/048-netcode/) | 2026-11-01 |
 | 050 | [Online Server Architecture: Rooms, Shards, MMO Zones: 2,000 Players, One Lake](lessons/050-online-server-architecture-rooms-shards-mmo-zones.md) | [Server Lab](https://yimo691.github.io/GameArchitect/demos/050-server-lab/) | 2026-11-01 |
 | 051 | [UI Architecture: MVVM, Retained vs Immediate Mode: The Tackle Box That Stuttered](lessons/051-ui-architecture-mvvm-retained-vs-immediate-mode.md) | [UI Lab](https://yimo691.github.io/GameArchitect/demos/051-ui-lab/) | 2026-11-01 |
+| 052 | [Audio System Budgets: 180 Sounds at the Finale](lessons/052-audio-system-budgets.md) | [Audio Lab](https://yimo691.github.io/GameArchitect/demos/052-audio-lab/) | 2026-11-01 |
