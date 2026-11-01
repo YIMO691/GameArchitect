@@ -147,8 +147,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/043-loading-and-streaming-async-io-and-asset-bundling.md">Read Lesson 043 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/044-review-module-4.md">Lesson 044 ↗</a>
     </div>
-    <div class="eyebrow">Lab 043 · Lesson 043 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 043 · Lessons 043, 044 (challenge) · simulation using the lesson's numbers</div>
     <h1>Streaming Lab</h1>
     <p class="lede">The boat docks at the Coral Garden. How long until the player can move, and what happens to the frames while the rest of the island arrives? Choose how the content is loaded, compressed and split.</p>
   </header>
@@ -210,6 +211,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 043: loading and streaming</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 044 · Challenge: predict first, then tap Set up and check</p>
+    <ol class="steps" id="steps44" style="counter-reset: step 6"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -326,6 +329,39 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("tl").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  const STEPS44 = [
+    {
+      "t": "Chunks and a shared bundle, but LZMA",
+      "d": "Predict first: the first 81 MB with LZMA (read 2/3 of it at 60 MB/s, unpack at 60 MB/s). Then tap Set up: play at 2.87 s, over the goal. With small reads, unpacking is the slow part.",
+      "s": {
+        "call": "async",
+        "comp": "lzma",
+        "lay": "shared",
+        "pri": "low"
+      }
+    },
+    {
+      "t": "Stream the rest at High",
+      "d": "Predict first: the right layout, but High priority during play. Then tap Set up: play at 1.88 s, the rest in 4.7 s instead of 14.5, and 64.5 ms frames until it's done. Faster arrival, paid for with frames.",
+      "s": {
+        "call": "async",
+        "comp": "lz4",
+        "lay": "shared",
+        "pri": "high"
+      }
+    }
+  ];
+  const steps44El = $("steps44");
+  STEPS44.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + 6}">Set up</button>`;
+    steps44El.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active"); apply(s.s);

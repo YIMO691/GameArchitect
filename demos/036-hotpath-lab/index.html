@@ -153,8 +153,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/036-hot-paths-algorithms-before-micro-optimizations.md">Read Lesson 036 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/044-review-module-4.md">Lesson 044 ↗</a>
     </div>
-    <div class="eyebrow">Lab 036 · Lesson 036 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 036 · Lessons 036, 044 (challenge) · simulation using the lesson's numbers</div>
     <h1>Hot Path Lab</h1>
     <p class="lede">The Reef's sonar asks "have I reported this fish before?" for every visible fish, every frame. Make each question cheaper, or change how many questions it takes. Watch which one bends the curve.</p>
   </header>
@@ -217,6 +218,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 036: algorithms before micro-optimizations</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 044 · Challenge: predict first, then tap Set up and check</p>
+    <ol class="steps" id="steps44" style="counter-reset: step 6"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -321,6 +324,38 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $("chart").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  const STEPS44 = [
+    {
+      "t": "The festival at minute 5, tuned list",
+      "d": "Predict first: 3,000 visible fish, 1,500 in the list, each Contains scans half of it at 3 ns. Then tap Set up: 3,000 × 750 × 3 ns = 6.75 ms. Tuning bought 2.7×; the festival took 2× back.",
+      "s": {
+        "algo": "tuned",
+        "vis": 3000,
+        "min": 5
+      }
+    },
+    {
+      "t": "A HashSet on the smallest case",
+      "d": "Predict first: 500 visible, minute 1, HashSet at 25 ns a lookup. Then tap Set up: 0.0125 ms. Where the list was 0.23 ms, the HashSet still wins, and it stays flat as the dive goes on.",
+      "s": {
+        "algo": "hash",
+        "vis": 500,
+        "min": 1
+      }
+    }
+  ];
+  const steps44El = $("steps44");
+  STEPS44.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + 6}">Set up</button>`;
+    steps44El.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");

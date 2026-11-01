@@ -70,7 +70,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 041 | Object pooling done right (and when it hurts): the fireworks finale and the pool of 2,000 rockets | ✅ |
 | 042 | Hidden costs: strings, logging, reflection, boxing: the market board that logged to nobody | ✅ |
 | 043 | Loading and streaming: async IO and asset bundling: the island that froze the screen for 9.5 seconds | ✅ |
-| 044 | Review: Module 4 + optimize-a-scene exercise | ⬜ |
+| 044 | Review: Module 4 + optimize-a-scene exercise: the festival night at 36.90 ms | ✅ |
 
 ## Module 5 — Systems at scale
 | # | Title | Status |
