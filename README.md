@@ -68,3 +68,4 @@ AI tools write plausible code quickly. What they can't do on their own is make d
 | 045 | [Asset Pipeline Architecture: The Fish That Made the Build 300 MB Bigger](lessons/045-asset-pipeline-architecture.md) | [Pipeline Lab](https://yimo691.github.io/GameArchitect/demos/045-pipeline-lab/) | 2026-11-01 |
 | 046 | [Build Pipelines and CI for Games: The Nightly Build Nobody Could Blame](lessons/046-build-pipelines-and-ci-for-games.md) | [CI Lab](https://yimo691.github.io/GameArchitect/demos/046-ci-lab/) | 2026-11-01 |
 | 047 | [Save Systems and Serialization Versioning: The Update That Sank 30,000 Boats](lessons/047-save-systems-and-serialization-versioning.md) | [Save Lab](https://yimo691.github.io/GameArchitect/demos/047-save-lab/) | 2026-11-01 |
+| 048 | [Networking Architecture: Authority Models: Two Players, One Fish](lessons/048-networking-architecture-authority-models.md) | [Netcode Lab](https://yimo691.github.io/GameArchitect/demos/048-netcode/) | 2026-11-01 |

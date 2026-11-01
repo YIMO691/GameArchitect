@@ -78,7 +78,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 045 | Asset pipeline architecture: the fish that made the build 300 MB bigger | ✅ |
 | 046 | Build pipelines and CI for games: the nightly build nobody could blame | ✅ |
 | 047 | Save systems and serialization versioning: the update that sank 30,000 boats | ✅ |
-| 048 | Networking architecture: authority models | ⬜ |
+| 048 | Networking architecture: authority models: two players, one fish | ✅ |
 | 049 | Netcode: interpolation, prediction, rollback | ⬜ |
 | 050 | Online server architecture: rooms, shards, MMO zones | ⬜ |
 | 051 | UI architecture: MVVM, retained vs immediate mode | ⬜ |
