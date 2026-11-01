@@ -65,7 +65,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 036 | Hot paths: algorithms before micro-optimizations: the sonar that got a week of tuning and needed a HashSet | ✅ |
 | 037 | Spatial partitioning: grids, quadtrees, BVHs: the quadtree that made the horde slower | ✅ |
 | 038 | Physics cost and how to tame it: the storm that tipped 400 crates into the harbor | ✅ |
-| 039 | Animation cost: skinning, culling, update rates | ⬜ |
+| 039 | Animation cost: skinning, culling, update rates: the 300 dancing fishermen on the festival pier | ✅ |
 | 040 | Allocation-free gameplay code and GC spikes | ⬜ |
 | 041 | Object pooling done right (and when it hurts) | ⬜ |
 | 042 | Hidden costs: strings, logging, reflection, boxing | ⬜ |

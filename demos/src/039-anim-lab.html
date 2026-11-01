@@ -1,0 +1,323 @@
+<title>Animation Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. The crowd and four frames of animation cost on the left, readouts and controls on the right; the worst-frame profile below. One column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Animation Lab additions: the four-frame chart and the crowd strip. */
+.fr svg, .crowd svg { display: block; width: 100%; height: auto; }
+.fr text, .crowd text { font-family: var(--f-mono); font-size: 12px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/039-animation-cost-skinning-culling-update-rates.md">Read Lesson 039 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 039 · Lesson 039 · simulation using the lesson's numbers</div>
+    <h1>Animation Lab</h1>
+    <p class="lede">300 fishermen dance on the festival pier, each with a 70-bone skeleton. Most are behind the camera or tiny. Choose who animates, how often, with how many bones, and where the skinning runs.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Festival pier, mid-range phone, 30 fps.</strong> Goal: animation at most 3 ms of main thread in the <em>worst</em> frame, and GPU at most 28 ms (the pier draws in 24.0 ms).</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Frames and controls">
+    <div class="panel">
+      <h2>The crowd</h2>
+      <div class="crowd" id="crowd"></div>
+      <p class="legend">Each mark is 10 fishermen. Grey: behind the camera (180). Blue: near, under 15 m (30). Orange: mid, 15–40 m (50). Purple: far, over 40 m (40).</p>
+      <h3>Animation on the main thread, four frames in a row</h3>
+      <div class="fr" id="fr"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Worst frame</span><span class="v" id="sWorst">0</span><span class="s">ms main thread · budget 3</span></div>
+        <div class="stat"><span class="k">Average</span><span class="v" id="sAvg">0</span><span class="s">ms main thread</span></div>
+        <div class="stat"><span class="k">GPU skinning</span><span class="v" id="sGpu">0</span><span class="s" id="sGpuS">ms GPU</span></div>
+        <div class="stat"><span class="k">Bones a frame</span><span class="v" id="sBones">0</span><span class="s">evaluated, average</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>Animator culling mode</span></span>
+          <div class="seg-ctl" role="group" aria-label="Culling mode">
+            <button type="button" data-k="cull" data-v="always">Always Animate<small>default on the prefab</small></button>
+            <button type="button" data-k="cull" data-v="cull">Cull Update Transforms<small>off screen: 2 µs</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Update rate</span></span>
+          <div class="seg-ctl" role="group" aria-label="Update rate">
+            <button type="button" data-k="rate" data-v="all">Every frame<small>everyone</small></button>
+            <button type="button" data-k="rate" data-v="dist">By distance<small>near 1 · mid ½ · far ¼</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Who updates on which frame</span></span>
+          <div class="seg-ctl" role="group" aria-label="Stagger">
+            <button type="button" data-k="stagger" data-v="0">Together<small>same frame</small></button>
+            <button type="button" data-k="stagger" data-v="1">Staggered<small>spread evenly</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Far skeleton</span></span>
+          <div class="seg-ctl" role="group" aria-label="Far skeleton">
+            <button type="button" data-k="farLod" data-v="0">70 bones<small>7,000 vertices</small></button>
+            <button type="button" data-k="farLod" data-v="1">20 bones<small>1,500 vertices</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Skinning runs on</span></span>
+          <div class="seg-ctl" role="group" aria-label="Skinning">
+            <button type="button" data-k="skin" data-v="cpu">CPU<small>3 ns a vertex</small></button>
+            <button type="button" data-k="skin" data-v="gpu">GPU<small>1.5 ns a vertex, GPU time</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Profiler · the worst frame</h2>
+    <table class="tbl" id="prof"></table>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 039: animation cost</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Don't animate what nobody sees</h3><p>180 of 300 dancers are behind the camera. With the default culling mode they still evaluate 70 bones and skin 7,000 vertices every frame.</p></div>
+      <div class="note"><h3>Update rate by size on screen</h3><p>A 20-pixel dancer updated at 7.5 Hz looks the same as at 30 Hz. But update everyone on the same frame and the average hides a spike every fourth frame.</p></div>
+      <div class="note"><h3>Fewer bones, other processor</h3><p>Far dancers need 20 bones, not 70. GPU skinning moves the vertex work off the main thread, where it is cheaper, and costs GPU time instead.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. It uses Lesson 039's numbers: evaluating a 70-bone skeleton 14 µs (20 bones: 4 µs); skinning 7,000 vertices at 3 ns each on the CPU, 21 µs (1,500 vertices: 4.5 µs); an off-screen dancer with Cull Update Transforms 2 µs; the animation system's fixed cost 0.5 ms; GPU skinning 1.5 ns a vertex for every visible dancer, every frame.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const N = { off: 180, near: 30, mid: 50, far: 40 }, FIXED = 0.5, BUDGET = 3;
+  const st = { cull: "always", rate: "all", stagger: 0, farLod: 0, skin: "cpu" };
+  function per(s, band) {
+    const lod = band === "far" && s.farLod, bones = lod ? 20 : 70, verts = lod ? 1500 : 7000;
+    const ev = lod ? 4 : 14, sk = verts * 3 / 1000;
+    return { bones, verts, cpu: ev + (s.skin === "cpu" ? sk : 0) };
+  }
+  function every(s, band) { return s.rate === "all" || band === "near" ? 1 : band === "mid" ? 2 : 4; }
+  function frameCost(s, k) {
+    const rows = [], off = s.cull === "cull" ? N.off * 2 / 1000 : N.off * per(s, "off").cpu / 1000;
+    let bones = s.cull === "cull" ? 0 : N.off * 70;
+    rows.push(["Behind the camera (180)", off]);
+    for (const band of ["near", "mid", "far"]) {
+      const e = every(s, band), p = per(s, band);
+      const n = s.stagger ? N[band] / e : (k % e === 0 ? N[band] : 0);
+      rows.push([`${band[0].toUpperCase() + band.slice(1)} (${N[band]}), every ${e === 1 ? "frame" : e + " frames"}: ${n} update`, n * p.cpu / 1000]);
+      bones += n * p.bones;
+    }
+    rows.push(["Animation system, fixed", FIXED]);
+    return { rows, ms: rows.reduce((a, r) => a + r[1], 0), bones };
+  }
+  function gpuSkin(s) {
+    if (s.skin !== "gpu") return 0;
+    const v = N.near * 7000 + N.mid * 7000 + N.far * (s.farLod ? 1500 : 7000);
+    return v * 1.5 / 1e6;
+  }
+  const f2 = (v) => v.toFixed(2);
+  function drawCrowd() {
+    const box = $("crowd").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box)));
+    const cols = { off: "--muted", near: "--p1", mid: "--p2", far: "--p7" };
+    let g = "", x = 0; const w = W / 30;
+    for (const band of ["off", "near", "mid", "far"]) for (let i = 0; i < N[band] / 10; i++) { g += `<rect x="${x + 1}" y="4" width="${w - 2}" height="22" rx="3" style="fill:var(${cols[band]});opacity:${band === "off" ? 0.45 : 1}"/>`; x += w; }
+    $("crowd").innerHTML = `<svg viewBox="0 0 ${W} 30" role="img" aria-label="300 fishermen: 180 behind the camera, 30 near, 50 mid, 40 far.">${g}</svg>`;
+  }
+  function drawFrames(fs) {
+    const box = $("fr").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box)));
+    const L = 70, maxT = 12, X = (ms) => L + (ms / maxT) * (W - L - 50);
+    let g = "";
+    fs.forEach((f, i) => {
+      const y = 6 + i * 34, over = f.ms > BUDGET + 1e-9;
+      g += `<text x="0" y="${y + 18}" style="fill:var(--ink)">frame ${i + 1}</text>`;
+      g += `<rect class="bar" x="${L}" y="${y + 3}" width="${Math.max(1, X(f.ms) - L)}" height="22" rx="3" style="fill:var(${over ? "--bad" : "--good"})"/>`;
+      g += `<text x="${X(f.ms) + 6}" y="${y + 19}" style="fill:var(${over ? "--bad" : "--ink"});font-weight:600">${f2(f.ms)}</text>`;
+    });
+    const bx = X(BUDGET);
+    g += `<line x1="${bx}" x2="${bx}" y1="2" y2="${8 + 4 * 34}" style="stroke:var(--good);stroke-width:2;stroke-dasharray:5 4"/><text x="${bx}" y="${22 + 4 * 34}" text-anchor="middle" style="fill:var(--good)">budget 3</text>`;
+    $("fr").innerHTML = `<svg viewBox="0 0 ${W} ${28 + 4 * 34}" role="img" aria-label="Animation main thread ms for four frames in a row.">${g}</svg>`;
+  }
+  function render() {
+    const fs = [0, 1, 2, 3].map((k) => frameCost(st, k));
+    const worst = fs.reduce((a, f) => (f.ms > a.ms ? f : a), fs[0]);
+    const avg = fs.reduce((a, f) => a + f.ms, 0) / 4, bones = fs.reduce((a, f) => a + f.bones, 0) / 4, gpu = gpuSkin(st);
+    drawCrowd(); drawFrames(fs);
+    $("sWorst").textContent = f2(worst.ms); $("sWorst").className = "v " + (worst.ms > BUDGET + 1e-9 ? "bad" : "good");
+    $("sAvg").textContent = f2(avg); $("sAvg").className = "v " + (avg > BUDGET + 1e-9 ? "bad" : "good");
+    $("sGpu").textContent = f2(gpu); $("sGpuS").textContent = gpu ? `ms GPU · pier ${f2(24 + gpu)} of 28` : "ms GPU · skinning is on the CPU";
+    $("sBones").textContent = Math.round(bones).toLocaleString("en-US");
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(String(st[b.dataset.k]) === b.dataset.v)));
+    const ok = worst.ms <= BUDGET + 1e-9 && 24 + gpu <= 28;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over");
+    $("goalPill").textContent = ok ? "Goal met" : avg <= BUDGET + 1e-9 ? "Average fits, worst frame doesn't" : "Not yet";
+    const spread = Math.max(...fs.map((f) => f.ms)) - Math.min(...fs.map((f) => f.ms));
+    $("coach").textContent = spread > 0.05 ? `Uneven: ${f2(Math.min(...fs.map((f) => f.ms)))} to ${f2(worst.ms)} ms. Everyone whose turn it is updates on the same frame.` : `Every frame costs the same: ${f2(worst.ms)} ms.`;
+    $("prof").innerHTML = `<thead><tr><th>Animation work (worst frame)</th><th class="num">ms</th></tr></thead><tbody>` + worst.rows.map((r) => `<tr class="${r[1] > 1.5 ? "cur" : ""}"><td>${r[0]}</td><td class="num">${f2(r[1])}</td></tr>`).join("") + `<tr><td><strong>Total</strong></td><td class="num"><strong>${f2(worst.ms)}</strong></td></tr></tbody>`;
+  }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { const k = b.dataset.k; st[k] = (k === "stagger" || k === "farLod") ? +b.dataset.v : b.dataset.v; render(); }));
+  function apply(s) { Object.assign(st, { cull: "always", rate: "all", stagger: 0, farLod: 0, skin: "cpu" }, s); render(); }
+  const STEPS = [
+    { t: "The festival pier: 11 ms", d: "300 dancers × (14 µs bones + 21 µs skinning) + 0.5 ms = 11.00 ms of main thread, every frame. Budget 3 ms.", s: {} },
+    { t: "Cull what's behind the camera", d: "Cull Update Transforms: the 180 behind the camera cost 2 µs each instead of 35. 120 × 35 µs + 0.36 + 0.5 = 5.06 ms.", s: { cull: "cull" } },
+    { t: "Update rate by distance", d: "Near every frame, mid every 2nd, far every 4th. Average 3.14 ms. But frame 1 is 5.06 ms: everyone whose turn it is updates on the same frame. The average hides the spike.", s: { cull: "cull", rate: "dist" } },
+    { t: "Stagger the updates", d: "Half the mid dancers on even frames, half on odd; the far ones in four groups. Every frame: 3.14 ms. No spike, still 0.14 over.", s: { cull: "cull", rate: "dist", stagger: 1 } },
+    { t: "A 20-bone skeleton for the far ones", d: "At 20 px tall, fingers and face bones are invisible. 4 µs + 4.5 µs instead of 35 µs. Every frame: 2.87 ms. Goal met.", s: { cull: "cull", rate: "dist", stagger: 1, farLod: 1 } },
+    { t: "Move skinning to the GPU", d: "The main thread keeps only the bones: 1.67 ms. The GPU skins 620,000 vertices: +0.93 ms, pier 24.93 of 28. Room for the next feature on the CPU, paid for on the GPU.", s: { cull: "cull", rate: "dist", stagger: 1, farLod: 1, skin: "gpu" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $("fr").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("fr").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("fr"));
+})();
+</script>
