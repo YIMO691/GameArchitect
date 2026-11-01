@@ -141,6 +141,20 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .note p { margin: 0; color: var(--muted); font-size: 14px; }
 .fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
 @media (prefers-reduced-motion: reduce) { .row .fill, .alloc .arena span { transition: none; } }
+
+/* Lessons 040-042: gameplay-code workbenches */
+.bench { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .bench { grid-template-columns: minmax(0, 1fr); } }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11.5px; margin-top: 2px; }
+.btbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.btbl th, .btbl td { text-align: left; padding: 6px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.btbl th { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.btbl td.num, .btbl th.num { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.btbl td small { display: block; color: var(--muted); font-size: 12px; }
+.btbl tr.hot td.num { color: var(--bad); font-weight: 600; }
+.btbl tr.tot td { font-weight: 600; border-bottom: 0; }
+.btl svg { display: block; width: 100%; height: auto; }
+.btl text { font-family: var(--f-mono); font-size: 12px; }
 </style>
 
 <div class="wrap">
@@ -148,8 +162,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/007-memory-allocation-pools-arenas-gc.md">Read Lesson 007 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/040-allocation-free-gameplay-code-and-gc-spikes.md">Lesson 040 ↗</a>
     </div>
-    <div class="eyebrow">Lab 007 · Lesson 007 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 007 · Lessons 007, 010, 040 · simulation using the lesson's numbers</div>
     <h1>Memory &amp; GC Lab</h1>
     <p class="lede">Every frame, the game makes some garbage. It piles up in the heap's free room. When the room is full, the garbage collector stops the game to clean. Watch the red bar fill, then watch the frame-time chart jump.</p>
   </header>
@@ -230,6 +245,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     </div>
   </section>
 
+  <div id="benches" style="display:grid;gap:20px"></div>
+
   <section class="panel" aria-labelledby="tryH">
     <h2 id="tryH">Try this</h2>
     <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the chart, the heap bar and the numbers. This replays the lesson's story.</p>
@@ -237,6 +254,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <ol class="steps" id="steps"></ol>
     <p class="group-t">Lesson 010: Challenge · predict first, then tap Set up and check</p>
     <ol class="steps" id="steps10" style="counter-reset: step 7"></ol>
+    <div id="benchSteps" style="display:grid;gap:10px"></div>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -246,7 +264,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <div class="note"><h3>The payer is not the culprit</h3><p>GC.Collect shows up inside whichever call allocated when the room was full. Read the GC Alloc column to find who filled it.</p></div>
       <div class="note"><h3>Hide vs remove</h3><p>Incremental GC spreads the same work over several frames. Pools and arenas remove the garbage, so there is nothing to collect.</p></div>
     </div>
-    <p class="fine">This lab is a model, not a measurement. Numbers come from Lesson 007: CPU 13.5 ms and GPU 14.5 ms per frame, 1.5 KB of garbage per splash, 4 KB per frame from HUD strings, GC work of 0.3 ms per MB of live data, 3 ms incremental slices. A real collector (Unity's Boehm GC, .NET, Unreal's UObject GC) has more rules: heap growth, write barriers, and a fall-back to a full stop when garbage outruns the slices.</p>
+    <p class="fine">This lab is a model, not a measurement. Numbers come from Lesson 007: CPU 13.5 ms and GPU 14.5 ms per frame, 1.5 KB of garbage per splash, 4 KB per frame from HUD strings, GC work of 0.3 ms per MB of live data, 3 ms incremental slices. A real collector (Unity's Boehm GC, .NET, Unreal's UObject GC) has more rules: heap growth, write barriers, and a fall-back to a full stop when garbage outruns the slices. The workbenches below (Lesson 040 on) use the same GC rule with each lesson's own numbers.</p>
   </section>
 </div>
 
@@ -494,5 +512,128 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
   if (!reduce) requestAnimationFrame(tick);
   let lastW = 0;
   new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; chart(); heapAt(playIdx); } }).observe($("chart"));
+})();
+</script>
+<script>
+/* Lessons 040–042: gameplay-code workbenches. A model with each lesson's numbers, not timed live.
+   Shared GC rule from Lesson 007: a GC runs when 16 MB (16,384 KB) of free room is full of garbage,
+   and stops the game for 0.3 ms per MB of live managed data. */
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const FREE_KB = 16384, MS_PER_MB = 0.3, BUDGET = 1000 / 60;
+  const f1 = (v) => (v + 1e-9).toFixed(1), f2 = (v) => (v + 1e-9).toFixed(2);
+  const kbs = (v) => (v === 0 ? "0" : Math.abs(v * 10 - Math.round(v * 10)) < 1e-9 ? (v + 1e-9).toFixed(1) : (v + 1e-9).toFixed(2));
+  // GC from garbage per frame, frame time and live MB
+  function gc(kb, frameMs, liveMB) {
+    if (kb <= 0) return { every: Infinity, pause: liveMB * MS_PER_MB };
+    return { every: (FREE_KB / kb) * frameMs / 1000, pause: liveMB * MS_PER_MB };
+  }
+  const BENCHES = window.GA_BENCHES = [];
+  let stepNo = 10, firstStep = 10;
+
+  function build(B) {
+    const sec = document.createElement("section");
+    sec.className = "panel"; sec.id = B.id; sec.setAttribute("aria-labelledby", B.id + "H");
+    sec.innerHTML = `<div class="eyebrow">${B.eyebrow}</div><h2 id="${B.id}H">${B.title}</h2><p class="fine">${B.intro}</p>
+      <div class="bench"><div class="panel"><h3>${B.tableTitle}</h3><table class="btbl" data-r="tbl"></table><div class="btl" data-r="tl"></div><p class="coach" data-r="coach"></p></div>
+      <div class="panel"><div class="goal"><p>${B.goalText}</p><span class="pill over" data-r="pill">Not yet</span></div><div class="stats" data-r="stats"></div><div class="controls">${B.controls.map((c) =>
+        `<div class="field-row"><span class="lbl"><span>${c.label}</span></span><div class="seg-ctl" style="--n:${c.opts.length}" role="group" aria-label="${c.label}">${c.opts.map((o) =>
+          `<button type="button" data-k="${c.k}" data-v="${o[0]}">${o[1]}${o[2] ? `<small>${o[2]}</small>` : ""}</button>`).join("")}</div></div>`).join("")}</div></div></div>`;
+    $("benches").appendChild(sec);
+    const R = (n) => sec.querySelector(`[data-r="${n}"]`);
+    const st = Object.assign({}, B.base);
+    function render() {
+      const m = B.compute(st);
+      sec.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(String(st[b.dataset.k]) === b.dataset.v)));
+      sec.querySelectorAll("button[data-k]").forEach((b) => { const dis = B.disabled ? B.disabled(st, b.dataset.k) : false; b.disabled = dis; b.style.opacity = dis ? 0.4 : 1; });
+      R("tbl").innerHTML = `<thead><tr>${B.cols.map((c, i) => `<th class="${i ? "num" : ""}">${c}</th>`).join("")}</tr></thead><tbody>` +
+        m.rows.map((r) => `<tr class="${r.hot ? "hot" : ""}${r.tot ? " tot" : ""}"><td>${r.name}${r.sub ? `<small>${r.sub}</small>` : ""}</td>${r.vals.map((v) => `<td class="num">${v}</td>`).join("")}</tr>`).join("") + "</tbody>";
+      R("stats").innerHTML = m.stats.map((x) => `<div class="stat"><span class="k">${x[0]}</span><span class="v ${x[3] || ""}">${x[1]}</span><span class="s">${x[2]}</span></div>`).join("");
+      R("pill").className = "pill " + (m.ok ? "ok" : "over"); R("pill").textContent = m.ok ? "Goal met" : m.pillText || "Not yet";
+      R("coach").textContent = m.coach;
+      R("tl").innerHTML = m.timeline ? timeline(R("tl"), m.timeline) : "";
+    }
+    // 60 s of play: one mark per GC hitch
+    function timeline(el, t) {
+      const W = Math.max(300, Math.min(680, Math.round(el.clientWidth || 600))), L = 8, Rr = 8, H = 64;
+      const X = (s) => L + (s / 60) * (W - L - Rr);
+      let g = `<line x1="${L}" x2="${W - Rr}" y1="40" y2="40" style="stroke:var(--line);stroke-width:2"/>`;
+      for (let s = 0; s <= 60; s += 10) g += `<text x="${X(s)}" y="58" text-anchor="${s === 0 ? "start" : s === 60 ? "end" : "middle"}" style="fill:var(--muted)">${s}s</text>`;
+      let n = 0;
+      if (isFinite(t.every)) for (let s = t.every; s <= 60 + 1e-9; s += t.every) { g += `<rect x="${X(s) - 2}" y="14" width="4" height="26" rx="1" style="fill:var(--bad)"/>`; n++; }
+      g += `<text x="${L}" y="11" style="fill:var(--ink)">${n ? `${n} hitch${n > 1 ? "es" : ""} of ${f1(t.worst)} ms in 60 s` : isFinite(t.every) ? `No hitch in these 60 s; the next comes at ${f1(t.every)} s` : "60 s of play: no GC, no hitch"}</text>`;
+      return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="GC hitches in 60 seconds of play">${g}</svg>`;
+    }
+    sec.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => {
+      const v = b.dataset.v; st[b.dataset.k] = isNaN(+v) ? v : +v; render();
+    }));
+    // steps
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `<p class="group-t">${B.stepsTitle}</p><ol class="steps" style="counter-reset: step ${stepNo - 0}"></ol>`;
+    $("benchSteps").appendChild(wrap);
+    const ol = wrap.querySelector("ol");
+    B.steps.forEach((s) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${stepNo}">Set up</button>`;
+      ol.appendChild(li); stepNo++;
+      li.querySelector("button").addEventListener("click", () => {
+        document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+        li.classList.add("active");
+        Object.keys(st).forEach((k) => delete st[k]); Object.assign(st, B.base, s.s); render();
+        sec.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+      });
+    });
+    render();
+    let lastW = 0;
+    new ResizeObserver(() => { const w = R("tl").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe(R("tl"));
+  }
+
+  // ---------- Lesson 040: allocation-free gameplay code ----------
+  BENCHES.push({
+    id: "b040", eyebrow: "Lesson 040 · allocation-free gameplay code",
+    title: "Reel-in: the minigame that hitches every 7 seconds",
+    intro: "The Reef's fishing minigame: 60 fish swim around the hook, each running FishAI.Update every frame. CPU 13.5 ms, GPU 14.5 ms, 60 MB of live managed data, 16 MB of free room. Each row is a piece of gameplay code that looks harmless and allocates.",
+    tableTitle: "Gameplay code, one frame", cols: ["Code", "ms", "KB"],
+    goalText: "<strong>Goal:</strong> 0 KB of garbage a frame in the minigame, so no GC hitch while you play.",
+    base: { linq: 0, overlap: 0, ray: 0, closure: 0 },
+    controls: [
+      { k: "linq", label: "FishAI: find neighbours", opts: [[0, "LINQ + lambda", "Where(...).ToList()"], [1, "Loop", "into a reused List"]] },
+      { k: "overlap", label: "FishAI: what's near me?", opts: [[0, "OverlapSphere", "new Collider[] each call"], [1, "NonAlloc", "fills a buffer"]] },
+      { k: "ray", label: "Fishing line: hits", opts: [[0, "RaycastAll", "new RaycastHit[]"], [1, "NonAlloc", "fills a buffer"]] },
+      { k: "closure", label: "Reel: pull the fish", opts: [[0, "ForEach(f => …)", "closure + delegate"], [1, "for loop", "no capture"]] },
+    ],
+    compute(s) {
+      const rows = [
+        { name: "FishAI.Update × 60: neighbours", sub: s.linq ? "plain loop into a List kept on the fish" : "school.Where(n => Near(n)).ToList()", ms: s.linq ? 0.18 : 0.72, kb: s.linq ? 0 : 21 },
+        { name: "FishAI.Update × 60: OverlapSphere", sub: s.overlap ? "OverlapSphereNonAlloc(…, buffer)" : "returns a new Collider[] each call", ms: 0.30, kb: s.overlap ? 0 : 9 },
+        { name: "FishingLine.Update: hits", sub: s.ray ? "RaycastNonAlloc(…, hits)" : "RaycastAll returns a new array", ms: 0.10, kb: s.ray ? 0 : 1.5 },
+        { name: "Reel.Update: pull", sub: s.closure ? "for (int i…) fish[i].Pull(force)" : "hooked.ForEach(f => f.Pull(force))", ms: 0.38, kb: s.closure ? 0 : 0.5 },
+        { name: "Everything else", sub: "rendering prep, UI, audio", ms: 12.0, kb: 0 },
+      ];
+      const cpu = rows.reduce((a, r) => a + r.ms, 0), kb = rows.reduce((a, r) => a + r.kb, 0);
+      const frame = Math.max(cpu, 14.5), g = gc(kb, frame, 60), worst = kb > 0 ? cpu + g.pause : frame;
+      const out = rows.map((r) => ({ name: r.name, sub: r.sub, hot: r.kb > 0, vals: [f2(r.ms), kbs(r.kb)] }));
+      out.push({ name: "Total", tot: true, vals: [f2(cpu), kbs(kb)] });
+      return {
+        rows: out, ok: kb === 0, timeline: { every: g.every, worst },
+        stats: [["Garbage", kbs(kb), "KB per frame", kb ? "bad" : "good"],
+          ["GC every", isFinite(g.every) ? f1(g.every) : "never", isFinite(g.every) ? "seconds of play" : "nothing to collect", kb ? (g.every < 30 ? "bad" : "warn") : "good"],
+          ["Worst frame", f1(worst), kb ? `ms · CPU ${f2(cpu)} + GC 18.0` : "ms · GPU-bound, no GC", worst > BUDGET ? "bad" : "good"],
+          ["CPU", f2(cpu), "ms a frame, before any GC", ""]],
+        coach: kb ? `${kbs(kb)} KB a frame fills 16,384 KB in ${Math.floor(FREE_KB / kb)} frames: a ${f1(worst)} ms hitch every ${f1(g.every)} s.` : "0 KB a frame: the heap never fills while you play. Every frame is 14.5 ms.",
+      };
+    },
+    stepsTitle: "Lesson 040: allocation-free gameplay code",
+    steps: [
+      { t: "Reel-in: 32 KB a frame", d: "Four innocent-looking lines make 32 KB of garbage a frame. 16,384 KB ÷ 32 = 512 frames: a 31.5 ms hitch every 7.4 s, right when the fish bites.", s: {} },
+      { t: "The biggest first: LINQ in FishAI", d: "A plain loop into a List each fish keeps: 21 KB gone, and 0.54 ms of CPU too. 11 KB left: a hitch every 21.6 s, now 31.0 ms.", s: { linq: 1 } },
+      { t: "Non-alloc physics queries", d: "OverlapSphereNonAlloc fills a buffer the fish already owns. 2 KB left: every 118.8 s. Rarer is not the goal; zero is.", s: { linq: 1, overlap: 1 } },
+      { t: "The last 2 KB", d: "RaycastNonAlloc for the line, a for loop instead of ForEach with a closure. 0 KB: no GC while you play. Worst frame 14.5 ms. Goal met.", s: { linq: 1, overlap: 1, ray: 1, closure: 1 } },
+    ],
+  });
+
+  BENCHES.forEach(build);
 })();
 </script>
