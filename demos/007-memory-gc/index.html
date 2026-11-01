@@ -168,8 +168,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/007-memory-allocation-pools-arenas-gc.md">Read Lesson 007 ↗</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/040-allocation-free-gameplay-code-and-gc-spikes.md">Lesson 040 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/041-object-pooling-done-right.md">Lesson 041 ↗</a>
     </div>
-    <div class="eyebrow">Lab 007 · Lessons 007, 010, 040 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 007 · Lessons 007, 010, 040, 041 · simulation using the lesson's numbers</div>
     <h1>Memory &amp; GC Lab</h1>
     <p class="lede">Every frame, the game makes some garbage. It piles up in the heap's free room. When the room is full, the garbage collector stops the game to clean. Watch the red bar fill, then watch the frame-time chart jump.</p>
   </header>
@@ -636,6 +637,64 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       { t: "The biggest first: LINQ in FishAI", d: "A plain loop into a List each fish keeps: 21 KB gone, and 0.54 ms of CPU too. 11 KB left: a hitch every 21.6 s, now 31.0 ms.", s: { linq: 1 } },
       { t: "Non-alloc physics queries", d: "OverlapSphereNonAlloc fills a buffer the fish already owns. 2 KB left: every 118.8 s. Rarer is not the goal; zero is.", s: { linq: 1, overlap: 1 } },
       { t: "The last 2 KB", d: "RaycastNonAlloc for the line, a for loop instead of ForEach with a closure. 0 KB: no GC while you play. Worst frame 14.5 ms. Goal met.", s: { linq: 1, overlap: 1, ray: 1, closure: 1 } },
+    ],
+  });
+
+  // ---------- Lesson 041: object pooling done right ----------
+  BENCHES.push({
+    id: "b041", eyebrow: "Lesson 041 · object pooling",
+    title: "Fireworks finale: 30 rockets a frame",
+    intro: "The festival finale fires 4 bursts of 30 rockets, so up to 120 are alive. The rest of the frame costs 11.0 ms. Instantiate 0.25 ms and Destroy 0.05 ms a rocket; from a pool, Get 0.03 ms (SetActive and reset) and Release 0.02 ms. Each rocket holds 0.05 MB of native memory and 8 KB of managed data; the game's live managed data is 60 MB.",
+    tableTitle: "The worst burst frame", cols: ["Work", "ms"],
+    goalText: "<strong>Goal:</strong> every finale frame under 16.67 ms, and the pool holds at most 10 MB.",
+    base: { spawn: "inst", prewarm: 0, max: 0 },
+    disabled: (s, k) => s.spawn === "inst" && k !== "spawn",
+    controls: [
+      { k: "spawn", label: "Rockets come from", opts: [["inst", "Instantiate", "and Destroy"], ["pool", "A pool", "Get and Release"]] },
+      { k: "prewarm", label: "Prewarm during loading", opts: [[0, "None", "pool starts empty"], [120, "120", "the peak"], [2000, "2,000", "just in case"]] },
+      { k: "max", label: "Pool maxSize", opts: [[60, "60", "extra ones destroyed"], [0, "No limit", "keeps all returned"]] },
+    ],
+    compute(s) {
+      const BASE = 11, N = 30, PEAK = 120;
+      const create = BASE + N * 0.25 + N * (s.max === 60 ? 0.05 : 0.02), pooled = BASE + N * 0.03 + N * 0.02;
+      let first, later, held = 0, load = 0, rows;
+      if (s.spawn === "inst") {
+        first = later = BASE + N * 0.25 + N * 0.05;
+        rows = [["Launch 30: Instantiate", "30 × 0.25 ms", N * 0.25], ["Retire 30: Destroy", "30 × 0.05 ms, 60 KB of garbage", N * 0.05]];
+      } else {
+        const cap = s.max === 60 ? 60 : Infinity, have0 = Math.min(s.prewarm, cap), have = Math.max(have0, Math.min(PEAK, cap));
+        first = have0 >= PEAK ? pooled : create; later = have >= PEAK ? pooled : create;
+        held = have; load = have0 * 0.25;
+        const worstCreates = Math.max(first, later) > pooled + 1e-9;
+        rows = worstCreates
+          ? [["Launch 30: pool empty, Instantiate", "30 × 0.25 ms", N * 0.25], [s.max === 60 ? "Retire 30: pool full, Destroy" : "Retire 30: Release", s.max === 60 ? "30 × 0.05 ms" : "30 × 0.02 ms", N * (s.max === 60 ? 0.05 : 0.02)]]
+          : [["Launch 30: Get", "30 × 0.03 ms (SetActive + reset)", N * 0.03], ["Retire 30: Release", "30 × 0.02 ms", N * 0.02]];
+      }
+      const worst = Math.max(first, later), nativeMB = held * 0.05, managedMB = held * 8 / 1024, live = 60 + managedMB, pause = live * MS_PER_MB;
+      const out = [{ name: "Everything else", sub: "the festival scene", vals: [f2(BASE)] }]
+        .concat(rows.map((r) => ({ name: r[0], sub: r[1], hot: r[2] > 1, vals: [f2(r[2])] })));
+      out.push({ name: "Total", tot: true, vals: [f2(worst)] });
+      const ok = worst <= BUDGET && nativeMB <= 10;
+      return {
+        rows: out, ok, pillText: worst <= BUDGET ? "Fast, but too much memory" : "Not yet",
+        stats: [["First finale", f2(first), "ms, worst frame", first > BUDGET ? "bad" : "good"],
+          ["Later finales", f2(later), "ms, worst frame", later > BUDGET ? "bad" : "good"],
+          ["Pool holds", f1(nativeMB), `MB native · ${held.toLocaleString("en-US")} rockets · +${Math.round(load)} ms loading`, nativeMB > 10 ? "bad" : "good"],
+          ["GC pause", f1(pause), `ms · live ${f1(live)} MB managed`, pause > 20 ? "bad" : ""]],
+        coach: s.spawn === "inst" ? "Every burst creates 30 rockets and destroys 30: 9.0 ms of extra work, four times a finale."
+          : first > BUDGET && later <= BUDGET ? "The pool starts empty, so the first finale of every session still creates rockets. Prewarm during loading."
+          : later > BUDGET ? "maxSize is below the peak (120): every finale creates and destroys the rockets that don't fit back."
+          : nativeMB > 10 ? `Fast, but ${held.toLocaleString("en-US")} rockets sit in memory all game, and their managed parts make every GC ${f1(pause - 18)} ms longer.`
+          : "Every finale frame is a pooled frame. The pool holds the peak, and no more.",
+      };
+    },
+    stepsTitle: "Lesson 041: object pooling done right",
+    steps: [
+      { t: "Instantiate and Destroy", d: "Each burst: 30 × 0.25 ms to create + 30 × 0.05 ms to destroy = 9.0 ms on top of 11.0: a 20.00 ms frame, four times every finale.", s: {} },
+      { t: "A pool, empty at the start", d: "Get and Release cost 0.03 and 0.02 ms. Later finales: 12.50 ms. But the first finale of every session still creates all 120: 19.10 ms.", s: { spawn: "pool" } },
+      { t: "Prewarm 120 during loading", d: "Create the peak behind the loading screen (+30 ms). Every finale: 12.50 ms. The pool holds 6.0 MB, and the GC pause grows to 18.3 ms. Goal met.", s: { spawn: "pool", prewarm: 120 } },
+      { t: "maxSize below the peak", d: "maxSize 60: the pool keeps only 60 and destroys the rest when they come back. Every finale creates 60 again: 20.00 ms. Size the pool to the peak.", s: { spawn: "pool", prewarm: 120, max: 60 } },
+      { t: "Prewarm 2,000 \"just in case\"", d: "Still 12.50 ms, but 100.0 MB held all game, +500 ms of loading, and 15.6 MB more live managed data: every GC is 22.7 ms. A pool that's too big is a leak you chose.", s: { spawn: "pool", prewarm: 2000 } },
     ],
   });
 
