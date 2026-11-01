@@ -156,8 +156,9 @@ td { font-family: var(--f-mono); }
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/001-what-architects-and-optimizers-do.md">Read Lesson 001 ↗</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/037-spatial-partitioning-grids-quadtrees-bvhs.md">Read Lesson 037 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/053-ai-at-scale-time-slicing-and-ai-lod.md">Read Lesson 053 ↗</a>
     </div>
-    <div class="eyebrow">Lab 001 · Lessons 001 and 037 · timed live on your device, plus a model for Lesson 037</div>
+    <div class="eyebrow">Lab 001 · Lessons 001, 037 and 053 · timed live on your device, plus models for Lessons 037 and 053</div>
     <h1>Zombie Horde Lab</h1>
     <p class="lede">Every zombie must stay out of its neighbours' way. Watch how much work that takes when each zombie checks everyone, and how a spatial grid cuts the work to almost nothing.</p>
   </header>
@@ -255,12 +256,50 @@ td { font-family: var(--f-mono); }
     </div>
   </section>
 
+  <section class="panel" id="brainPanel" aria-labelledby="brainH">
+    <div class="eyebrow">Lesson 053 · AI at scale</div>
+    <h2 id="brainH">Zombie brains: who thinks, and when</h2>
+    <p class="fine">5,000 zombies, each with a brain that picks a target and asks for a path: 0.003 ms a think. Far zombies can use a cheap brain (follow the horde's flow field): 0.001 ms. Budget for AI: <strong>2 ms</strong> in every frame, and zombies next to the player react at once.</p>
+    <div class="city">
+      <div class="panel">
+        <h3>AI time, 30 frames (half a second)</h3>
+        <div class="cbar" id="bStrip"></div>
+        <div class="table-box"><table id="bTbl"></table></div>
+        <p class="fine" style="margin:6px 0 0">Near: under 30 m. Mid: 30–100 m. Far: over 100 m, *with the cheap brain. Every: thinks once every N frames.</p>
+        <p class="coach" id="bCoach"></p>
+      </div>
+      <div class="panel">
+        <div class="stats">
+          <div class="stat"><span class="k">Worst frame</span><span class="v" id="bWorst">0</span><span class="s">ms of AI · budget 2</span></div>
+          <div class="stat"><span class="k">Average</span><span class="v" id="bAvg">0</span><span class="s">ms of AI a frame</span></div>
+          <div class="stat"><span class="k">Near reaction</span><span class="v" id="bNear">0</span><span class="s">ms late, worst case</span></div>
+          <div class="stat"><span class="k">Far zombies</span><span class="v" id="bFar">0</span><span class="s">s between thinks</span></div>
+        </div>
+        <div class="controls">
+          <div class="field-row"><label>When zombies think</label>
+            <div class="seg-ctl three" role="group" aria-label="When zombies think">
+              <button type="button" data-b="sched" data-v="every">Every frame<small>all 5,000</small></button>
+              <button type="button" data-b="sched" data-v="batch">Batch<small>all on 1 frame in N</small></button>
+              <button type="button" data-b="sched" data-v="spread">Spread<small>1/N each frame</small></button>
+            </div></div>
+          <div class="field-row"><label>AI level of detail</label>
+            <div class="seg-ctl" role="group" aria-label="AI level of detail">
+              <button type="button" data-b="lod" data-v="off">Off<small>same brain, every 4 frames</small></button>
+              <button type="button" data-b="lod" data-v="on">By distance<small>near · mid · far</small></button>
+            </div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="panel" aria-labelledby="tryH">
     <h2 id="tryH">Try this</h2>
     <p class="fine">Tap <strong>Set up</strong> on each step, then watch the numbers above. Each step takes about 20 seconds.</p>
     <ol class="steps" id="steps"></ol>
     <p class="group-title">Lesson 037 · The city map (a model with the lesson's numbers, not timed live)</p>
     <ol class="steps" id="steps37" style="counter-reset: step 6"></ol>
+    <p class="group-title">Lesson 053 · Zombie brains (a model with the lesson's numbers, not timed live)</p>
+    <ol class="steps" id="steps53" style="counter-reset: step 12"></ol>
   </section>
 
   <section class="panel" aria-labelledby="benchH">
@@ -694,5 +733,77 @@ td { font-family: var(--f-mono); }
   // ---------- start ----------
   setMode("naive"); setCountIndex(4); resize(); updateReadouts();
   requestAnimationFrame(loop);
+})();
+</script>
+<script>
+(() => {
+  "use strict";
+  // ---------- Lesson 053: zombie brains (model) ----------
+  const $ = (id) => document.getElementById(id);
+  const FULL = 0.003, CHEAP = 0.001, FRAME = 1000 / 60, B = 2;
+  const TIERS_OFF = [{ name: "All zombies", n: 5000, cost: FULL, every: 4 }];
+  const TIERS_ON = [{ name: "Near", n: 300, cost: FULL, every: 1 }, { name: "Mid", n: 1200, cost: FULL, every: 4 }, { name: "Far*", n: 3500, cost: CHEAP, every: 30 }];
+  const bs = { sched: "every", lod: "off" };
+  function frames(s) {
+    const tiers = s.lod === "on" ? TIERS_ON : TIERS_OFF;
+    const out = [];
+    for (let f = 0; f < 30; f++) {
+      out.push(tiers.map((t) => {
+        if (s.sched === "every") return t.n * t.cost;
+        if (s.sched === "batch") return f % t.every === 0 ? t.n * t.cost : 0;
+        return (t.n / t.every) * t.cost;
+      }));
+    }
+    return { tiers, out };
+  }
+  function model(s) {
+    const { tiers, out } = frames(s);
+    const sums = out.map((r) => r.reduce((a, b) => a + b, 0));
+    const worst = Math.max(...sums), avg = tiers.reduce((a, t) => a + t.n * t.cost / (s.sched === "every" ? 1 : t.every), 0);
+    const nearEvery = s.sched === "every" ? 1 : tiers[0].every;
+    const farEvery = s.sched === "every" ? 1 : tiers[tiers.length - 1].every;
+    return { tiers, out, worst, avg, near: Math.round((nearEvery - 1) * FRAME), far: farEvery / 60 };
+  }
+  const f2 = (v) => v.toFixed(2);
+  function render() {
+    const m = model(bs);
+    document.querySelectorAll("button[data-b]").forEach((b) => b.setAttribute("aria-pressed", String(bs[b.dataset.b] === b.dataset.v)));
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("bWorst", m.worst > B + 1e-9, f2(m.worst)); set("bAvg", m.avg > B + 1e-9, f2(m.avg)); set("bNear", m.near > 0, m.near); $("bFar").textContent = m.far.toFixed(2); $("bFar").className = "v";
+    const box = $("bStrip").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box))), H = 140, top = 8, base = H - 20, MAX = 16;
+    const Y = (ms) => (Math.min(ms, MAX) / MAX) * (base - top), bw = W / 30, cols = ["--bad", "--grid", "--good"];
+    let g = "";
+    m.out.forEach((r, f) => { let y = base; r.forEach((v, i) => { const h = Y(v); if (h > 0) { g += `<rect x="${f * bw + 1}" y="${y - h}" width="${bw - 2}" height="${h}" style="fill:var(${m.tiers.length === 1 ? "--naive" : cols[i]})"/>`; y -= h; } }); });
+    g += `<line x1="0" y1="${base - Y(B)}" x2="${W}" y2="${base - Y(B)}" style="stroke:var(--good);stroke-width:2;stroke-dasharray:5 4"/><text x="${W}" y="${base - Y(B) - 4}" text-anchor="end" style="fill:var(--good)">budget 2 ms</text>`;
+    g += `<text x="0" y="${H - 4}" style="fill:var(--muted)">${m.tiers.length === 1 ? "one brain for all" : "red near · blue mid · green far"}${W < 420 ? "" : "; bars cap at 16 ms"}</text>`;
+    $("bStrip").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="AI time over 30 frames, worst ${f2(m.worst)} ms">${g}</svg>`;
+    $("bTbl").innerHTML = `<thead><tr><th>Zombies</th><th>Count</th><th>Every</th><th>ms</th></tr></thead><tbody>` + m.tiers.map((t) => `<tr><td>${t.name}</td><td>${t.n.toLocaleString("en-US")}</td><td>${bs.sched === "every" ? 1 : t.every}</td><td>${f2(t.n * t.cost / (bs.sched === "every" ? 1 : t.every))}</td></tr>`).join("") + `</tbody>`;
+    $("bCoach").textContent = bs.sched === "every" ? `Everyone thinks every frame: ${f2(m.worst)} ms of AI${m.worst > 10 ? ", most of a 16.7 ms frame" : ""}.`
+      : bs.sched === "batch" ? `The average looks fine (${f2(m.avg)} ms), but the work lands on a few frames: ${f2(m.worst)} ms spikes. Players feel the worst frame, not the average.`
+      : bs.lod === "off" ? `Spread evenly: ${f2(m.worst)} ms every frame, no spikes. But a zombie next to you may react ${m.near} ms late, and it still doesn't fit 2 ms.`
+      : `Near zombies think every frame (0 ms late), mid ones every 4, far ones use the cheap brain every 30 frames (${m.far.toFixed(2)} s). ${f2(m.worst)} ms in every frame.`;
+  }
+  document.querySelectorAll("button[data-b]").forEach((b) => b.addEventListener("click", () => { bs[b.dataset.b] = b.dataset.v; render(); }));
+  const STEPS53 = [
+    { t: "Brains every frame", d: "5,000 zombies × 0.003 ms = 15 ms of AI every frame, budget 2.", s: {} },
+    { t: "Think every 4th frame, all at once", d: "Average 3.75 ms, but every 4th frame does all 5,000: 15 ms spikes. A zombie next to you can react up to 3 frames (50 ms) late.", s: { sched: "batch" } },
+    { t: "Spread the thinking", d: "1,250 zombies a frame, a different quarter each time: 3.75 ms every frame, no spikes. Still over 2 ms, and near zombies are still up to 50 ms late.", s: { sched: "spread" } },
+    { t: "AI LOD by distance, spread", d: "300 near zombies every frame (0.90 ms), 1,200 mid every 4 frames (0.90 ms), 3,500 far with the cheap brain every 30 frames (0.12 ms): 1.92 ms, near 0 ms late.", s: { sched: "spread", lod: "on" } },
+    { t: "LOD, but batched", d: "Same tiers, but each tier thinks all at once: on frames where mid and far coincide, 0.9 + 3.6 + 3.5 = 8.0 ms. LOD needs spreading too.", s: { sched: "batch", lod: "on" } },
+  ];
+  const base0 = document.querySelectorAll(".steps li").length, el = $("steps53");
+  STEPS53.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn ghost" id="step${base0 + k}">Set up</button>`;
+    el.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); Object.assign(bs, { sched: "every", lod: "off" }, s.s); render();
+      $("brainPanel").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("bStrip").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("bStrip"));
 })();
 </script>

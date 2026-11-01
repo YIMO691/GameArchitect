@@ -83,7 +83,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 050 | Online server architecture: rooms, shards, MMO zones: 2,000 players, one lake | ✅ |
 | 051 | UI architecture: MVVM, retained vs immediate mode: the tackle box that stuttered | ✅ |
 | 052 | Audio system budgets: 180 sounds at the finale | ✅ |
-| 053 | AI at scale: time slicing and AI LOD | ⬜ |
+| 053 | AI at scale: time slicing and AI LOD: 5,000 zombies need brains | ✅ |
 | 054 | Tools and editor architecture | ⬜ |
 | 055 | Telemetry and live-ops architecture | ⬜ |
 | 056 | Review: Module 5 | ⬜ |
