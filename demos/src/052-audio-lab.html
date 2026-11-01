@@ -198,6 +198,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 052: audio budgets</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 056 · Challenge: predict first, then tap Set up and check</p>
+    <ol class="steps" id="steps056" style="counter-reset: step 5"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -294,6 +296,35 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("voices").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  const STEPS056 = [
+    {
+      "t": "Right formats, no voice cap",
+      "d": "Predict first: music streamed, effects ADPCM, all 180 playing: 0.2 + 179 × 0.07 + 0.4. Then tap Set up: 13.13 ms, past the 10.7 ms deadline, 5,600 crackles a minute. Cheap formats don't replace a voice limit.",
+      "s": {
+        "voices": "all",
+        "load": "mixed"
+      }
+    },
+    {
+      "t": "Right formats, steal the oldest",
+      "d": "Predict first: 32 ADPCM voices and the music stolen. Then tap Set up: 0.4 + 32 × 0.07 = 2.64 ms, 4 MB, but 3 important sounds cut. The stealing rule matters as much as the cap.",
+      "s": {
+        "voices": "oldest",
+        "load": "mixed"
+      }
+    }
+  ];
+  const steps056El = $("steps056");
+  STEPS056.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + 5}">Set up</button>`;
+    steps056El.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active"); apply(s.s);

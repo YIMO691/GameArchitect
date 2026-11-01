@@ -198,6 +198,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 051: UI architecture</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 056 · Challenge: predict first, then tap Set up and check</p>
+    <ol class="steps" id="steps056" style="counter-reset: step 5"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -294,6 +296,37 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("screen").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  const STEPS056 = [
+    {
+      "t": "Immediate mode, visible rows only",
+      "d": "Predict first: 14 rows × 0.01 ms + 0.1 ms every frame, one model. Then tap Set up: 0.24 ms a frame, open 0.24 ms, goal met. Immediate mode passes too when it draws only what's visible.",
+      "s": {
+        "data": "model",
+        "ui": "imgui",
+        "rows": "virt"
+      }
+    },
+    {
+      "t": "Bindings on top of copies",
+      "d": "Predict first: fast bindings and a virtualized list, but each panel still keeps its own coins. Then tap Set up: 0.06 ms a change and 340 wrong-coin reports a day. Speed doesn't fix two sources of truth.",
+      "s": {
+        "data": "copies",
+        "ui": "bind",
+        "rows": "virt"
+      }
+    }
+  ];
+  const steps056El = $("steps056");
+  STEPS056.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + 5}">Set up</button>`;
+    steps056El.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active"); apply(s.s);

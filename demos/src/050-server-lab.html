@@ -203,6 +203,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 050: rooms, shards, zones</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 056 · Challenge: predict first, then tap Set up and check</p>
+    <ol class="steps" id="steps056" style="counter-reset: step 5"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -291,6 +293,34 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("map").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  const STEPS056 = [
+    {
+      "t": "Rooms of 50, four to a process",
+      "d": "Predict first: 4 rooms × 50 × 49 pairs × 1 µs. Then tap Set up: 9.8 ms a tick, 10 processes, but a lake of only 50 and 15% of friend groups split.",
+      "s": {
+        "split": "rooms"
+      }
+    },
+    {
+      "t": "One process, nearest 50",
+      "d": "Predict first: interest management without splitting: 2,000 × 50 pairs. Then tap Set up: 100 ms a tick, still 2× the budget. Sending less isn't enough for 2,000 in one process.",
+      "s": {
+        "split": "one",
+        "aoi": "near"
+      }
+    }
+  ];
+  const steps056El = $("steps056");
+  STEPS056.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + 5}">Set up</button>`;
+    steps056El.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active"); apply(s.s);

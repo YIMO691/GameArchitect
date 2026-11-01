@@ -86,7 +86,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 053 | AI at scale: time slicing and AI LOD: 5,000 zombies need brains | ✅ |
 | 054 | Tools and editor architecture: five designers, thirty lost hours | ✅ |
 | 055 | Telemetry and live-ops architecture: why 18% quit on day 2 | ✅ |
-| 056 | Review: Module 5 | ⬜ |
+| 056 | Review: Module 5 + launch review exercise: two weeks before the Grand Lake | ✅ |
 
 ## Module 6 — Platform & production performance
 | # | Title | Status |

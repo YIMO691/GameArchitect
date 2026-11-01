@@ -205,6 +205,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 055: telemetry and live ops</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 056 · Challenge: predict first, then tap Set up and check</p>
+    <ol class="steps" id="steps056" style="counter-reset: step 5"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -283,6 +285,39 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("pipe").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  const STEPS056 = [
+    {
+      "t": "Fast changes, blind team",
+      "d": "Predict first: remote config and a 10% rollout, but events are still log lines. Then tap Set up: a change ships in 0.5 h, an answer takes 216 h. The team can act fast but can't tell what to change.",
+      "s": {
+        "send": "batch",
+        "shape": "text",
+        "cfg": "remote",
+        "roll": "staged"
+      }
+    },
+    {
+      "t": "Good events, sent one by one",
+      "d": "Predict first: typed events, remote config, staged rollout, but one request per event. Then tap Set up: 6% battery an hour and 480 KB. Everything else is right; players still feel the telemetry.",
+      "s": {
+        "send": "each",
+        "shape": "schema",
+        "cfg": "remote",
+        "roll": "staged"
+      }
+    }
+  ];
+  const steps056El = $("steps056");
+  STEPS056.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + 5}">Set up</button>`;
+    steps056El.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active"); apply(s.s);
