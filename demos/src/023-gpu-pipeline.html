@@ -121,6 +121,13 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .note { display: grid; gap: 4px; }
 .note p { margin: 0; color: var(--muted); font-size: 14px; }
 .fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.seg-ctl.four { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 520px) { .seg-ctl.four { grid-template-columns: repeat(2, 1fr); } }
+.night { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .night { grid-template-columns: minmax(0, 1fr); } }
+.pass-view svg { display: block; width: 100%; height: auto; }
+.pass-view text { font-family: var(--f-mono); font-size: 12px; }
+.tool-note { margin: 0; font-size: 14px; }
 .line-view rect.bar { transition: width 0.25s ease; }
 @media (prefers-reduced-motion: reduce) { .line-view rect.bar { transition: none; } }
 </style>
@@ -130,8 +137,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/023-the-gpu-pipeline-mental-model.md">Read Lesson 023 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/033-gpu-profiling-tools.md">Read Lesson 033 ↗</a>
     </div>
-    <div class="eyebrow">Lab 023 · Lesson 023 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 023 · Lessons 023 and 033 · simulation using the lesson's numbers</div>
     <h1>GPU Pipeline Lab</h1>
     <p class="lede">The GPU is an assembly line of four stations. The busiest one sets the GPU time. Pull one lever at a time and watch which bar is red, and whether the GPU time moves at all.</p>
   </header>
@@ -215,11 +223,73 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     </div>
   </section>
 
+  <section class="panel" id="nightPanel" aria-labelledby="nightH">
+    <div class="eyebrow">Lesson 033 · GPU profiling tools</div>
+    <h2 id="nightH">Night capture: which tool, which question</h2>
+    <div class="goal">
+      <p><strong>Coral Garden at night.</strong> Goal: the <em>worst</em> frame at most 28 ms (scene 24 + post 4). CPU: main 14.0 ms, render 11.2 ms.</p>
+      <span id="nGoal" class="pill over">Not yet</span>
+    </div>
+    <div class="night">
+      <div class="panel">
+        <h3>The frame, pass by pass</h3>
+        <div class="pass-view" id="passView"></div>
+        <p class="tool-note" id="nCoach"></p>
+      </div>
+      <div class="panel">
+        <div class="stats">
+          <div class="stat"><span class="k">Worst frame</span><span class="v" id="nWorst">0</span><span class="s" id="nWorstS">ms GPU</span></div>
+          <div class="stat"><span class="k">Average</span><span class="v" id="nAvg">0</span><span class="s" id="nAvgS">ms GPU</span></div>
+        </div>
+        <div class="controls">
+          <div class="field-row">
+            <span class="lbl"><span>Tool you open</span><span class="mono">what it can see</span></span>
+            <div class="seg-ctl four" role="group" aria-label="Tool you open">
+              <button type="button" data-n="tool" data-v="timing">Timing<small>FrameTiming</small></button>
+              <button type="button" data-n="tool" data-v="fdebug">Frame<small>debugger</small></button>
+              <button type="button" data-n="tool" data-v="rdoc">RenderDoc<small>graphics dbg</small></button>
+              <button type="button" data-n="tool" data-v="counters">Counters<small>AGI per pass</small></button>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="lbl"><span>Sand shader</span><span class="mono">inside the main pass</span></span>
+            <div class="seg-ctl two" role="group" aria-label="Sand shader">
+              <button type="button" data-n="sand" data-v="orig">Original<small>with ripple</small></button>
+              <button type="button" data-n="sand" data-v="simple">Simplified<small>Tomas's day</small></button>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="lbl"><span>Caustics render texture</span><span class="mono">its own pass</span></span>
+            <div class="seg-ctl two" role="group" aria-label="Caustics render texture">
+              <button type="button" data-n="caus" data-v="big">2048² RGBA16F<small>2 passes, Load/Store</small></button>
+              <button type="button" data-n="caus" data-v="small">512² R8<small>1 pass, Clear</small></button>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="lbl"><span>Caustics update</span><span class="mono">frames that draw it</span></span>
+            <div class="seg-ctl two" role="group" aria-label="Caustics update">
+              <button type="button" data-n="every" data-v="1">Every frame<small>30 Hz</small></button>
+              <button type="button" data-n="every" data-v="2">Every other<small>15 Hz</small></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3 id="nToolH">What this tool shows</h3>
+      <pre class="capture" id="nCap"></pre>
+    </div>
+  </section>
+
   <section class="panel" aria-labelledby="tryH">
     <h2 id="tryH">Try this</h2>
     <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the red bar and the GPU time. This replays the lesson's story.</p>
     <p class="group-title">Lesson 023 · The Coral Garden</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 033 · The night capture</p>
+    <ol class="steps" id="steps33" style="counter-reset: step 7"></ol>
+    <p class="group-title">Lesson 034 · Challenge · predict first, then tap Set up</p>
+    <ol class="steps" id="stepsC" style="counter-reset: step 13"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -229,6 +299,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <div class="note"><h3>One lever, one question</h3><p>Each lever unloads one station. The resolution test says "per-pixel"; the shader and format levers say which station.</p></div>
       <div class="note"><h3>The bottleneck moves</h3><p>After the fix, memory is next in line. The 4-byte format did nothing at first and becomes a real fix once murk layers arrive. Budget each station.</p></div>
     </div>
+    <p class="fine">Night capture (Lesson 033): passes shadow 1.3, caustics 6.4 ms (2048² RGBA16F, two passes: 128 MB at about 20 MB per ms) or 0.8 ms (512² R8, one pass, shader-bound), main 19.8 ms (19.5 with the simplified sand), post 2.7, UI 0.6, other 0.4. Per-draw durations in the RenderDoc view are the kind of numbers a tile-based GPU gives: approximate, for comparing only.</p>
     <p class="fine">This lab is a simulation, not a measurement. Loads come from Lesson 023: fixed work 3 ms; vertex 6 ms for the coral and 3 ms for 400 fish; raster 2 ms per 9 ms of vertex work plus 2 ms for the pixels; pixel 38 ms (live caustics), 22 ms (baked) or 6 ms (flat), plus 1 ms per murk layer; memory 15 ms plus 4 ms per murk layer at 8 bytes per pixel. Per-pixel work scales with the number of pixels. CPU work is 14 ms and the game caps at 30 fps. Real GPUs share shader cores between stations and overlap less perfectly, so a station that is not the limiter can still move the total a little.</p>
   </section>
 </div>
@@ -419,12 +490,159 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
       apply(s.s);
       $("lineView").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
     });
   });
+
+
+  // ---------- Lesson 033: night capture ----------
+  const ns = { tool: "timing", sand: "orig", caus: "big", every: 1 };
+  const NPASS = [
+    { k: "shadow", n: "Shadow", c: "--muted" },
+    { k: "caus", n: "Caustics RT", c: "--bad" },
+    { k: "main", n: "Main", c: "--p1" },
+    { k: "post", n: "Post", c: "--p4" },
+    { k: "ui", n: "UI", c: "--p3" },
+    { k: "other", n: "Other", c: "--p5" },
+  ];
+  function nightFrame(s, odd) {
+    const draws = !(odd && s.every === 2);
+    return { shadow: 1.3, caus: draws ? (s.caus === "big" ? 6.4 : 0.8) : 0, main: s.sand === "simple" ? 19.5 : 19.8, post: 2.7, ui: 0.6, other: 0.4 };
+  }
+  const tot = (f) => NPASS.reduce((a, p) => a + f[p.k], 0);
+  function drawNight(fr) {
+    const box = $("passView").clientWidth || 600;
+    const W = Math.max(300, Math.min(680, Math.round(box))), narrow = W < 500;
+    const L = narrow ? 50 : 88, R = narrow ? 44 : 58, maxT = 34, X = (ms) => L + (ms / maxT) * (W - L - R);
+    let g = "", y = 8;
+    const bx = X(BUDGET), rows = fr.length;
+    g += `<line x1="${bx}" x2="${bx}" y1="2" y2="${8 + rows * 48}" style="stroke:var(--good);stroke-width:2;stroke-dasharray:5 4"/>`;
+    fr.forEach(({ label, f }) => {
+      const t = tot(f);
+      g += `<text x="0" y="${y + 20}" style="fill:var(--ink);font-weight:600">${label}</text>`;
+      let x = L;
+      NPASS.forEach((p) => {
+        const v = f[p.k]; if (v <= 0) return;
+        const w = X(v) - L;
+        const col = p.k === "caus" && v < 1 ? "--p2" : p.c;
+        g += `<rect class="bar" x="${x}" y="${y + 4}" width="${w}" height="26" style="fill:var(${col});stroke:var(--panel);stroke-width:1"><title>${p.n}: ${f1(v)} ms</title></rect>`;
+        if (w > (narrow ? 26 : 30)) g += `<text x="${x + w / 2}" y="${y + 21}" text-anchor="middle" style="fill:#fff;font-weight:600">${w > 120 ? p.n + " " : ""}${f1(v)}</text>`;
+        x += w;
+      });
+      g += `<text x="${W}" y="${y + 21}" text-anchor="end" style="fill:${t > BUDGET + 1e-9 ? "var(--bad)" : "var(--good)"};font-weight:600">${f1(t)}</text>`;
+      y += 48;
+    });
+    g += `<text x="${bx}" y="${y + 6}" text-anchor="middle" style="fill:var(--good)">budget 28</text>`;
+    $("passView").innerHTML = `<svg viewBox="0 0 ${W} ${y + 12}" role="img" aria-label="GPU time per render pass against the 28 ms budget.">${g}</svg>`;
+  }
+  function renderNight() {
+    const even = nightFrame(ns, false), odd = nightFrame(ns, true);
+    const te = tot(even), to = tot(odd), alt = ns.every === 2;
+    const worst = Math.max(te, to), avg = (te + to) / 2;
+    drawNight(alt ? [{ label: "Even", f: even }, { label: "Odd", f: odd }] : [{ label: "Frame", f: even }]);
+    $("nWorst").textContent = f1(worst); $("nWorst").className = "v " + (worst > BUDGET + 1e-9 ? "bad" : "good");
+    $("nWorstS").textContent = worst > BUDGET + 1e-9 ? `ms · ${f1(worst - BUDGET)} over 28` : `ms · ${f1(BUDGET - worst)} under 28`;
+    $("nAvg").textContent = f1(avg); $("nAvg").className = "v " + (avg > BUDGET + 1e-9 ? "bad" : "good");
+    $("nAvgS").textContent = alt ? `ms · even ${f1(te)} / odd ${f1(to)}` : "ms · every frame the same";
+    document.querySelectorAll("button[data-n]").forEach((b) => b.setAttribute("aria-pressed", String(String(ns[b.dataset.n]) === b.dataset.v)));
+    const ok = worst <= BUDGET + 1e-9 && ns.sand === "orig";
+    $("nGoal").className = "pill " + (ok ? "ok" : "over");
+    $("nGoal").textContent = ok ? "Goal met" : worst <= BUDGET + 1e-9 ? "Art wants the ripple back" : "Not yet";
+    const big = ns.caus === "big";
+    let coach = big ? `The caustics pass is ${f1(even.caus)} ms of memory work: 128 MB per frame with the shader cores 18% busy. ` : `The caustics pass is ${f1(0.8)} ms of shader math on the frames that draw it. `;
+    coach += ns.sand === "simple" ? "The simplified sand saved 0.3 ms of the main pass." : "The main pass, 19.8 ms, fits the scene's share of the budget.";
+    if (alt) coach += " Budget the worst frame, not the average.";
+    $("nCoach").innerHTML = coach;
+
+    const pad = (a, n) => String(a).padEnd(n, " "), lpad = (a, n) => String(a).padStart(n, " ");
+    let cap = "", h = "";
+    const altStr = alt ? `  <span class="dim">(even ${f1(te)} · odd ${f1(to)})</span>` : "";
+    if (ns.tool === "timing") {
+      h = "Frame timing: is it the GPU?";
+      cap = `<span class="dim">FrameTimingManager · Coral Garden, night</span>\nMain thread    14.0 ms\nRender thread  11.2 ms\n` + (worst > BUDGET + 1e-9 ? `<span class="warn">GPU            ${f1(worst)} ms   ◀ budget 28</span>` : `GPU            ${f1(worst)} ms   ✓ budget 28`) + altStr + `\n\n` +
+        (worst > CPU ? `→ GPU-bound. Open a GPU tool next.\n` : "") + `<span class="dim">Can't tell: which pass, which draw, why.</span>`;
+    } else if (ns.tool === "fdebug") {
+      h = "Engine frame debugger: what is drawn?";
+      const evs = [["Shadow map", "_ShadowMap 1024² depth", "38 draws"]];
+      if (big) evs.push(["Caustics RT · pass 1", "_CausticsRT 2048² RGBA16F", "1 draw"], ["Caustics RT · pass 2", "_CausticsRT 2048² RGBA16F", "1 draw"]);
+      else evs.push(["Caustics RT", "_CausticsRT 512² R8", alt ? "1 draw, even frames" : "1 draw"]);
+      evs.push(["Main · opaque", "camera colour + depth", "sand, coral, fish"], ["Main · water", "camera colour", "1 draw"], ["Post", "bloom, uber, FXAA", "3 draws"], ["UI", "camera colour", "12 draws"]);
+      cap = `<span class="dim">Frame Debugger · events in order</span>\n` + evs.map((e) => pad(e[0], 22) + pad(e[1], 28) + e[2]).join("\n") + `\n\n<span class="dim">Can't tell: how long anything takes on the GPU.</span>`;
+    } else if (ns.tool === "rdoc") {
+      h = "Graphics debugger: why this draw?";
+      const sandMs = ns.sand === "simple" ? "8.1" : "9.8";
+      cap = `<span class="dim">RenderDoc · draws sorted by "Duration"</span>\n` +
+        `Sand floor            ${sandMs} ms\nCoral (instanced)      4.1 ms\nWater                  3.2 ms\n` + (big ? `Caustics layer 1       0.9 ms\nCaustics layer 2       0.9 ms\n` : `Caustics (one pass)    0.6 ms\n`) +
+        `<span class="warn">⚠ Tile-based GPU: per-draw durations are approximate. Compare, never budget.</span>\n\n` +
+        `<span class="dim">Caustics pass · texture and state</span>\n` +
+        (big ? `Target  _CausticsRT 2048×2048 RGBA16F = 32 MB\nPasses  2 × (Load 32 MB + Store 32 MB) = 128 MB\nChannels used  R only (G, B, A empty)\nTexel on screen  ≈ 4×4 pixels near the camera`
+             : `Target  _CausticsRT 512×512 R8 = 0.25 MB\nPasses  1 × (Clear, Store 0.25 MB)\nChannels used  R\nUpdated ${alt ? "every other frame" : "every frame"}`);
+    } else {
+      h = "GPU profiler with counters: which pass, which station?";
+      const row = (n, ms, mb, busy, mark) => pad(n, 24) + lpad(f1(ms), 6) + lpad(mb, 10) + lpad(busy, 8) + (mark ? "  ◀" : "");
+      const rows = [
+        row("Shadow map", 1.3, "10 MB", "35%"),
+        big ? `<span class="warn">${row("Caustics RT", even.caus, "128 MB", "18%", true)}</span>` : row("Caustics RT" + (alt ? " (even)" : ""), 0.8, "0.25 MB", "70%"),
+        row("Main (opaque + water)", even.main, "96 MB", "91%"),
+        row("Post (bloom, uber, FXAA)", 2.7, "24 MB", "60%"),
+        row("UI", 0.6, "4 MB", "40%"),
+        row("Other", 0.4, "", ""),
+      ];
+      cap = `<span class="dim">Android GPU Inspector · render passes${alt ? " · even frame" : ""}</span>\n` + pad("Pass", 24) + lpad("GPU ms", 6) + lpad("Memory", 10) + lpad("Cores", 8) + "\n" + rows.join("\n") + `\nGPU frame ${lpad(f1(te), 20)} ms` + altStr +
+        `\n\n<span class="dim">Can't tell: why the caustics pass is slow. Open it in the graphics debugger.</span>`;
+    }
+    $("nToolH").textContent = h;
+    $("nCap").innerHTML = cap;
+  }
+  document.querySelectorAll("button[data-n]").forEach((b) => b.addEventListener("click", () => {
+    const k = b.dataset.n; ns[k] = k === "every" ? +b.dataset.v : b.dataset.v; renderNight();
+  }));
+  function applyNight(s) { Object.assign(ns, { tool: "timing", sand: "orig", caus: "big", every: 1 }, s); renderNight(); }
+  const STEPS33 = [
+    { t: "The night tour", d: "Timing first: main 14.0, render 11.2, GPU 31.2 ms. The CPU fits; the GPU is 3.2 ms over. GPU-bound, so a GPU tool is next.", s: {} },
+    { t: "Tomas sorts RenderDoc by duration", d: "Sand floor 9.8 ms tops the list. A day simplifying the sand: the frame goes 31.2 → 30.9 ms. The debugger's number moved far more than the frame did. Per-draw timing on a tile GPU can't be budgeted.", s: { tool: "rdoc", sand: "simple" } },
+    { t: "Counters, per render pass", d: "Sand back to the original. A new pass: Caustics RT 6.4 ms, 128 MB, shader cores 18% busy. Memory-bound. Main is 19.8 ms, as last week.", s: { tool: "counters" } },
+    { t: "RenderDoc, on the right pass", d: "Not timings this time: the caustics target is 2048² RGBA16F, two Load/Store passes, and only red is used. 2 × (32 + 32) = 128 MB.", s: { tool: "rdoc" } },
+    { t: "Fix: 512² R8, one pass", d: "Caustics 6.4 → 0.8 ms of shader math. GPU 25.6 ms on every frame. The goal turns green.", s: { tool: "counters", caus: "small" } },
+    { t: "Every other frame", d: "Even frames 25.6 ms, odd 24.8 ms, average 25.2 ms. Both fit, but the budget is checked against the worst frame: 25.6. Try the old 2048² texture at 15 Hz: average 28.0 looks fine, worst 31.2 does not.", s: { tool: "timing", caus: "small", every: 2 } },
+  ];
+  const steps33 = $("steps33");
+  STEPS33.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + STEPS.length}">Set up</button>`;
+    steps33.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      applyNight(s.s);
+      $("nightPanel").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    });
+  });
+
+  // Lesson 034 review: predict first, then check.
+  const STEPSC = [
+    { t: "The kelp LOD trap", d: "Predict first: with baked caustics the GPU is at 25 ms and pixel-bound. Someone halves the coral triangles again (like the kelp LOD in Lesson 034's clean-up). How many ms does it save? Then tap Set up: 25 ms, 0 saved. Vertex 9 → 6 ms; pixel 22 ms still sets the pace.", s: { shader: "baked", tri: 0.5 } },
+    { t: "The resolution lever", d: "Predict first: baked caustics at 75% render scale. 0.5625 of the pixels: what are pixel, memory and the GPU? Then tap Set up: pixel 12.4 ms, memory 8.4 ms, GPU 15.4 ms. Still GPU-bound (CPU 14), but only just.", s: { shader: "baked", scale: 0.75 } },
+    { t: "Two murk layers, 1,200 fish", d: "Predict first: which station is the limiter, and is the goal met? Then tap Set up: pixel 24 ms, memory 23 ms, vertex 15 ms. GPU 27 ms ✅, but memory is 1 ms behind the limiter: the next feature that adds bytes moves the bottleneck.", s: { shader: "baked", fish: 3, murk: 2 } },
+  ];
+  const stepsCEl = $("stepsC");
+  STEPSC.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${STEPS.length + STEPS33.length + k}">Set up</button>`;
+    stepsCEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      apply(s.s);
+      $("lineView").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  renderNight();
+  let lastNW = 0;
+  new ResizeObserver(() => { const w = $("passView").clientWidth; if (Math.abs(w - lastNW) > 4) { lastNW = w; renderNight(); } }).observe($("passView"));
 
   render();
   let lastW = 0;

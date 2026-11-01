@@ -55,7 +55,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 030 | Lighting cost, forward vs deferred vs clustered: the 120 lanterns that lit only half the street | ✅ |
 | 031 | Post-processing budgets: the festival look that cost 18.4 ms after the frame was done | ✅ |
 | 032 | Mobile GPUs, tile-based rendering and bandwidth: the harbor that ran at 30 fps for eight minutes | ✅ |
-| 033 | GPU profiling tools: RenderDoc, PIX, vendor tools | ⬜ |
+| 033 | GPU profiling tools: RenderDoc, PIX, vendor tools: the day spent optimizing the wrong draw | ✅ |
 | 034 | Review: Module 3 + rendering case study | ⬜ |
 
 ## Module 4 — CPU & memory optimization
