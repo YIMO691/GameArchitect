@@ -155,6 +155,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .btbl th, .btbl td { text-align: left; padding: 6px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .btbl th { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
 .btbl td.num, .btbl th.num { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.btbl td:first-child { overflow-wrap: anywhere; }
 .btbl td small { display: block; color: var(--muted); font-size: 12px; }
 .btbl tr.hot td.num { color: var(--bad); font-weight: 600; }
 .btbl tr.tot td { font-weight: 600; border-bottom: 0; }
@@ -169,8 +170,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/007-memory-allocation-pools-arenas-gc.md">Read Lesson 007 ↗</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/040-allocation-free-gameplay-code-and-gc-spikes.md">Lesson 040 ↗</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/041-object-pooling-done-right.md">Lesson 041 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/042-hidden-costs-strings-logging-reflection-boxing.md">Lesson 042 ↗</a>
     </div>
-    <div class="eyebrow">Lab 007 · Lessons 007, 010, 040, 041 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 007 · Lessons 007, 010, 040–042 · simulation using the lesson's numbers</div>
     <h1>Memory &amp; GC Lab</h1>
     <p class="lede">Every frame, the game makes some garbage. It piles up in the heap's free room. When the room is full, the garbage collector stops the game to clean. Watch the red bar fill, then watch the frame-time chart jump.</p>
   </header>
@@ -695,6 +697,52 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       { t: "Prewarm 120 during loading", d: "Create the peak behind the loading screen (+30 ms). Every finale: 12.50 ms. The pool holds 6.0 MB, and the GC pause grows to 18.3 ms. Goal met.", s: { spawn: "pool", prewarm: 120 } },
       { t: "maxSize below the peak", d: "maxSize 60: the pool keeps only 60 and destroys the rest when they come back. Every finale creates 60 again: 20.00 ms. Size the pool to the peak.", s: { spawn: "pool", prewarm: 120, max: 60 } },
       { t: "Prewarm 2,000 \"just in case\"", d: "Still 12.50 ms, but 100.0 MB held all game, +500 ms of loading, and 15.6 MB more live managed data: every GC is 22.7 ms. A pool that's too big is a leak you chose.", s: { spawn: "pool", prewarm: 2000 } },
+    ],
+  });
+
+  // ---------- Lesson 042: hidden costs ----------
+  BENCHES.push({
+    id: "b042", eyebrow: "Lesson 042 · strings, logging, reflection, boxing",
+    title: "The market board: costs that don't look like costs",
+    intro: "The Reef's harbor market shows 200 fish prices. Release build on the phone: GPU 14.5 ms, everything else on the CPU 9.0 ms, 60 MB of live managed data, 16 MB of free room. None of the four rows below looks expensive in the code.",
+    tableTitle: "Market board code, one frame", cols: ["Code", "ms", "KB"],
+    goalText: "<strong>Goal:</strong> 0 KB of garbage a frame on the market screen, and the board's own code under 0.5 ms.",
+    base: { logs: 0, labels: 0, msg: 0, bus: 0 },
+    controls: [
+      { k: "logs", label: "Debug.Log in Update", opts: [[0, "Debug.Log", "10 a frame, stack traces"], [1, "Stripped", "[Conditional] wrapper"]] },
+      { k: "labels", label: "Price labels", opts: [[0, "Rebuild all", "\"Price: \" + p + \" coins\""], [1, "On change", "SetText(format, value)"]] },
+      { k: "msg", label: "Tell the stalls", opts: [[0, "SendMessage", "by name, 200 a frame"], [1, "Interface", "direct call"]] },
+      { k: "bus", label: "Event bus payload", opts: [[0, "object", "boxes a struct"], [1, "Generic <T>", "no boxing"]] },
+    ],
+    compute(s) {
+      const rows = [
+        { name: "Debug.Log × 10 per frame", sub: s.logs ? "calls removed from the build" : "string + stack trace, written to the log file", ms: s.logs ? 0 : 3.0, kb: s.logs ? 0 : 10 },
+        { name: "PriceLabel × 200", sub: s.labels ? "only labels whose price changed; no new strings" : "a new string for every label, every frame", ms: s.labels ? 0.01 : 0.4, kb: s.labels ? 0 : 20 },
+        { name: "SendMessage(\"OnPriceChanged\") × 200", sub: s.msg ? "IPriceListener.OnPriceChanged(p)" : "finds the method by name, every call", ms: s.msg ? 0.01 : 1.6, kb: 0 },
+        { name: "EventBus.Publish × 200", sub: s.bus ? "Publish<PriceChanged>(in evt)" : "Publish(object): a 32 B box per event", ms: s.bus ? 0.02 : 0.06, kb: s.bus ? 0 : 6.25 },
+        { name: "Everything else", sub: "UI layout, input, audio", ms: 9.0, kb: 0 },
+      ];
+      const cpu = rows.reduce((a, r) => a + r.ms, 0), kb = rows.reduce((a, r) => a + r.kb, 0), own = cpu - 9;
+      const frame = Math.max(cpu, 14.5), g = gc(kb, frame, 60), worst = kb > 0 ? cpu + g.pause : frame;
+      const out = rows.map((r) => ({ name: r.name, sub: r.sub, hot: r.kb > 0 || (r.ms >= 1 && r.name !== "Everything else"), vals: [f2(r.ms), kbs(r.kb)] }));
+      out.push({ name: "Total", tot: true, vals: [f2(cpu), kbs(kb)] });
+      return {
+        rows: out, ok: kb === 0 && own <= 0.5 + 1e-9, timeline: { every: g.every, worst },
+        pillText: kb === 0 ? "No garbage, but the board is slow" : "Not yet",
+        stats: [["Garbage", kbs(kb), "KB per frame", kb ? "bad" : "good"],
+          ["GC every", isFinite(g.every) ? f1(g.every) : "never", isFinite(g.every) ? "seconds of play" : "nothing to collect", kb ? (g.every < 30 ? "bad" : "warn") : "good"],
+          ["Board code", f2(own), "ms a frame · budget 0.5", own > 0.5 + 1e-9 ? "bad" : "good"],
+          ["Worst frame", f1(worst), kb ? `ms · CPU ${f2(cpu)} + GC 18.0` : "ms · GPU-bound, no GC", worst > BUDGET ? "bad" : "good"]],
+        coach: kb ? `${kbs(kb)} KB a frame: a ${f1(worst)} ms hitch every ${f1(g.every)} s. The board's own code takes ${f2(own)} ms.` : `0 KB a frame and ${f2(own)} ms of board code. Every frame is 14.5 ms.`,
+      };
+    },
+    stepsTitle: "Lesson 042: hidden costs",
+    steps: [
+      { t: "The market board", d: "5.06 ms of board code and 36.25 KB of garbage a frame: a 32.1 ms hitch every 6.6 s. Biggest time: 10 log lines. Biggest garbage: 200 price strings.", s: {} },
+      { t: "Strip the logs from release", d: "A [Conditional] wrapper removes the calls (and building their strings) from release builds: 3.0 ms and 10 KB gone. Hitch every 9.1 s.", s: { logs: 1 } },
+      { t: "Labels only on change, no new strings", d: "2 prices change a frame, not 200, and SetText formats into the label's own buffer. 20 KB gone. 6.25 KB left: every 38.0 s.", s: { logs: 1, labels: 1 } },
+      { t: "No SendMessage", d: "Finding a method by name 200 times a frame cost 1.6 ms. An interface call: 0.01 ms. No garbage change: reflection costs time here, not memory.", s: { logs: 1, labels: 1, msg: 1 } },
+      { t: "No boxing", d: "Publish(object) wrapped each PriceChanged struct in a 32 B box. A generic Publish<T> doesn't. 0 KB, never a GC; board code 0.04 ms. Goal met.", s: { logs: 1, labels: 1, msg: 1, bus: 1 } },
     ],
   });
 
