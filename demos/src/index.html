@@ -69,10 +69,10 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
 
   <section class="cards" aria-label="Labs you can open now">
     <a class="card" href="001-zombie-horde/index.html">
-      <div class="meta"><span class="tag live">live</span><span>Lesson 001</span><span>measured on your device</span></div>
+      <div class="meta"><span class="tag live">live</span><span>Lessons 001 · 037</span><span>measured on your device + a model</span></div>
       <h3>Zombie Horde Lab</h3>
-      <p>Drag from 500 to 8,000 zombies and watch "check everyone" collapse the frame rate. Then switch on the spatial grid.</p>
-      <ul><li>O(n²): ×4 work per doubling</li><li>Frame budget of 16.67 ms</li><li>A real scaling test on your phone</li></ul>
+      <p>Drag from 500 to 8,000 zombies and watch "check everyone" collapse the frame rate. Then switch on the spatial grid. Lesson 037 moves the horde to a 2 km city: choose a grid, a coarse grid, a quadtree or a BVH for each question.</p>
+      <ul><li>O(n²): ×4 work per doubling</li><li>Frame budget of 16.67 ms</li><li>A real scaling test on your phone</li><li>One structure per question: grid, quadtree, BVH</li><li>Clumped vs spread crowds</li></ul>
       <span class="go">Open lab →</span>
     </a>
     <a class="card" href="002-frame-pipeline/index.html">
@@ -238,7 +238,7 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <table>
         <thead><tr><th>Lab</th><th>Lessons</th><th>What you will see</th></tr></thead>
         <tbody>
-          <tr><td>Zombie Horde</td><td class="mono">001 · 037 · 053</td><td>Today: grid vs check everyone. Later: quadtrees, and AI that updates less often far from the camera.</td></tr>
+          <tr><td>Zombie Horde</td><td class="mono">001 · 037 · 053</td><td>Grid vs check everyone. Live. Lesson 037 adds the city map: grids, quadtrees and BVHs per question. Live. Later: AI that updates less often far from the camera.</td></tr>
           <tr><td>Frame Pipeline</td><td class="mono">002 · 059 · 060</td><td>Today: CPU vs GPU. Later: frame pacing and shader-compile stutter.</td></tr>
           <tr><td>Profiler Detective</td><td class="mono">003 · 035</td><td>Find the spike the average hides, read self time and calls. Live. Lesson 035 adds the net hitch hypothesis board. Live.</td></tr>
           <tr><td>Cache Lab</td><td class="mono">004 · 005 · 006 · 010</td><td>Access order, cache lines, AoS vs SoA, and branches and SIMD. All three lessons are live, plus the Module 1 challenge.</td></tr>

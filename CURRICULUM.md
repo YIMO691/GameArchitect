@@ -63,7 +63,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 |---|-------|--------|
 | 035 | Hypothesis-driven profiling methodology: the net hitch that took two days, then forty minutes | ✅ |
 | 036 | Hot paths: algorithms before micro-optimizations: the sonar that got a week of tuning and needed a HashSet | ✅ |
-| 037 | Spatial partitioning: grids, quadtrees, BVHs | ⬜ |
+| 037 | Spatial partitioning: grids, quadtrees, BVHs: the quadtree that made the horde slower | ✅ |
 | 038 | Physics cost and how to tame it | ⬜ |
 | 039 | Animation cost: skinning, culling, update rates | ⬜ |
 | 040 | Allocation-free gameplay code and GC spikes | ⬜ |

@@ -124,6 +124,16 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .chart-box svg { display: block; width: 100%; max-width: 680px; min-width: 320px; height: auto; }
 .chart-box text { font-family: var(--f-mono); font-size: 12px; fill: var(--muted); }
 .chart-box .lbl { font-weight: 600; fill: var(--ink); }
+.seg-ctl.three { grid-template-columns: repeat(3, 1fr); }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.city { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .city { grid-template-columns: minmax(0, 1fr); } }
+.cbar svg { display: block; width: 100%; height: auto; }
+.cbar text { font-family: var(--f-mono); font-size: 12px; }
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+td.bad { color: var(--bad); font-weight: 600; } td.good { color: var(--good); font-weight: 600; }
+#cTbl td:first-child { white-space: normal; font-family: var(--f-body); }
+.coach { margin: 0; font-size: 14px; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 .table-box { overflow-x: auto; }
 th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -145,8 +155,9 @@ td { font-family: var(--f-mono); }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/001-what-architects-and-optimizers-do.md">Read Lesson 001 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/037-spatial-partitioning-grids-quadtrees-bvhs.md">Read Lesson 037 ↗</a>
     </div>
-    <div class="eyebrow">Lab 001 · Lesson 001 · measured live on your device</div>
+    <div class="eyebrow">Lab 001 · Lessons 001 and 037 · timed live on your device, plus a model for Lesson 037</div>
     <h1>Zombie Horde Lab</h1>
     <p class="lede">Every zombie must stay out of its neighbours' way. Watch how much work that takes when each zombie checks everyone, and how a spatial grid cuts the work to almost nothing.</p>
   </header>
@@ -201,10 +212,55 @@ td { font-family: var(--f-mono); }
     </div>
   </section>
 
+  <section class="panel" id="cityPanel" aria-labelledby="cityH">
+    <div class="eyebrow">Lesson 037 · spatial partitioning</div>
+    <h2 id="cityH">The city map: one structure per question</h2>
+    <p class="fine">A 2 km × 2 km city, 8,000 zombies, 200 screamers and 600 buildings, on a mid-range PC at 60 fps. Three questions every frame: <strong>separation</strong> (who is within 2 m of me?), <strong>alerts</strong> (which zombies are within 60 m of a screamer?) and <strong>line of sight</strong> (can each screamer see the player past the buildings?). Budget for all three: 2.5 ms.</p>
+    <div class="city">
+      <div class="panel">
+        <h3>Crowd spatial work per frame</h3>
+        <div class="cbar" id="cBar"></div>
+        <div class="table-box"><table id="cTbl"></table></div>
+        <p class="coach" id="cCoach"></p>
+      </div>
+      <div class="panel">
+        <div class="stats">
+          <div class="stat"><span class="k">Spatial work</span><span class="v" id="cMs">0</span><span class="s" id="cMsS">ms · budget 2.5</span></div>
+          <div class="stat"><span class="k">Memory</span><span class="v" id="cMem">0</span><span class="s">for the structures</span></div>
+        </div>
+        <div class="controls">
+          <div class="field-row"><label>Crowd layout</label>
+            <div class="seg-ctl" role="group" aria-label="Crowd layout">
+              <button type="button" data-c="lay" data-v="clump">Clumped<small>6,000 in the square</small></button>
+              <button type="button" data-c="lay" data-v="spread">Spread<small>even over 4 km²</small></button>
+            </div></div>
+          <div class="field-row"><label>Separation (2 m) uses</label>
+            <div class="seg-ctl" role="group" aria-label="Separation uses">
+              <button type="button" data-c="sep" data-v="grid">Fine grid<small>2 m cells</small></button>
+              <button type="button" data-c="sep" data-v="quad">Quadtree<small>8 per leaf</small></button>
+            </div></div>
+          <div class="field-row"><label>Alerts (60 m) use</label>
+            <div class="seg-ctl three" role="group" aria-label="Alerts use">
+              <button type="button" data-c="alert" data-v="grid">Fine grid<small>3,600 cells</small></button>
+              <button type="button" data-c="alert" data-v="coarse">Coarse grid<small>64 m cells</small></button>
+              <button type="button" data-c="alert" data-v="quad">Quadtree</button>
+            </div></div>
+          <div class="field-row"><label>Line of sight uses</label>
+            <div class="seg-ctl" role="group" aria-label="Line of sight uses">
+              <button type="button" data-c="ray" data-v="brute">Every building<small>600 tests a ray</small></button>
+              <button type="button" data-c="ray" data-v="bvh">BVH<small>about 20 tests</small></button>
+            </div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="panel" aria-labelledby="tryH">
     <h2 id="tryH">Try this</h2>
     <p class="fine">Tap <strong>Set up</strong> on each step, then watch the numbers above. Each step takes about 20 seconds.</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 037 · The city map (a model with the lesson's numbers, not timed live)</p>
+    <ol class="steps" id="steps37" style="counter-reset: step 6"></ol>
   </section>
 
   <section class="panel" aria-labelledby="benchH">
@@ -234,6 +290,7 @@ td { font-family: var(--f-mono); }
       <div class="note"><h3>Measure, then fix</h3><p>The frame bar is the profiler in miniature. The separation step is the one thing to fix; the rest of the frame barely changes.</p></div>
       <div class="note"><h3>The architect's rule</h3><p>Any "who is near me?" question goes through one shared spatial grid. Then bullets, explosions and AI senses get the same speed-up for free.</p></div>
     </div>
+    <p class="fine">The city map (Lesson 037) is a model, not a live timing: fine grid rebuild 0.5 ns per cell (1,000,000 cells) + 5 ns per zombie; cell visit 2 ns; distance check 4 ns; quadtree node visit 15 ns and build 20 ns per zombie per level; ray-box test 10 ns. Clumped: 6,000 zombies in a 60 × 60 m square, 2,000 spread. The screamers stand outside the square.</p>
     <p class="fine">Times are measured in JavaScript in your browser. A C# or C++ build will give different absolute numbers, but the same shape: about ×4 per doubling for "check everyone" and about ×2 for the grid. The frame rate cannot go above your screen's refresh rate (often 60 or 120 Hz).</p>
   </section>
 </div>
@@ -495,7 +552,7 @@ td { font-family: var(--f-mono); }
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn ghost" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
       $("tPause").checked = false; st.paused = false;
       $("tLines").checked = true; st.lines = true;
@@ -503,6 +560,71 @@ td { font-family: var(--f-mono); }
       $("stage").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
     });
   });
+
+
+  // ---------- Lesson 037: the city map (model) ----------
+  const cs = { lay: "clump", sep: "grid", alert: "grid", ray: "brute" };
+  const CM = {
+    clump:  { fineBuild: 0.54, sepGrid: 1.584, quadBuild: 1.4, sepQuad: 3.40, alGrid: 1.446, alCoarse: 0.018, alQuad: 0.086 },
+    spread: { fineBuild: 0.54, sepGrid: 0.146, quadBuild: 0.8, sepQuad: 0.98, alGrid: 1.463, alCoarse: 0.063, alQuad: 0.118 },
+  };
+  const COARSE_BUILD = 0.041, RAY = { brute: 1.2, bvh: 0.04 }, CB = 2.5;
+  function cityModel(s) {
+    const m = CM[s.lay], rows = [];
+    const needFine = s.sep === "grid" || s.alert === "grid", needQuad = s.sep === "quad" || s.alert === "quad";
+    if (needFine) rows.push(["Build fine grid (1,000,000 cells)", m.fineBuild, "7.63 MB"]);
+    if (needQuad) rows.push([`Build quadtree (depth ${s.lay === "clump" ? "10 in the square" : "5"})`, m.quadBuild, "64 KB"]);
+    if (s.alert === "coarse") rows.push(["Build coarse grid (1,024 cells)", COARSE_BUILD, "8 KB"]);
+    rows.push([`Separation · ${s.sep === "grid" ? "fine grid" : "quadtree"}`, s.sep === "grid" ? m.sepGrid : m.sepQuad, ""]);
+    rows.push([`Alerts · ${{ grid: "fine grid", coarse: "coarse grid", quad: "quadtree" }[s.alert]}`, { grid: m.alGrid, coarse: m.alCoarse, quad: m.alQuad }[s.alert], ""]);
+    rows.push([`Line of sight · ${s.ray === "bvh" ? "BVH" : "every building"}`, RAY[s.ray], s.ray === "bvh" ? "37.5 KB" : ""]);
+    const total = rows.reduce((a, r) => a + r[1], 0);
+    let memKB = (needFine ? 7.63 * 1024 : 0) + (needQuad ? 64 : 0) + (s.alert === "coarse" ? 8 : 0) + (s.ray === "bvh" ? 37.5 : 0);
+    return { rows, total, memKB };
+  }
+  const cf = (v) => (v < 0.1 ? v.toFixed(3) : v.toFixed(2));
+  function renderCity() {
+    const m = cityModel(cs);
+    const tot = Math.round(m.total * 100) / 100;
+    $("cMs").textContent = tot.toFixed(2); $("cMs").className = "v " + (tot > CB + 1e-9 ? "bad" : "good");
+    $("cMsS").textContent = tot > CB ? `ms · ${(tot - CB).toFixed(2)} over 2.5` : `ms · ${(CB - tot).toFixed(2)} under 2.5`;
+    $("cMem").textContent = m.memKB >= 1024 ? (m.memKB / 1024).toFixed(2) + " MB" : m.memKB.toFixed(1) + " KB";
+    document.querySelectorAll("button[data-c]").forEach((b) => b.setAttribute("aria-pressed", String(cs[b.dataset.c] === b.dataset.v)));
+    $("cTbl").innerHTML = `<thead><tr><th>Work</th><th>ms</th><th>memory</th></tr></thead><tbody>` + m.rows.map((r) => `<tr><td>${r[0]}</td><td class="${r[1] > 1 ? "bad" : ""}">${cf(r[1])}</td><td>${r[2]}</td></tr>`).join("") + `<tr><td><strong>Total</strong></td><td class="${tot > CB ? "bad" : "good"}"><strong>${tot.toFixed(2)}</strong></td><td></td></tr></tbody>`;
+    const box = $("cBar").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box)));
+    const X = (v) => (v / 7) * W, cols = ["--grid", "--accent", "--naive", "--good", "--dot", "--bad"];
+    let g = "", x = 0;
+    m.rows.forEach((r, i) => { const w = Math.max(1, X(r[1])); g += `<rect x="${x}" y="4" width="${w}" height="26" style="fill:var(${cols[i % cols.length]});stroke:var(--panel)"><title>${r[0]}: ${cf(r[1])} ms</title></rect>`; x += w; });
+    g += `<line x1="${X(CB)}" x2="${X(CB)}" y1="0" y2="36" style="stroke:var(--good);stroke-width:2.5;stroke-dasharray:5 4"/><text x="${X(CB)}" y="50" text-anchor="middle" style="fill:var(--good)">budget 2.5</text>`;
+    $("cBar").innerHTML = `<svg viewBox="0 0 ${W} 56" role="img" aria-label="Spatial work per frame, ${tot.toFixed(2)} ms, against a 2.5 ms budget.">${g}</svg>`;
+    const worst = m.rows.slice().sort((a, b) => b[1] - a[1])[0];
+    $("cCoach").textContent = tot > CB ? `Biggest item: ${worst[0]}, ${cf(worst[1])} ms. Pick the structure that fits that question.` : `Under budget. Each question uses the structure that fits it.`;
+  }
+  document.querySelectorAll("button[data-c]").forEach((b) => b.addEventListener("click", () => { cs[b.dataset.c] = b.dataset.v; renderCity(); }));
+  function applyCity(s) { Object.assign(cs, { lay: "clump", sep: "grid", alert: "grid", ray: "brute" }, s); renderCity(); }
+  const STEPS37 = [
+    { t: "The city map, one fine grid for everything", d: "Clumped crowd. Fine grid rebuild 0.54 ms (a million cells, mostly empty), separation 1.58 ms, alerts 1.45 ms (each screamer visits 3,600 cells), line of sight 1.20 ms: 4.77 ms, budget 2.5.", s: {} },
+    { t: "\"Quadtrees adapt to clumps\": quadtree for everything", d: "Build 1.40 ms, separation 3.40 ms, alerts 0.09 ms: 6.09 ms. Worse. The clump has many real neighbours within 2 m; the tree adds node visits on top of the same checks.", s: { sep: "quad", alert: "quad" } },
+    { t: "Grid for separation, quadtree for alerts", d: "Separation back to 1.58 ms, alerts 0.09 ms, but now two structures are built: 4.81 ms. A whole tree for 200 queries.", s: { alert: "quad" } },
+    { t: "A coarse grid for the big question", d: "64 m cells: a screamer's 120 m box covers about 9 cells instead of 3,600. Build 0.04 ms, alerts 0.02 ms: 3.38 ms.", s: { alert: "coarse" } },
+    { t: "A BVH for the buildings", d: "Each ray tests about 20 boxes down the tree instead of 600 buildings: 1.20 → 0.04 ms. Total 2.22 ms, under 2.5.", s: { alert: "coarse", ray: "bvh" } },
+    { t: "Check the other layout: spread out", d: "Same structures, crowd spread evenly: 0.83 ms. With the quadtree for separation here it would be 0.98 ms for separation alone: the grid still wins the fixed 2 m question.", s: { alert: "coarse", ray: "bvh", lay: "spread" } },
+  ];
+  const steps37 = $("steps37");
+  STEPS37.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn ghost" id="step${k + STEPS.length}">Set up</button>`;
+    steps37.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      applyCity(s.s);
+      $("cityPanel").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    });
+  });
+  renderCity();
+  let lastCW = 0;
+  new ResizeObserver(() => { const w = $("cBar").clientWidth; if (Math.abs(w - lastCW) > 4) { lastCW = w; renderCity(); } }).observe($("cBar"));
 
   // ---------- scaling test ----------
   const sleep = () => new Promise((r) => setTimeout(r, 0));
