@@ -74,3 +74,4 @@ AI tools write plausible code quickly. What they can't do on their own is make d
 | 051 | [UI Architecture: MVVM, Retained vs Immediate Mode: The Tackle Box That Stuttered](lessons/051-ui-architecture-mvvm-retained-vs-immediate-mode.md) | [UI Lab](https://yimo691.github.io/GameArchitect/demos/051-ui-lab/) | 2026-11-01 |
 | 052 | [Audio System Budgets: 180 Sounds at the Finale](lessons/052-audio-system-budgets.md) | [Audio Lab](https://yimo691.github.io/GameArchitect/demos/052-audio-lab/) | 2026-11-01 |
 | 053 | [AI at Scale: Time Slicing and AI LOD: 5,000 Zombies Need Brains](lessons/053-ai-at-scale-time-slicing-and-ai-lod.md) | [Zombie Horde Lab](https://yimo691.github.io/GameArchitect/demos/001-zombie-horde/) | 2026-11-01 |
+| 054 | [Tools and Editor Architecture: Five Designers, Thirty Lost Hours](lessons/054-tools-and-editor-architecture.md) | [Tools Lab](https://yimo691.github.io/GameArchitect/demos/054-tools-lab/) | 2026-11-01 |
