@@ -69,7 +69,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 040 | Allocation-free gameplay code and GC spikes: the minigame that hitched every 7 seconds | ✅ |
 | 041 | Object pooling done right (and when it hurts): the fireworks finale and the pool of 2,000 rockets | ✅ |
 | 042 | Hidden costs: strings, logging, reflection, boxing: the market board that logged to nobody | ✅ |
-| 043 | Loading and streaming: async IO and asset bundling | ⬜ |
+| 043 | Loading and streaming: async IO and asset bundling: the island that froze the screen for 9.5 seconds | ✅ |
 | 044 | Review: Module 4 + optimize-a-scene exercise | ⬜ |
 
 ## Module 5 — Systems at scale

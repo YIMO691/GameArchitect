@@ -1,0 +1,339 @@
+<title>Streaming Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Loading timeline and chunk map on the left, readouts and controls on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Streaming Lab additions: the loading timeline and the chunk map. */
+.seg-ctl.three { grid-template-columns: repeat(3, 1fr); }
+.tlx svg, .cmap svg { display: block; width: 100%; height: auto; }
+.tlx text, .cmap text { font-family: var(--f-mono); font-size: 12px; }
+.seg-ctl button:disabled { opacity: 0.4; cursor: not-allowed; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/043-loading-and-streaming-async-io-and-asset-bundling.md">Read Lesson 043 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 043 · Lesson 043 · simulation using the lesson's numbers</div>
+    <h1>Streaming Lab</h1>
+    <p class="lede">The boat docks at the Coral Garden. How long until the player can move, and what happens to the frames while the rest of the island arrives? Choose how the content is loaded, compressed and split.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Coral Garden, mid-range phone.</strong> Goal: the player can move within <strong>2 s</strong> of docking, and no frame over <strong>16.67 ms</strong> once they can.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Loading timeline and controls">
+    <div class="panel">
+      <h2>From docking to playing</h2>
+      <div class="tlx" id="tl"></div>
+      <p class="legend"><span class="sw" style="background:var(--p1)"></span>Read from flash <span class="sw" style="background:var(--p2)"></span>Decompress <span class="sw" style="background:var(--p7)"></span>Create objects (main thread)</p>
+      <h3>The island, in chunks</h3>
+      <div class="cmap" id="map"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Time to play</span><span class="v" id="sPlay">0</span><span class="s" id="sPlayS">s after docking</span></div>
+        <div class="stat"><span class="k">Loading-screen frame</span><span class="v" id="sLoadF">0</span><span class="s" id="sLoadFS">ms</span></div>
+        <div class="stat"><span class="k">Frame while streaming</span><span class="v" id="sPlayF">0</span><span class="s" id="sPlayFS">ms</span></div>
+        <div class="stat"><span class="k">On disk</span><span class="v" id="sDisk">0</span><span class="s" id="sDiskS">MB</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>Load call</span></span>
+          <div class="seg-ctl" role="group" aria-label="Load call">
+            <button type="button" data-k="call" data-v="sync">LoadScene<small>synchronous</small></button>
+            <button type="button" data-k="call" data-v="async">LoadSceneAsync<small>loading screen runs</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Bundle compression</span></span>
+          <div class="seg-ctl" role="group" aria-label="Compression">
+            <button type="button" data-k="comp" data-v="lzma">LZMA<small>smaller, slow to unpack</small></button>
+            <button type="button" data-k="comp" data-v="lz4">LZ4<small>bigger, fast to unpack</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Layout</span></span>
+          <div class="seg-ctl three" role="group" aria-label="Layout">
+            <button type="button" data-k="lay" data-v="one">One bundle<small>whole island</small></button>
+            <button type="button" data-k="lay" data-v="dup">12 chunks<small>textures copied</small></button>
+            <button type="button" data-k="lay" data-v="shared">12 + shared<small>textures once</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Streaming during play</span></span>
+          <div class="seg-ctl" role="group" aria-label="Streaming priority">
+            <button type="button" data-k="pri" data-v="high">High<small>50 ms a frame</small></button>
+            <button type="button" data-k="pri" data-v="low">Low<small>2 ms a frame</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Where the time goes</h2>
+    <table class="tbl" id="prof"></table>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 043: loading and streaming</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Async is about the frames</h3><p>LoadSceneAsync doesn't make loading much shorter. It keeps the game drawing while it loads, so a loading screen can move.</p></div>
+      <div class="note"><h3>Load what's near first</h3><p>Splitting the island into chunks lets the player start after 3 of 12 arrive. The rest streams in a little at a time, under the frame budget.</p></div>
+      <div class="note"><h3>Shared things go in one place</h3><p>Textures used by every chunk must live in one shared bundle. Otherwise each chunk carries its own copy: on disk, in download size and in memory.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. It uses Lesson 043's numbers: the island is 270 MB unpacked, of which 18 MB are coral textures used everywhere; flash reads 60 MB/s; LZMA bundles are 2/3 of the unpacked size and unpack at 60 MB/s, LZ4 bundles are 0.8 and unpack at 450 MB/s; creating the objects takes 2.0 s of main thread for all 270 MB; the loading screen draws in 2 ms and gameplay frames take 14.5 ms. A real loader overlaps reading, unpacking and creating; here they run one after another so the parts are easy to see.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const READ = 60, DEC = { lzma: 60, lz4: 450 }, RATIO = { lzma: 2 / 3, lz4: 0.8 }, INTEG = 2.0 / 270;
+  const UNIQUE = 270, SHARED = 18, CHUNK = (UNIQUE - SHARED) / 12, LS = 2, GAME = 14.5, BUDGET = 1000 / 60;
+  const SLICE = { high: 50, low: 2 };
+  const st = { call: "sync", comp: "lzma", lay: "one", pri: "high" };
+  function sets(s) {
+    if (s.lay === "one") return { first: UNIQUE, rest: 0, chunkMB: 0, coral: SHARED };
+    if (s.lay === "dup") return { first: 3 * (CHUNK + SHARED), rest: 9 * (CHUNK + SHARED), chunkMB: CHUNK + SHARED, coral: 12 * SHARED };
+    return { first: SHARED + 3 * CHUNK, rest: 9 * CHUNK, chunkMB: CHUNK, coral: SHARED };
+  }
+  function phases(mb, s) { return { read: mb * RATIO[s.comp] / READ, dec: mb / DEC[s.comp], integ: mb * INTEG }; }
+  function model(s) {
+    const z = sets(s), p = phases(z.first, s);
+    const lsFrame = LS + SLICE.high, stretch = s.call === "sync" ? 1 : lsFrame / SLICE.high;
+    const integWall = p.integ * stretch, play = p.read + p.dec + integWall;
+    const loadFrame = s.call === "sync" ? play * 1000 : lsFrame;
+    let playFrame = GAME, restT = 0;
+    if (z.rest > 0) {
+      const q = phases(z.rest, s), fr = GAME + SLICE[s.pri];
+      playFrame = fr; restT = q.read + q.dec + q.integ * fr / SLICE[s.pri];
+    }
+    const total = z.first + z.rest + (s.lay === "dup" ? 0 : 0);
+    const disk = (s.lay === "dup" ? 12 * (CHUNK + SHARED) : UNIQUE) * RATIO[s.comp];
+    return { z, p, integWall, play, loadFrame, playFrame, restT, disk, total };
+  }
+  const f2 = (v) => (v + 1e-9).toFixed(2), f1 = (v) => (v + 1e-9).toFixed(1);
+  function drawTL(m) {
+    const box = $("tl").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box)));
+    const L = 8, R = 8, maxS = 10, X = (s) => L + (s / maxS) * (W - L - R);
+    let g = "", x = 0;
+    const seg = (d, col, label) => { const x0 = X(x), x1 = X(x + d); g += `<rect x="${x0}" y="26" width="${Math.max(1, x1 - x0)}" height="30" style="fill:var(${col})"/>`; if (x1 - x0 > 38) g += `<text x="${(x0 + x1) / 2}" y="46" text-anchor="middle" style="fill:#fff;font-weight:600">${f1(d)}</text>`; x += d; };
+    seg(m.p.read, "--p1"); seg(m.p.dec, "--p2"); seg(m.integWall, "--p7");
+    if (st.call === "sync") g += `<rect x="${X(0)}" y="22" width="${X(m.play) - X(0)}" height="38" rx="3" style="fill:none;stroke:var(--bad);stroke-width:2;stroke-dasharray:6 4"/><text x="${X(0)}" y="16" style="fill:var(--bad);font-weight:600">screen frozen for ${f2(m.play)} s</text>`;
+    else g += `<text x="${X(0)}" y="16" style="fill:var(--muted)">loading screen moves (${Math.round(m.loadFrame)} ms frames)</text>`;
+    const px = X(Math.min(m.play, maxS)), ok = m.play <= 2 + 1e-9;
+    g += `<line x1="${px}" x2="${px}" y1="20" y2="72" style="stroke:var(${ok ? "--good" : "--bad"});stroke-width:2.5"/><text x="${px > W - 70 ? px : px}" y="88" text-anchor="${px > W - 70 ? "end" : px < 60 ? "start" : "middle"}" style="fill:var(${ok ? "--good" : "--bad"});font-weight:600">play at ${f2(m.play)} s</text>`;
+    const gx = X(2); g += `<line x1="${gx}" x2="${gx}" y1="20" y2="62" style="stroke:var(--good);stroke-width:1.5;stroke-dasharray:4 3"/><text x="${gx}" y="104" text-anchor="middle" style="fill:var(--good)">goal 2 s</text>`;
+    for (let s = 0; s <= maxS; s += 2) g += `<text x="${X(s)}" y="120" text-anchor="${s === 0 ? "start" : s === maxS ? "end" : "middle"}" style="fill:var(--muted)">${s}s</text>`;
+    $("tl").innerHTML = `<svg viewBox="0 0 ${W} 126" role="img" aria-label="Loading timeline: play at ${f2(m.play)} seconds">${g}</svg>`;
+  }
+  function drawMap(m) {
+    const box = $("map").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box)));
+    const cols = 4, rows = 3, gap = 6, cw = (W - gap * (cols - 1)) / cols, ch = 40;
+    let g = "";
+    if (st.lay === "one") {
+      g += `<rect x="0" y="0" width="${W}" height="${rows * ch + gap * 2}" rx="6" style="fill:var(--p7);opacity:.85"/><text x="${W / 2}" y="${(rows * ch + gap * 2) / 2 + 4}" text-anchor="middle" style="fill:#fff;font-weight:600">one bundle: all 270 MB before anyone moves</text>`;
+    } else {
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const i = r * cols + c, near = r === 2 && c < 3, x = c * (cw + gap), y = r * (ch + gap);
+        g += `<rect x="${x}" y="${y}" width="${cw}" height="${ch}" rx="5" style="fill:var(${near ? "--good" : "--p1"});opacity:${near ? 0.9 : 0.45}"/>`;
+        g += `<text x="${x + cw / 2}" y="${y + 17}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${near ? "first" : "streams"}</text><text x="${x + cw / 2}" y="${y + 32}" text-anchor="middle" style="fill:var(--ink)">${f1(m.z.chunkMB)} MB</text>`;
+      }
+      if (st.lay === "shared") g += `<text x="${W - cw / 2}" y="${2 * (ch + gap) + 17}" text-anchor="middle" style="fill:var(--ink);font-weight:600">shared</text><text x="${W - cw / 2}" y="${2 * (ch + gap) + 32}" text-anchor="middle" style="fill:var(--ink)">18 MB, first</text>`;
+    }
+    $("map").innerHTML = `<svg viewBox="0 0 ${W} ${rows * ch + gap * 2}" role="img" aria-label="Chunk map">${g}</svg>`;
+  }
+  function render() {
+    const m = model(st);
+    const sync = st.call === "sync";
+    document.querySelectorAll("button[data-k]").forEach((b) => {
+      b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v));
+      b.disabled = sync && (b.dataset.k === "lay" || b.dataset.k === "pri") || (st.lay === "one" && b.dataset.k === "pri");
+    });
+    drawTL(m); drawMap(m);
+    $("sPlay").textContent = f2(m.play); $("sPlay").className = "v " + (m.play <= 2 + 1e-9 ? "good" : "bad");
+    $("sPlayS").textContent = sync ? "s after docking, all of it frozen" : "s after docking";
+    $("sLoadF").textContent = m.loadFrame >= 1000 ? Math.round(m.loadFrame).toLocaleString("en-US") : Math.round(m.loadFrame); $("sLoadF").className = "v " + (sync ? "bad" : "");
+    $("sLoadFS").textContent = sync ? "ms: one frame, nothing moves" : `ms: 2 ms screen + 50 ms of loading`;
+    $("sPlayF").textContent = f1(m.playFrame); $("sPlayF").className = "v " + (m.playFrame <= BUDGET ? "good" : "bad");
+    $("sPlayFS").textContent = m.z.rest > 0 ? `ms · the other 9 chunks arrive in ${f1(m.restT)} s` : "ms · nothing left to stream";
+    $("sDisk").textContent = f1(m.disk); $("sDiskS").textContent = `MB · coral textures in memory ${m.z.coral} MB`;
+    const ok = m.play <= 2 + 1e-9 && m.playFrame <= BUDGET;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    $("coach").textContent = sync ? "LoadScene does everything in one frame: the screen freezes until the whole island is in."
+      : st.lay === "one" ? "The loading screen moves, but the player still waits for all 270 MB."
+      : m.playFrame > BUDGET ? "The player is in early, but streaming the rest at High priority takes 50 ms of every frame."
+      : st.lay === "dup" ? `Each chunk carries its own copy of the 18 MB of coral textures: ${m.z.coral} MB of the same textures once all 12 are in.`
+      : "The 3 nearest chunks and the shared textures arrive first; the rest streams in 2 ms a frame.";
+    const row = (n, a, b) => `<tr><td>${n}</td><td class="num">${a}</td><td class="num">${b}</td></tr>`;
+    $("prof").innerHTML = `<thead><tr><th>Before the player can move</th><th class="num">MB</th><th class="num">s</th></tr></thead><tbody>`
+      + row(`Read ${st.comp.toUpperCase()} bundles from flash (60 MB/s)`, f1(m.z.first * RATIO[st.comp]), f2(m.p.read))
+      + row(`Decompress (${DEC[st.comp]} MB/s)`, f1(m.z.first), f2(m.p.dec))
+      + row(sync ? "Create objects, all in one frame" : "Create objects, 50 ms slices under a 2 ms loading screen", f1(m.z.first), f2(m.integWall))
+      + `<tr><td><strong>Time to play</strong></td><td></td><td class="num"><strong>${f2(m.play)}</strong></td></tr></tbody>`;
+  }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); }));
+  function apply(s) { Object.assign(st, { call: "sync", comp: "lzma", lay: "one", pri: "high" }, s); render(); }
+  const STEPS = [
+    { t: "Dock and freeze: 9.50 s", d: "LoadScene with one 180 MB LZMA bundle. Read 3.00 s, unpack 4.50 s, create 2.00 s, all in one frame. Nothing moves for 9.5 seconds.", s: {} },
+    { t: "LoadSceneAsync", d: "Reading and unpacking move off the main thread; creating objects runs in 50 ms slices. The loading screen moves (52 ms frames), but play still starts at 9.58 s.", s: { call: "async" } },
+    { t: "LZ4 instead of LZMA", d: "216 MB to read instead of 180 (3.60 s), but unpacking is 0.60 s instead of 4.50. Play at 6.28 s.", s: { call: "async", comp: "lz4" } },
+    { t: "Split into 12 chunks", d: "Load the 3 chunks around the dock first: play at 2.72 s. But the other 9 stream at High priority: 64.5 ms frames while you play. And every chunk has its own copy of the coral textures: 374.4 MB on disk.", s: { call: "async", comp: "lz4", lay: "dup", pri: "high" } },
+    { t: "Stream at Low priority", d: "2 ms of object creation a frame: 16.5 ms frames while the rest arrives (26.9 s for all 9). Smooth, but still 2.72 s to play and 216 MB of the same textures in memory at the end.", s: { call: "async", comp: "lz4", lay: "dup", pri: "low" } },
+    { t: "One shared bundle for the coral", d: "The 18 MB of textures used everywhere go in one shared bundle, loaded once. Play at 1.88 s, 16.5 ms frames, 216 MB on disk, 18 MB of coral in memory. Goal met.", s: { call: "async", comp: "lz4", lay: "shared", pri: "low" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("tl").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("tl").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("tl"));
+})();
+</script>
