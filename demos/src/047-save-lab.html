@@ -1,0 +1,307 @@
+<title>Save Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Version chain and save files on the left, readouts and choices on the right; one column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Save Lab additions: the version chain and the JSON view. */
+.chain svg { display: block; width: 100%; height: auto; }
+.chain text { font-family: var(--f-mono); font-size: 12px; }
+.json { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.55; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.json .bad { color: var(--bad); font-weight: 600; } .json .ok { color: var(--good); font-weight: 600; } .json .dim { color: var(--muted); }
+.two-json { display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 560px) { .two-json { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/047-save-systems-and-serialization-versioning.md">Read Lesson 047 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 047 · Lesson 047 · simulation using the lesson's numbers</div>
+    <h1>Save Lab</h1>
+    <p class="lede">Update 1.4 renames one field. 200,000 players open it with saves from four older versions. Choose how saves are written, versioned and tested, and watch who loses their boats.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Release day, update 1.4.</strong> Goal: <strong>0</strong> players lose data, <strong>0</strong> can't load, and <strong>0</strong> saves corrupted by a crash while saving.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Save versions and controls">
+    <div class="panel">
+      <h2>Opening 1.4 with an old save</h2>
+      <div class="chain" id="chain"></div>
+      <div class="two-json">
+        <pre class="json" id="jOld"></pre>
+        <pre class="json" id="jNew"></pre>
+      </div>
+      <p class="coach" id="coach"></p>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Lose data silently</span><span class="v" id="sLose">0</span><span class="s">players on release day</span></div>
+        <div class="stat"><span class="k">Can't load</span><span class="v" id="sFail">0</span><span class="s">players see an error</span></div>
+        <div class="stat"><span class="k">Corrupt saves</span><span class="v" id="sCorrupt">0</span><span class="s" id="sCorruptS">a day</span></div>
+        <div class="stat"><span class="k">Old saves tested</span><span class="v" id="sTested">0</span><span class="s">real saves in CI</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>Save format</span></span>
+          <div class="seg-ctl" role="group" aria-label="Save format">
+            <button type="button" data-k="ver" data-v="raw">Fields only<small>no version</small></button>
+            <button type="button" data-k="ver" data-v="mig">Version + migrations<small>1.0 → 1.1 → … → 1.4</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Old saves in CI</span></span>
+          <div class="seg-ctl" role="group" aria-label="Old saves in CI">
+            <button type="button" data-k="corpus" data-v="off">Off<small>tested with new saves</small></button>
+            <button type="button" data-k="corpus" data-v="on">On<small>240 real saves, 60 per version</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Writing the file</span></span>
+          <div class="seg-ctl" role="group" aria-label="Writing">
+            <button type="button" data-k="write" data-v="inplace">Overwrite<small>in place</small></button>
+            <button type="button" data-k="write" data-v="atomic">Temp + rename<small>keep a backup</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Release day, by save version</h2>
+    <div style="overflow-x:auto"><table class="tbl" id="tbl"></table></div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 047: save systems and versioning</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Silent loss is the worst loss</h3><p>Without a version, the loader can't tell an old save from a broken one. It fills in defaults, and the next autosave makes the loss permanent.</p></div>
+      <div class="note"><h3>Migrations need old saves to test</h3><p>Each step of the chain is small. The bugs hide in saves your team stopped making months ago. Keep real ones and load them in CI.</p></div>
+      <div class="note"><h3>A save is a transaction</h3><p>Write the new file next to the old one, then swap. A crash in the middle leaves the old save, not half of each.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. It uses Lesson 047's numbers: 200,000 players whose last save is from 1.0 (20,000), 1.1 (24,000), 1.2 (46,000) or 1.3 (110,000); 30,000 of them own boats, 3,600 of those with a 1.1 save, where boats were stored as a list of ids; 10 saves a player a day, and 1 save in 25,000 interrupted by the phone closing the app.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const VERS = [{ v: "1.0", n: 20000, boats: 3000 }, { v: "1.1", n: 24000, boats: 3600 }, { v: "1.2", n: 46000, boats: 6900 }, { v: "1.3", n: 110000, boats: 16500 }];
+  const SAVES_DAY = 200000 * 10, INTERRUPT = 1 / 25000;
+  const st = { ver: "raw", corpus: "off", write: "inplace" };
+  const fmt = (n) => n.toLocaleString("en-US");
+  function model(s) {
+    const rows = VERS.map((x) => {
+      let lose = 0, fail = 0, how;
+      if (s.ver === "raw") { lose = x.boats; how = "ownedBoats ignored; fleet empty; next autosave makes it permanent"; }
+      else if (x.v === "1.1" && s.corpus === "off") { fail = x.boats; how = "Migrate_2_to_3 looks up the old id "dinghy", which no longer exists: error"; }
+      else how = x.v === "1.1" ? "migration fixed in CI: ids → boat objects" : "migrated step by step to 1.4";
+      return { x, lose, fail, how };
+    });
+    const lose = rows.reduce((a, r) => a + r.lose, 0), fail = rows.reduce((a, r) => a + r.fail, 0);
+    const corrupt = s.write === "inplace" ? SAVES_DAY * INTERRUPT : 0;
+    return { rows, lose, fail, corrupt, tested: s.corpus === "on" && s.ver === "mig" ? 240 : 0 };
+  }
+  function drawChain(m) {
+    const box = $("chain").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box)));
+    const n = 5, gap = 16, bw = (W - gap * (n - 1)) / n;
+    let g = "";
+    const labels = ["1.0", "1.1", "1.2", "1.3", "1.4"];
+    labels.forEach((v, i) => {
+      const x = i * (bw + gap), r = m.rows[i], bad = r && (r.lose || r.fail), isNew = i === 4;
+      g += `<rect x="${x}" y="22" width="${bw}" height="56" rx="6" style="fill:var(--field);stroke:var(${isNew ? "--accent" : bad ? "--bad" : "--good"});stroke-width:2"/>`;
+      g += `<text x="${x + bw / 2}" y="44" text-anchor="middle" style="fill:var(--ink);font-weight:600">v${v}</text>`;
+      g += `<text x="${x + bw / 2}" y="64" text-anchor="middle" style="fill:var(--muted)">${isNew ? "new" : fmt(r.x.n / 1000) + "k"}</text>`;
+      if (i < 4) {
+        const ax = x + bw, col = st.ver === "raw" ? "--muted" : (i === 1 && st.corpus === "off") ? "--bad" : "--good";
+        g += `<text x="${ax + gap / 2}" y="55" text-anchor="middle" style="fill:var(${col});font-weight:700">${st.ver === "raw" ? "" : i === 1 && st.corpus === "off" ? "✗" : "→"}</text>`;
+      }
+    });
+    g += `<text x="0" y="96" style="fill:var(${st.ver === "raw" ? "--bad" : "--muted"})">${st.ver === "raw" ? "no version: all read as 1.4" : "each save migrates up to 1.4"}</text>`;
+    $("chain").innerHTML = `<svg viewBox="0 0 ${W} 104" role="img" aria-label="Save versions 1.0 to 1.4">${g}</svg>`;
+  }
+  function render() {
+    const m = model(st);
+    document.querySelectorAll("button[data-k]").forEach((b) => { b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)); b.disabled = b.dataset.k === "corpus" && st.ver === "raw"; b.style.opacity = b.disabled ? 0.4 : 1; });
+    drawChain(m);
+    $("sLose").textContent = fmt(m.lose); $("sLose").className = "v " + (m.lose ? "bad" : "good");
+    $("sFail").textContent = fmt(m.fail); $("sFail").className = "v " + (m.fail ? "bad" : "good");
+    $("sCorrupt").textContent = Math.round(m.corrupt); $("sCorrupt").className = "v " + (m.corrupt ? "bad" : "good");
+    $("sCorruptS").textContent = m.corrupt ? `a day: 2,000,000 saves × 1 in 25,000 interrupted` : "a day: a crash leaves the old file";
+    $("sTested").textContent = m.tested;
+    const ok = !m.lose && !m.fail && !m.corrupt;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    const old = st.ver === "raw" ? `{\n  "coins": 1840,\n  "ownedBoats": [\n    { "id": "skiff", "paint": 3 }\n  ]\n}` : `{\n  "version": 4,\n  "coins": 1840,\n  "ownedBoats": [\n    { "id": "skiff", "paint": 3 }\n  ]\n}`;
+    $("jOld").innerHTML = `<span class="dim">// a 1.3 save on disk</span>\n` + old;
+    $("jNew").innerHTML = st.ver === "raw" ? `<span class="dim">// what 1.4 loads</span>\n{\n  "coins": 1840,\n  <span class="bad">"fleet": []</span>   <span class="dim">// default</span>\n}\n<span class="bad">// ownedBoats: unknown, ignored</span>`
+      : `<span class="dim">// after Migrate_4_to_5</span>\n{\n  "version": 5,\n  "coins": 1840,\n  <span class="ok">"fleet": [</span>\n    <span class="ok">{ "id": "skiff", "paint": 3 }</span>\n  <span class="ok">]</span>\n}`;
+    $("coach").textContent = m.lose ? `${fmt(m.lose)} boat owners load an empty fleet, and the first autosave writes it. Nobody sees an error.`
+      : m.fail ? `${fmt(m.fail)} players with a 1.1 save hit a migration bug and see an error. Their original file is untouched, so a fix can still save them.`
+      : m.corrupt ? `Migrations are safe. But writing in place, about ${Math.round(m.corrupt)} saves a day are cut in half when the phone closes the app.`
+      : "Every old save reaches 1.4, the migration chain is tested with real saves, and a crash while saving leaves the previous file.";
+    $("tbl").innerHTML = `<thead><tr><th>Last saved in</th><th class="num">Players</th><th class="num">Own boats</th><th>On opening 1.4</th><th class="num">Lose</th><th class="num">Fail</th></tr></thead><tbody>` +
+      m.rows.map((r) => `<tr><td>v${r.x.v}</td><td class="num">${fmt(r.x.n)}</td><td class="num">${fmt(r.x.boats)}</td><td>${r.how}</td><td class="num">${fmt(r.lose)}</td><td class="num">${fmt(r.fail)}</td></tr>`).join("") +
+      `<tr><td><strong>Total</strong></td><td class="num"><strong>200,000</strong></td><td class="num"><strong>30,000</strong></td><td></td><td class="num"><strong>${fmt(m.lose)}</strong></td><td class="num"><strong>${fmt(m.fail)}</strong></td></tr></tbody>`;
+  }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; if (st.ver === "raw") st.corpus = "off"; render(); }));
+  function apply(s) { Object.assign(st, { ver: "raw", corpus: "off", write: "inplace" }, s); render(); }
+  const STEPS = [
+    { t: "Update 1.4 renames one field", d: "ownedBoats becomes fleet. The loader ignores the unknown field and gives every boat owner an empty fleet: 30,000 players. The first autosave makes it permanent. No error anywhere.", s: {} },
+    { t: "A version number and migrations", d: "Each save says which version wrote it; 1.4 runs Migrate_1_to_2 … Migrate_4_to_5. 26,400 boat owners arrive with their boats. 3,600 with a 1.1 save hit a bug (the boat id "dinghy" was renamed) and see an error, with their file untouched.", s: { ver: "mig" } },
+    { t: "Test with real old saves", d: "CI loads 240 real saves, 60 from each old version, and checks coins and boats after migration. The 1.1 case fails in CI, two weeks before release, and is fixed. 0 lose, 0 fail.", s: { ver: "mig", corpus: "on" } },
+    { t: "Write safely", d: "2,000,000 saves a day, 1 in 25,000 interrupted: 80 half-written saves a day when writing in place. Write a temp file, flush, rename over the old one, keep the previous as a backup: 0. Goal met.", s: { ver: "mig", corpus: "on", write: "atomic" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("chain").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chain").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("chain"));
+})();
+</script>
