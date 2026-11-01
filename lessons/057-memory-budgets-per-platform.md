@@ -266,4 +266,4 @@ One question for your journal: which system in your game grows with every conten
 
 ---
 
-**Tomorrow — Lesson 058: Mobile thermal throttling and battery.** On a mid-range phone the Reef runs at 60 fps for the first 8 minutes, then drops to 38 fps and stays there, and the battery lasts 2.1 hours. We learn why phones slow down when they get warm, and design for the speed a phone can keep, not the speed it starts at.
+**Tomorrow — Lesson 058: Mobile thermal throttling and battery.** On a mid-range phone the Reef runs at 60 fps for the first 8 minutes, then drops to 38 fps and stays there, and the phone gets hot in the hand. We learn why phones slow down when they get warm, and design for the speed a phone can keep, not the speed it starts at.
