@@ -51,7 +51,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 026 | Shader cost and shader variant explosion: the uber shader that cost 9 ms, then 41 minutes | ✅ |
 | 027 | Culling: frustum, occlusion, HLOD: the harbor that sent 3,120 objects nobody could see | ✅ |
 | 028 | LOD systems and impostors: the ferry ride that sent 3.36 million vertices to tiny houses | ✅ |
-| 029 | Texture memory, compression and mip streaming | ⬜ |
+| 029 | Texture memory, compression and mip streaming: the harbor that crashed only the cheap phones | ✅ |
 | 030 | Lighting cost: forward vs deferred vs clustered | ⬜ |
 | 031 | Post-processing budgets | ⬜ |
 | 032 | Mobile GPUs: tile-based rendering and bandwidth | ⬜ |
