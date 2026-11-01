@@ -69,3 +69,4 @@ AI tools write plausible code quickly. What they can't do on their own is make d
 | 046 | [Build Pipelines and CI for Games: The Nightly Build Nobody Could Blame](lessons/046-build-pipelines-and-ci-for-games.md) | [CI Lab](https://yimo691.github.io/GameArchitect/demos/046-ci-lab/) | 2026-11-01 |
 | 047 | [Save Systems and Serialization Versioning: The Update That Sank 30,000 Boats](lessons/047-save-systems-and-serialization-versioning.md) | [Save Lab](https://yimo691.github.io/GameArchitect/demos/047-save-lab/) | 2026-11-01 |
 | 048 | [Networking Architecture: Authority Models: Two Players, One Fish](lessons/048-networking-architecture-authority-models.md) | [Netcode Lab](https://yimo691.github.io/GameArchitect/demos/048-netcode/) | 2026-11-01 |
+| 049 | [Netcode: Interpolation, Prediction, Rollback: Fishing From Sydney](lessons/049-netcode-interpolation-prediction-rollback.md) | [Netcode Lab](https://yimo691.github.io/GameArchitect/demos/048-netcode/) | 2026-11-01 |

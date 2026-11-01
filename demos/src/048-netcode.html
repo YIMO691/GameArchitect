@@ -146,11 +146,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/048-networking-architecture-authority-models.md">Read Lesson 048 ↗</a>
-      <!--L049LINK-->
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/049-netcode-interpolation-prediction-rollback.md">Read Lesson 049 ↗</a>
     </div>
-    <div class="eyebrow" id="eyebrow">Lab 048 · Lesson 048 · simulation using the lesson's numbers</div>
+    <div class="eyebrow" id="eyebrow">Lab 048 · Lessons 048–049 · simulation using the lesson's numbers</div>
     <h1>Netcode Lab</h1>
-    <p class="lede">Four friends fish from their boats in one pond. Choose who decides what happens, and watch duplicate fish, fake legendaries, lag and the server bill.</p>
+    <p class="lede">Four friends fish from their boats in one pond. Choose who decides what happens, and watch duplicate fish, fake legendaries, lag and the server bill. Then hide the lag that is left.</p>
   </header>
 
   <div class="goal">
@@ -199,10 +199,45 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 048: authority models</p>
     <ol class="steps" id="steps"></ol>
-    <!--L049STEPS-->
+    <p class="group-title">Lesson 049: interpolation, prediction, rollback</p>
+    <ol class="steps" id="steps49"></ol>
   </section>
 
-  <!--L049SECTION-->
+  <section class="lab" id="l049" aria-label="Lesson 049: hiding the lag">
+    <div class="panel">
+      <h2>Lesson 049: what a player in Sydney sees</h2>
+      <p class="fine">The server decides (Lesson 048). Round trip 180 ms, 20 server updates a second.</p>
+      <div class="topo" id="chartBoat"></div>
+      <div class="topo" id="chartReel"></div>
+      <p class="coach" id="coach49"></p>
+    </div>
+    <div class="panel">
+      <div class="goal" style="margin:0 0 12px">
+        <p>Goal: <strong>0</strong> boat jumps, line reacts in <strong>0 ms</strong>, <strong>0</strong> visible snaps, replay under <strong>0.5 ms</strong> a frame.</p>
+        <span id="goalPill49" class="pill over">Not yet</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="k">Other boats jump</span><span class="v" id="sJump">0</span><span class="s">times a second</span></div>
+        <div class="stat"><span class="k">Other boats shown</span><span class="v" id="sBehind">0</span><span class="s">ms behind the server</span></div>
+        <div class="stat"><span class="k">Your line reacts</span><span class="v" id="sReact">0</span><span class="s">ms after the tap</span></div>
+        <div class="stat"><span class="k">Visible snaps</span><span class="v" id="sSnap">0</span><span class="s" id="sSnapS">a minute of reeling</span></div>
+        <div class="stat"><span class="k">Replay cost</span><span class="v" id="sReplay">0</span><span class="s">ms a frame</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>Other players' boats</span></span>
+          <div class="seg-ctl" role="group" aria-label="Other players' boats">
+            <button type="button" data-k49="boats" data-v="latest">Latest update<small>draw where it was</small></button>
+            <button type="button" data-k49="boats" data-v="interp">Interpolate<small>100 ms buffer</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Your reel</span></span>
+          <div class="seg-ctl three" role="group" aria-label="Your reel">
+            <button type="button" data-k49="reel" data-v="wait">Wait<small>for the server</small></button>
+            <button type="button" data-k49="reel" data-v="predict">Predict<small>server overwrites</small></button>
+            <button type="button" data-k49="reel" data-v="rollback">Predict + rollback<small>replay inputs</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
 
   <section class="panel" aria-labelledby="whatH">
     <h2 id="whatH">What this shows</h2>
@@ -211,7 +246,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <div class="note"><h3>Never trust the player's machine</h3><p>A modified client can say anything. Whoever decides catches must be a machine no player controls.</p></div>
       <div class="note"><h3>Authority can be split</h3><p>The server owns fish and coins. Your phone owns your boat's steering, and the server only checks it is not too fast. You get both fairness and feel.</p></div>
     </div>
-    <p class="fine">This lab is a simulation, not a measurement. It uses Lesson 048's numbers: 100,000 players a day in 25,000 four-player sessions of 1 hour, 20 catches a player an hour (2,000,000 a day); 3% of catches are contested (two hooks on one fish less than 1 s apart); phone to phone 120 ms round trip (60 ms one way), phone to server 50 ms; 1 player in 200 runs a modified client; the host leaves early in 8% of sessions; relays $300 a month, dedicated servers $0.001 a player-hour (3,000,000 player-hours a month).</p>
+    <p class="fine">This lab is a simulation, not a measurement. It uses Lesson 048's numbers: 100,000 players a day in 25,000 four-player sessions of 1 hour, 20 catches a player an hour (2,000,000 a day); 3% of catches are contested (two hooks on one fish less than 1 s apart); phone to phone 120 ms round trip (60 ms one way), phone to server 50 ms; 1 player in 200 runs a modified client; the host leaves early in 8% of sessions; relays $300 a month, dedicated servers $0.001 a player-hour (3,000,000 player-hours a month). Lesson 049: Sydney to the server 180 ms round trip, 20 server updates a second, one input every 20 ms (9 unconfirmed), 0.03 ms to simulate one reel step, 12 real mispredictions a minute, 60 frames a second.</p>
   </section>
 </div>
 
@@ -298,7 +333,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      document.querySelectorAll("#steps li").forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active"); apply(s.s);
       $("topo").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
     });
@@ -306,5 +341,104 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
   render();
   let lastW = 0;
   new ResizeObserver(() => { const w = $("topo").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("topo"));
+})();
+</script>
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const RTT = 180, RATE = 20, GAP = 1000 / RATE, BUF = 100, TICK = 20, SIM_MS = 0.03, MISS = 12;
+  const st = { boats: "latest", reel: "wait" };
+  function model(s) {
+    const replayTicks = RTT / TICK;   // 9 inputs not yet confirmed
+    return {
+      jump: s.boats === "latest" ? RATE : 0,
+      behind: RTT / 2 + (s.boats === "interp" ? BUF : 0),
+      react: s.reel === "wait" ? RTT : 0,
+      snap: s.reel === "predict" ? RATE * 60 : 0,
+      miss: s.reel === "rollback" ? MISS : 0,
+      replay: s.reel === "rollback" ? (RATE * replayTicks * SIM_MS) / 60 : 0,
+      replayTicks,
+    };
+  }
+  const css = (v) => `var(${v})`;
+  function frame(el, title, H) {
+    const box = el.clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box)));
+    return { W, H, L: 34, R: W - 8, T: 22, B: H - 22, head: `<text x="0" y="13" style="fill:var(--ink);font-weight:600">${title}</text>` };
+  }
+  function drawBoat() {
+    const f = frame($("chartBoat"), "Another boat, 1 second", 150);
+    const X = (ms) => f.L + (ms / 1000) * (f.R - f.L), Y = (p) => f.B - p * (f.B - f.T);
+    let g = f.head + `<line x1="${f.L}" y1="${f.B}" x2="${f.R}" y2="${f.B}" style="stroke:var(--line)"/>`;
+    for (let ms = 0; ms <= 1000; ms += 250) g += `<text x="${X(ms)}" y="${f.H - 6}" text-anchor="${ms === 1000 ? "end" : "middle"}" style="fill:var(--muted)">${ms} ${ms === 1000 ? "ms" : ""}</text>`;
+    g += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(1000)}" y2="${Y(1)}" style="stroke:var(--muted);stroke-dasharray:4 4"/>`;
+    let d = "";
+    if (st.boats === "latest") {
+      for (let k = 0; k < RATE; k++) { const p = (k * GAP) / 1000; d += `${k ? "L" : "M"}${X(k * GAP)},${Y(p)} L${X((k + 1) * GAP)},${Y(p)} `; }
+    } else d = `M${X(0)},${Y(0)} L${X(BUF)},${Y(0)} L${X(1000)},${Y((1000 - BUF) / 1000)}`;
+    g += `<path d="${d}" style="fill:none;stroke:${css(st.boats === "latest" ? "--bad" : "--good")};stroke-width:2.5"/>`;
+    g += `<text x="${f.L + 44}" y="${f.T + 8}" style="fill:var(--muted)">dashed: true path</text>`;
+    $("chartBoat").innerHTML = `<svg viewBox="0 0 ${f.W} ${f.H}" role="img" aria-label="Another boat's position over one second">${g}</svg>`;
+  }
+  function drawReel() {
+    const f = frame($("chartReel"), "Your line after one tap, 400 ms", 150), SPAN = 400;
+    const X = (ms) => f.L + (ms / SPAN) * (f.R - f.L), Y = (p) => f.B - p * (f.B - f.T);
+    let g = f.head + `<line x1="${f.L}" y1="${f.B}" x2="${f.R}" y2="${f.B}" style="stroke:var(--line)"/>`;
+    for (let ms = 0; ms <= SPAN; ms += 100) g += `<text x="${X(ms)}" y="${f.H - 6}" text-anchor="${ms === SPAN ? "end" : "middle"}" style="fill:var(--muted)">${ms} ${ms === SPAN ? "ms" : ""}</text>`;
+    g += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(SPAN)}" y2="${Y(1)}" style="stroke:var(--muted);stroke-dasharray:4 4"/>`;
+    const p = (ms) => Math.max(0, ms) / SPAN;
+    let d;
+    if (st.reel === "wait") d = `M${X(0)},${Y(0)} L${X(RTT)},${Y(0)} L${X(SPAN)},${Y(p(SPAN - RTT))}`;
+    else if (st.reel === "predict") {
+      d = `M${X(0)},${Y(0)}`;
+      for (let t = 0; t < SPAN; t += GAP) {
+        const a = t + GAP; d += ` L${X(a)},${Y(p(a))}`;
+        if (a > RTT - GAP + 1 && a < SPAN) d += ` L${X(a)},${Y(p(a - RTT))}`; // server state is 180 ms old
+        else if (a < SPAN) d += ` L${X(a)},${Y(0)}`;
+      }
+    } else d = `M${X(0)},${Y(0)} L${X(SPAN)},${Y(1)}`;
+    g += `<path d="${d}" style="fill:none;stroke:${css(st.reel === "rollback" ? "--good" : "--bad")};stroke-width:2.5"/>`;
+    g += `<line x1="${X(0)}" y1="${f.T}" x2="${X(0)}" y2="${f.B}" style="stroke:var(--accent);stroke-width:2"/><text x="${X(0) + 4}" y="${f.T + 4}" style="fill:var(--accent)">tap</text>`;
+    g += `<text x="${f.L + 44}" y="${f.T + 8}" style="fill:var(--muted)">dashed: what you meant</text>`;
+    $("chartReel").innerHTML = `<svg viewBox="0 0 ${f.W} ${f.H}" role="img" aria-label="Your fishing line after one tap">${g}</svg>`;
+  }
+  function render() {
+    const m = model(st);
+    document.querySelectorAll("button[data-k49]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k49] === b.dataset.v)));
+    drawBoat(); drawReel();
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("sJump", m.jump, m.jump); $("sBehind").textContent = m.behind; $("sBehind").className = "v";
+    set("sReact", m.react, m.react); set("sSnap", m.snap, m.snap.toLocaleString("en-US"));
+    $("sSnapS").textContent = m.miss ? `a minute; ${m.miss} small fixes, blended over 100 ms` : m.snap ? "a minute: the line jumps back 180 ms" : "a minute of reeling";
+    set("sReplay", m.replay >= 0.5, m.replay.toFixed(2));
+    const ok = !m.jump && !m.react && !m.snap && m.replay < 0.5;
+    $("goalPill49").className = "pill " + (ok ? "ok" : "over"); $("goalPill49").textContent = ok ? "Goal met" : "Not yet";
+    $("coach49").textContent = st.boats === "latest" && st.reel === "wait" ? "Other boats are drawn at each update and sit still in between: they jump 20 times a second. Your line moves 180 ms after your tap: the time for the tap to reach the server and the answer to come back."
+      : st.reel === "wait" ? "Other boats now glide: the game draws them 100 ms in the past, between two updates it already has. They are 190 ms behind, which nobody can see. Your own line still waits 180 ms."
+      : st.reel === "predict" ? "Your phone runs the reel itself, so the line moves at once. But each server update describes the line 180 ms ago, and overwriting with it pulls the line back: 20 snaps a second while you reel."
+      : "On each update the phone rewinds to the server's state and replays the 9 taps the server hasn't seen yet. The line stays where you expect. Only real surprises (12 a minute) need a fix, blended over 100 ms.";
+  }
+  document.querySelectorAll("button[data-k49]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k49] = b.dataset.v; render(); }));
+  function apply(s) { Object.assign(st, { boats: "latest", reel: "wait" }, s); render(); }
+  const STEPS = [
+    { t: "The server decides, nothing hidden", d: "Sydney, 180 ms round trip, 20 updates a second. Other boats are drawn at each update: 20 jumps a second. Your line moves 180 ms after your tap.", s: {} },
+    { t: "Interpolate other boats", d: "Keep a 100 ms buffer and draw other boats between the two updates around \"now − 100 ms\". 0 jumps. They are shown 90 + 100 = 190 ms behind the server, which is fine for boats you don't control.", s: { boats: "interp" } },
+    { t: "Predict your own line", d: "Your phone runs the same reel code at once: 0 ms. But each server update is 180 ms old, and overwriting with it pulls the line back: 20 × 60 = 1,200 snaps a minute of reeling.", s: { boats: "interp", reel: "predict" } },
+    { t: "Rollback and replay", d: "On each update: rewind to the server's state, replay the 180 ÷ 20 = 9 inputs it hasn't confirmed. 0 visible snaps; 12 real mispredictions a minute are blended over 100 ms. Cost: 20 × 9 × 0.03 ms = 5.4 ms a second, 0.09 ms a frame. Goal met.", s: { boats: "interp", reel: "rollback" } },
+  ];
+  const base = document.querySelectorAll("#steps li").length, stepsEl = $("steps49");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${base + k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("l049").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chartBoat").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("chartBoat"));
 })();
 </script>
