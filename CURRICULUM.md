@@ -91,7 +91,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 ## Module 6 — Platform & production performance
 | # | Title | Status |
 |---|-------|--------|
-| 057 | Memory budgets per platform | ⬜ |
+| 057 | Memory budgets per platform: the build that died on two phones | ✅ |
 | 058 | Mobile thermal throttling and battery | ⬜ |
 | 059 | Frame pacing and stutter | ⬜ |
 | 060 | Shader compilation stutter and PSO caching | ⬜ |
