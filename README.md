@@ -81,3 +81,4 @@ AI tools write plausible code quickly. What they can't do on their own is make d
 | 058 | [Mobile Thermal Throttling and Battery](lessons/058-mobile-thermal-throttling-and-battery.md) | [Thermal Lab](https://yimo691.github.io/GameArchitect/demos/058-thermal-lab/) | 2026-11-01 |
 | 059 | [Frame Pacing and Stutter](lessons/059-frame-pacing-and-stutter.md) | [Frame Pipeline Lab](https://yimo691.github.io/GameArchitect/demos/002-frame-pipeline/) | 2026-11-01 |
 | 060 | [Shader Compilation Stutter and PSO Caching](lessons/060-shader-compilation-stutter-and-pso-caching.md) | [Frame Pipeline Lab](https://yimo691.github.io/GameArchitect/demos/002-frame-pipeline/) | 2026-11-01 |
+| 061 | [Console and Store Certification](lessons/061-console-and-store-certification.md) | [Cert Lab](https://yimo691.github.io/GameArchitect/demos/061-cert-lab/) | 2026-11-01 |

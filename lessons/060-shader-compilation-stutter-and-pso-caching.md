@@ -264,4 +264,4 @@ One question for your journal: which moment in your game would a new player reac
 
 ---
 
-**Tomorrow — Lesson 061: Platform certification and technical requirements.** The Reef is ready for consoles, and the first submission comes back failed: the game freezes if the controller disconnects during a save, and it shows the wrong button names in one language. We learn what platform holders check, and how to build those rules into the architecture instead of fixing them a week before launch.
+**Tomorrow — Lesson 061: Console and store certification: what architects must plan for.** The Reef is ready for consoles, and the first submission comes back failed: the game doesn't pause when the controller disconnects on the save screen, and it shows the wrong button names on one controller. We learn what platform holders check, and how to build those rules into the architecture instead of fixing them a week before launch.
