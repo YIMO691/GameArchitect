@@ -88,6 +88,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `046-ci-lab` | 046 |
 | `047-save-lab` | 047 |
 | `048-netcode` | 048, 049 |
+| `050-server-lab` | 050 |
 
 Lessons not in the map get a new lab when their main idea is something that changes on screen or in numbers. For lessons about process or communication (e.g. writing design docs, estimating risk), build a small interactive tool instead: a decision table, a budget calculator, a trade-off picker with the lesson's real numbers. When a new lab spans later lessons too, add its row to this map.
 

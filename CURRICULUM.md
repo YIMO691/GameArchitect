@@ -80,7 +80,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 047 | Save systems and serialization versioning: the update that sank 30,000 boats | ✅ |
 | 048 | Networking architecture: authority models: two players, one fish | ✅ |
 | 049 | Netcode: interpolation, prediction, rollback: fishing from Sydney | ✅ |
-| 050 | Online server architecture: rooms, shards, MMO zones | ⬜ |
+| 050 | Online server architecture: rooms, shards, MMO zones: 2,000 players, one lake | ✅ |
 | 051 | UI architecture: MVVM, retained vs immediate mode | ⬜ |
 | 052 | Audio system budgets | ⬜ |
 | 053 | AI at scale: time slicing and AI LOD | ⬜ |
