@@ -320,4 +320,4 @@ One question for your journal: which test would you have run first before today,
 
 ---
 
-**Tomorrow — Lesson 036: Hot paths: algorithms before micro-optimizations.** The Reef's fish-finder sonar takes 9 ms. A programmer spends a week shaving instructions from its inner loop; a different algorithm makes it 40 times faster in an afternoon.
+**Tomorrow — Lesson 036: Hot paths: algorithms before micro-optimizations.** The Reef's fish-finder sonar takes 9 ms. A programmer spends a week shaving instructions from its inner loop; a different data structure makes it 240 times faster in an afternoon.

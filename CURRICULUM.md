@@ -62,7 +62,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | # | Title | Status |
 |---|-------|--------|
 | 035 | Hypothesis-driven profiling methodology: the net hitch that took two days, then forty minutes | ✅ |
-| 036 | Hot paths: algorithms before micro-optimizations | ⬜ |
+| 036 | Hot paths: algorithms before micro-optimizations: the sonar that got a week of tuning and needed a HashSet | ✅ |
 | 037 | Spatial partitioning: grids, quadtrees, BVHs | ⬜ |
 | 038 | Physics cost and how to tame it | ⬜ |
 | 039 | Animation cost: skinning, culling, update rates | ⬜ |
