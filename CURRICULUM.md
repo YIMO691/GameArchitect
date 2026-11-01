@@ -93,7 +93,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 |---|-------|--------|
 | 057 | Memory budgets per platform: the build that died on two phones | ✅ |
 | 058 | Mobile thermal throttling and battery | ✅ |
-| 059 | Frame pacing and stutter | ⬜ |
+| 059 | Frame pacing and stutter | ✅ |
 | 060 | Shader compilation stutter and PSO caching | ⬜ |
 | 061 | Console and store certification: what architects must plan for | ⬜ |
 | 062 | Performance budgets as a team process | ⬜ |

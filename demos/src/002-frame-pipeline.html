@@ -126,6 +126,10 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .note p { margin: 0; color: var(--muted); font-size: 14px; }
 .fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
 @media (prefers-reduced-motion: reduce) { .pass .fill { transition: none; } }
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl.two { grid-template-columns: repeat(2, 1fr); }
+#l059 .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 </style>
 
 <div class="wrap">
@@ -133,8 +137,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/002-anatomy-of-a-frame.md">Read Lesson 002 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/059-frame-pacing-and-stutter.md">Read Lesson 059 ↗</a>
     </div>
-    <div class="eyebrow">Lab 002 · Lesson 002 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 002 · Lessons 002, 059 · simulation using the lesson's numbers</div>
     <h1>Frame Pipeline Lab</h1>
     <p class="lede">The CPU and the GPU work at the same time, one frame apart. The slower one sets your frame rate. Change the work on each side and watch who ends up waiting.</p>
   </header>
@@ -198,7 +203,52 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
   <section class="panel" aria-labelledby="tryH">
     <h2 id="tryH">Try this</h2>
     <p class="fine">Tap <strong>Set up</strong> on each step in order, then look at the timeline and the profiler capture. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 002: CPU, GPU and who waits</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 059: frame pacing</p>
+    <ol class="steps" id="steps59"></ol>
+  </section>
+
+  <section class="lab" id="l059" aria-label="Lesson 059: frame pacing">
+    <div class="panel">
+      <h2>Lesson 059: what the screen really shows</h2>
+      <p class="fine">The Reef on a PC with a 60 Hz monitor, during a camera turn. 300 ms of the game loop, the screen's refreshes, and how far the camera moves on each refresh.</p>
+      <div class="timeline" id="pace"></div>
+      <div class="legend" id="paceLegend"></div>
+      <p class="coach" id="coach59"></p>
+    </div>
+    <div class="panel">
+      <div class="goal" style="margin:0">
+        <p>Goal on the 60 Hz monitor: a <strong>new frame on every refresh</strong>, <strong>no tearing</strong>, and every camera step within <strong>1 ms</strong> of even.</p>
+        <span id="goalPill59" class="pill over">Not yet</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><span class="k">FPS counter says</span><span class="v" id="pCounter">0</span><span class="s">frames finished a second</span></div>
+        <div class="stat"><span class="k">New frames shown</span><span class="v" id="pShown">0</span><span class="s" id="pShownS">a second</span></div>
+        <div class="stat"><span class="k">Repeated refreshes</span><span class="v" id="pRepeat">0</span><span class="s">same frame twice, a second</span></div>
+        <div class="stat"><span class="k">Tear lines</span><span class="v" id="pTear">0</span><span class="s">a second</span></div>
+        <div class="stat"><span class="k">Longest on screen</span><span class="v" id="pLong">0</span><span class="s">ms, one frame</span></div>
+        <div class="stat"><span class="k">Uneven camera steps</span><span class="v" id="pUneven">0</span><span class="s" id="pUnevenS">a second</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>How frames reach the screen</span></span>
+          <div class="seg-ctl" role="group" aria-label="How frames reach the screen">
+            <button type="button" data-k59="sync" data-v="sleep">Sleep cap<small>60, no VSync</small></button>
+            <button type="button" data-k59="sync" data-v="vsync">VSync<small>wait for refresh</small></button>
+            <button type="button" data-k59="sync" data-v="vrr">VRR<small>screen waits</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Water reflection update</span></span>
+          <div class="seg-ctl two" role="group" aria-label="Water reflection update">
+            <button type="button" data-k59="refl" data-v="burst">Every 4th frame<small>+5 ms on that frame</small></button>
+            <button type="button" data-k59="refl" data-v="slice">Time-sliced<small>+1.25 ms every frame</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Delta time for the camera</span></span>
+          <div class="seg-ctl two" role="group" aria-label="Delta time for the camera">
+            <button type="button" data-k59="dt" data-v="measured">Measured<small>CPU clock at frame start</small></button>
+            <button type="button" data-k59="dt" data-v="paced">Paced<small>the refresh it will show on</small></button>
+          </div></div>
+      </div>
+    </div>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -209,6 +259,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
       <div class="note"><h3>The bottleneck moves</h3><p>After every big fix, check again which side is slower. The 50% test and undoing the CPU work both flip it.</p></div>
     </div>
     <p class="fine">This lab is a model, not a measurement. Pass costs come from Lesson 002: fixed GPU work 5 ms (shadows 3 ms, 2 ms of geometry) and per-pixel work 20 ms at 2560×1440. Per-pixel work scales with the number of pixels, so 50% render scale means ¼ of the cost. Real GPUs are less tidy, but the rules are the same.</p>
+    <p class="fine"><strong>Lesson 059 section.</strong> Also a model. Frame work is 12–13 ms, plus the water reflection: +5 ms on every 4th frame, or +1.25 ms on every frame when time-sliced. The sleep cap wakes 0–2.5 ms late; after a VSync wait the game loop also starts 0–2.5 ms late. Counts are for one second of a camera turn; the picture shows its first 300 ms. A camera step is "uneven" when it is more than 1 ms away from the time between the two refreshes.</p>
   </section>
 </div>
 
@@ -380,7 +431,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
       apply(s.s);
       $("timeline").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
@@ -390,5 +441,169 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
   render();
   let lastW = 0;
   new ResizeObserver(() => { const w = $("timeline").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; timeline(model(st)); } }).observe($("timeline"));
+})();
+</script>
+<script>
+(() => {
+  "use strict";
+  // Lesson 059: frame pacing. A model, not a measurement.
+  const $ = (id) => document.getElementById(id);
+  const R = 1000 / 60, W0 = 100, W1 = 1100, VIEW = 300;
+  const st = { sync: "sleep", refl: "burst", dt: "measured" };
+  function rng(seed) { let x = seed; return () => { x = (x * 1103515245 + 12345) % 2147483648; return x / 2147483648; }; }
+  const r1 = rng(7), WOBBLE = Array.from({ length: 200 }, () => r1());
+  const r2 = rng(99), WAKE = Array.from({ length: 200 }, () => r2());
+
+  function model(s) {
+    const work = (i) => 12 + WOBBLE[i] + (s.refl === "burst" ? (i % 4 === 3 ? 5 : 0) : 1.25);
+    const frames = [];
+    if (s.sync === "sleep") {
+      // targetFrameRate-style limiter: sleep to the next 16.67 ms target; the timer wakes 0-2.5 ms late.
+      let t = 0;
+      for (let i = 0; i < 200; i++) {
+        const tgt = i * R + 2, start = Math.max(t, tgt) + WAKE[i] * 2.5, w = work(i), p = start + w;
+        frames.push({ i, start, w, present: p, vis: p, content: s.dt === "measured" ? start : tgt, burst: s.refl === "burst" && i % 4 === 3 });
+        t = p; if (start > W1 + 50) break;
+      }
+    } else if (s.sync === "vsync") {
+      let r = 0;
+      for (let i = 0; i < 200; i++) {
+        const start = r + WAKE[i] * 2.5, w = work(i), p = start + w;
+        let shown = Math.ceil((p + 1e-6) / R) * R; if (shown <= r) shown = r + R;
+        frames.push({ i, start, w, present: p, vis: shown, content: s.dt === "measured" ? start : r + R, burst: s.refl === "burst" && i % 4 === 3 });
+        r = shown; if (start > W1 + 50) break;
+      }
+    } else {
+      // VRR 48-144 Hz: the screen refreshes when a frame arrives.
+      let t = 0, last = -1e9;
+      for (let i = 0; i < 200; i++) {
+        const start = t + WAKE[i] * 0.3, w = work(i), p = start + w, shown = Math.max(p, last + 1000 / 144);
+        frames.push({ i, start, w, present: p, vis: shown, content: start, burst: s.refl === "burst" && i % 4 === 3 });
+        last = shown; t = p; if (start > W1 + 50) break;
+      }
+    }
+    const scans = [];
+    if (s.sync === "vrr") { for (const f of frames) if (f.vis >= W0 && f.vis < W1 + VIEW) scans.push({ r: f.vis, f }); }
+    else for (let k = Math.ceil(W0 / R); k * R < W1 + VIEW; k++) {
+      const r = k * R; let best = null;
+      for (const f of frames) if (f.vis <= r + 1e-6) best = f;
+      scans.push({ r, f: best });
+    }
+    const inWin = scans.filter((x) => x.r < W1);
+    let repeats = 0, uneven = 0, worst = 0;
+    const shownSet = new Set();
+    inWin.forEach((sc, k) => {
+      shownSet.add(sc.f);
+      const pv = k ? inWin[k - 1] : null;
+      sc.repeat = !!pv && sc.f === pv.f;
+      sc.step = pv ? sc.f.content - pv.f.content : R;
+      sc.err = pv ? Math.abs((sc.r - sc.f.content) - (pv.r - pv.f.content)) : 0;
+      if (pv) { if (sc.repeat) repeats++; if (sc.err > 1) uneven++; worst = Math.max(worst, sc.err); }
+    });
+    let longest = 0;
+    for (let i = 0; i < inWin.length;) {
+      let j = i; while (j < inWin.length && inWin[j].f === inWin[i].f) j++;
+      const end = j < inWin.length ? inWin[j].r : inWin[j - 1].r + (s.sync === "vrr" ? inWin[j - 1].f.w : R);
+      longest = Math.max(longest, end - inWin[i].r); i = j;
+    }
+    const done = frames.filter((f) => f.present >= W0 && f.present < W1).length;
+    return { frames, scans: inWin, counter: done, shown: shownSet.size, repeats, dropped: s.sync === "sleep" ? Math.max(0, done - shownSet.size) : 0,
+      tears: s.sync === "sleep" ? done : 0, uneven, worst, longest };
+  }
+
+  function draw(m) {
+    const box = $("pace").clientWidth || 640, W = Math.max(320, Math.min(680, Math.round(box))), narrow = W < 480;
+    const L = narrow ? 52 : 92, Rr = W - 8, H = 252, X = (t) => L + ((t - W0) / VIEW) * (Rr - L);
+    const yG = 26, yS = 92, yC = 160, lh = 30, fs = narrow ? 9.5 : 13;
+    let g = `<defs><pattern id="h59" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" style="fill:var(--field)"/><line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--bad);stroke-width:1.6;opacity:.7"/></pattern></defs>`;
+    const lab = (y, a, b) => `<text x="0" y="${y + 13}" style="fill:var(--ink);font-weight:600">${a}</text><text x="0" y="${y + 28}" style="fill:var(--muted)">${b}</text>`;
+    g += lab(yG, "Game", narrow ? "loop" : "loop (CPU)") + lab(yS, "Screen", narrow ? "60 Hz" : st.sync === "vrr" ? "VRR" : "60 Hz") + lab(yC + 20, "Camera", "step");
+    // game loop bars
+    for (const f of m.frames) {
+      const a = Math.max(W0, f.start), b = Math.min(W0 + VIEW, f.present);
+      if (b <= a) continue;
+      g += `<rect x="${X(a)}" y="${yG}" width="${Math.max(1, X(b) - X(a) - 1.2)}" height="${lh}" rx="3" style="fill:var(${f.burst ? "--p4" : f.i % 2 ? "--p1" : "--cpu"})"><title>Frame ${f.i}: ${f.w.toFixed(1)} ms of work</title></rect>`;
+      if (X(b) - X(a) > (narrow ? 11 : 16)) g += `<text x="${(X(a) + X(b)) / 2}" y="${yG + lh / 2 + 4}" text-anchor="middle" style="fill:#fff;font-weight:600;font-size:${fs}px">${f.i}</text>`;
+    }
+    // screen cells
+    const all = scansInView(m);
+    all.forEach((sc, k) => {
+      const nx = k + 1 < all.length ? all[k + 1].r : sc.r + (st.sync === "vrr" ? sc.f.w : R);
+      const a = Math.max(W0, sc.r), b = Math.min(W0 + VIEW, nx);
+      if (b <= a) return;
+      g += `<rect x="${X(a)}" y="${yS}" width="${Math.max(1, X(b) - X(a) - 1.2)}" height="${lh}" rx="3" style="fill:${sc.repeat ? "url(#h59)" : "var(--field)"};stroke:var(${sc.repeat ? "--bad" : "--line"})"><title>Refresh at ${sc.r.toFixed(1)} ms shows frame ${sc.f.i}${sc.repeat ? " again" : ""}</title></rect>`;
+      if (X(b) - X(a) > (narrow ? 11 : 18)) g += `<text x="${(X(a) + X(b)) / 2}" y="${yS + lh / 2 + 4}" text-anchor="middle" style="fill:var(${sc.repeat ? "--bad" : "--ink"});font-weight:600;font-size:${fs}px">${sc.f.i}</text>`;
+    });
+    if (st.sync === "sleep") for (const f of m.frames) if (f.present > W0 && f.present < W0 + VIEW) {
+      const x = X(f.present);
+      g += `<line x1="${x}" x2="${x}" y1="${yS - 4}" y2="${yS + lh + 4}" style="stroke:var(--bad);stroke-width:1.5;stroke-dasharray:3 2"/>`;
+    }
+    // camera steps: bar = how far the camera moved, in ms of game time, against the even 16.7
+    const cTop = yC + 6, cBot = yC + 60, CY = (v) => cBot - (Math.min(v, 36) / 36) * (cBot - cTop);
+    g += `<line x1="${L}" x2="${Rr}" y1="${CY(R)}" y2="${CY(R)}" style="stroke:var(--good);stroke-dasharray:4 3"/>`;
+    all.forEach((sc) => {
+      if (sc.r < W0 || sc.r >= W0 + VIEW) return;
+      const even = st.sync === "vrr" ? null : R, bad = sc.err > 1;
+      const x = X(sc.r) + 1, w = Math.max(3, (narrow ? 0.5 : 0.55) * (X(sc.r + R) - X(sc.r)));
+      const v = Math.max(0.6, sc.step);
+      g += `<rect x="${x}" y="${CY(v)}" width="${w}" height="${cBot - CY(v)}" rx="1.5" style="fill:var(${bad ? "--bad" : "--good"})"><title>Camera moved ${sc.step.toFixed(1)} ms of game time${even ? "" : ""}; error ${sc.err.toFixed(1)} ms</title></rect>`;
+    });
+    g += `<line x1="${L}" x2="${Rr}" y1="${cBot}" y2="${cBot}" style="stroke:var(--line)"/>`;
+    for (let t = 0; t <= VIEW; t += 100) g += `<text x="${X(W0 + t)}" y="${H - 6}" text-anchor="${t === 0 ? "start" : t === VIEW ? "end" : "middle"}" style="fill:var(--muted)">${t}${t === VIEW ? " ms" : ""}</text>`;
+    $("pace").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Game loop frames, the frame each screen refresh shows, and the camera step on each refresh">${g}</svg>`;
+  }
+  function scansInView(m) {
+    // scans for the view window, with the same repeat/step logic as the model
+    return m.scans.filter((sc) => sc.r < W0 + VIEW + R);
+  }
+
+  function render() {
+    const m = model(st);
+    draw(m);
+    const set = (id, bad, v) => { $(id).textContent = v; $(id).className = "v " + (bad ? "bad" : "good"); };
+    $("pCounter").textContent = m.counter; $("pCounter").className = "v";
+    set("pShown", m.shown < 60 && st.sync !== "vrr", m.shown);
+    $("pShownS").textContent = st.sync === "vrr" ? "a second (screen follows the game)" : m.dropped ? `a second; ${m.dropped} never shown whole` : "a second";
+    set("pRepeat", m.repeats > 0, m.repeats);
+    set("pTear", m.tears > 0, m.tears);
+    set("pLong", m.longest > R + 0.5, m.longest.toFixed(1));
+    set("pUneven", m.uneven > 0, m.uneven);
+    $("pUnevenS").textContent = m.uneven ? `a second; worst ${m.worst.toFixed(1)} ms off` : "a second";
+    const ok = st.sync !== "vrr" && m.repeats === 0 && m.tears === 0 && m.uneven === 0;
+    $("goalPill59").className = "pill " + (ok ? "ok" : "over"); $("goalPill59").textContent = ok ? "Goal met" : st.sync === "vrr" ? "Needs a VRR monitor" : "Not yet";
+    let c;
+    if (st.sync === "sleep") c = `The counter says ${m.counter} fps, but frames arrive whenever the timer wakes, not when the screen refreshes. ${m.repeats} refreshes repeat the old frame, ${m.dropped} frames are never shown whole, and every frame tears (red dashes).`;
+    else if (st.sync === "vrr") c = `The screen waits for each frame: no repeats, no tearing, ${m.counter} fps, and the 4th-frame spike shows for ${m.longest.toFixed(1)} ms instead of 33.3. But frame times still change, so ${m.uneven} camera steps a second are uneven. VRR hides misses; it doesn't make work even, and not every player has it.`;
+    else if (m.repeats) c = `VSync is honest: the counter now says ${m.counter}. Every 4th frame takes over 16.7 ms and misses its refresh, so the frame before it stays on screen for 33.3 ms. That's the hitch players feel on every camera turn.`;
+    else if (m.uneven) c = `A new frame on every refresh, no tearing. But the camera moves by the CPU clock, which wakes from VSync 0–2.5 ms late, while the screen shows frames exactly 16.7 ms apart: ${m.uneven} uneven steps a second, up to ${m.worst.toFixed(1)} ms. Small, but you feel it on a slow pan.`;
+    else c = `Each frame moves the camera by the time of the refresh it will be shown on: exactly 16.7 ms. A new frame every refresh, even steps, no tearing. Goal met.`;
+    $("coach59").textContent = c;
+    $("paceLegend").innerHTML = `<span><i style="background:var(--p1)"></i>frame work</span><span><i style="background:var(--p4)"></i>reflection frame</span><span><i style="background:repeating-linear-gradient(45deg,var(--bad) 0 2px,var(--field) 2px 6px)"></i>repeated refresh</span>` + (st.sync === "sleep" ? `<span><i style="background:var(--bad)"></i>tear line</span>` : "") + `<span><i style="background:var(--good)"></i>even camera step</span><span><i style="background:var(--bad)"></i>uneven step</span><span><i style="background:repeating-linear-gradient(90deg,var(--good) 0 3px,transparent 3px 5px);height:2px;vertical-align:3px"></i>even = 16.7 ms</span>`;
+    document.querySelectorAll("[data-k59]").forEach((b) => b.setAttribute("aria-pressed", st[b.dataset.k59] === b.dataset.v));
+  }
+  function apply(s) { Object.assign(st, { sync: "sleep", refl: "burst", dt: "measured" }, s); render(); }
+  document.querySelectorAll("[data-k59]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k59] = b.dataset.v; render(); }));
+
+  const STEPS = [
+    { t: "As shipped: a sleep cap at 60", d: "Frame rate capped at 60 by sleeping, VSync off. The counter says 60, but frames arrive whenever the timer wakes: 14 refreshes a second repeat the old frame, 14 frames are never shown whole, and every frame tears.", s: {} },
+    { t: "Turn on VSync", d: "Frames now wait for the refresh: no tearing. The counter drops to an honest 48: every 4th frame costs 17–18 ms of work because of the water reflection, misses its refresh, and the frame before it stays on screen for 33.3 ms. 12 repeats a second.", s: { sync: "vsync" } },
+    { t: "Time-slice the reflection", d: "Update a quarter of the reflection each frame: +1.25 ms every frame instead of +5 ms on one. Every frame fits: 60 new frames, 0 repeats. But the camera uses the CPU clock: 25 uneven steps a second, up to 2.3 ms off.", s: { sync: "vsync", refl: "slice" } },
+    { t: "Pace delta time", d: "Move the camera by the refresh the frame will be shown on, 16.7 ms, not by the CPU clock. 0 uneven steps. Goal met.", s: { sync: "vsync", refl: "slice", dt: "paced" } },
+    { t: "Compare: a VRR monitor", d: "Back to the reflection on every 4th frame, on a variable refresh monitor. No repeats and no tearing; the slow frame shows for 18.1 ms instead of 33.3. But 35 steps a second are still uneven. VRR helps players who have it; it doesn't fix uneven work.", s: { sync: "vrr" } },
+  ];
+  const base = document.querySelectorAll("#steps li").length, stepsEl = $("steps59");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${base + k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("l059").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("pace").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; draw(model(st)); } }).observe($("pace"));
 })();
 </script>
