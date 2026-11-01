@@ -53,7 +53,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 028 | LOD systems and impostors: the ferry ride that sent 3.36 million vertices to tiny houses | ✅ |
 | 029 | Texture memory, compression and mip streaming: the harbor that crashed only the cheap phones | ✅ |
 | 030 | Lighting cost, forward vs deferred vs clustered: the 120 lanterns that lit only half the street | ✅ |
-| 031 | Post-processing budgets | ⬜ |
+| 031 | Post-processing budgets: the festival look that cost 18.4 ms after the frame was done | ✅ |
 | 032 | Mobile GPUs: tile-based rendering and bandwidth | ⬜ |
 | 033 | GPU profiling tools: RenderDoc, PIX, vendor tools | ⬜ |
 | 034 | Review: Module 3 + rendering case study | ⬜ |

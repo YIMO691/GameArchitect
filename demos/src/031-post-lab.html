@@ -1,0 +1,434 @@
+<title>Post Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. An illustration of the festival look, the post pass timeline and the GPU frame on the left, readouts and controls on the right; the GPU capture and a pass table below. One column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Post Lab additions: the picture, the pass timeline and the frame bar. */
+:root { --skyc: #1b2a44; --house: #5a4636; --road: #4a4c52; --lan: #ffd36b; --c-bloom: #d4a72c; --c-dof: #b07aa1; --c-ab: #ff9da7; --c-grain: #9aa0a6; --c-vig: #76b7b2; --c-uber: #4e79a7; --c-aa: #59a14f; --c-scene: #586579; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c-scene: #95a2b4; } }
+:root[data-theme="dark"] { --c-scene: #95a2b4; }
+.pic { position: relative; width: 100%; aspect-ratio: 16 / 7.2; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #0b1220; }
+.pic canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.timeline svg { display: block; width: 100%; height: auto; }
+.timeline text { font-family: var(--f-mono); font-size: 12px; }
+.timeline rect.bar { transition: width 0.25s ease, x 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .timeline rect.bar { transition: none; } }
+.seg-ctl.three { grid-template-columns: repeat(3, 1fr); }
+.tbl-wrap { overflow-x: auto; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/031-post-processing-budgets.md">Read Lesson 031 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 031 · Lesson 031 · simulation using the lesson's numbers</div>
+    <h1>Post Lab</h1>
+    <p class="lede">The festival look on the Lantern Festival street: seven full-screen effects after the frame is drawn. Change how they run and watch the <strong>post timeline</strong> against its 4 ms budget, split into <strong>bandwidth</strong> and <strong>math</strong>.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Festival street, mid-range phone.</strong> Goal: post ≤ 4 ms and GPU ≤ 28 ms, both walking and in the rod zoom, with bloom and the zoom blur kept.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Picture, timeline and controls">
+    <div class="panel">
+      <div class="head-row"><h2>The festival look</h2><span class="mono" id="camTag"></span></div>
+      <div class="pic"><canvas id="cv" aria-label="Illustration of the festival street with the chosen effects"></canvas></div>
+      <p class="legend">An illustration of what each effect does, not a real render.</p>
+      <h3>Post passes, in order</h3>
+      <div class="timeline" id="timeline"></div>
+      <p class="legend">Dark strip under each pass = the part spent moving bytes (bandwidth). Hover or tap a pass for its numbers.</p>
+      <h3>GPU frame</h3>
+      <div class="timeline" id="frame"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Post</span><span class="v" id="sPost">0</span><span class="s" id="sPostS">ms · budget 4</span></div>
+        <div class="stat"><span class="k">GPU</span><span class="v" id="sGpu">0</span><span class="s" id="sGpuS">ms</span></div>
+        <div class="stat"><span class="k">Full-screen passes</span><span class="v" id="sPass">0</span><span class="s" id="sPassS">top level</span></div>
+        <div class="stat"><span class="k">Bandwidth share</span><span class="v" id="sBw">0</span><span class="s" id="sBwS">of post time</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>Camera</span></span>
+          <div class="seg-ctl" role="group" aria-label="Camera">
+            <button type="button" data-k="cam" data-v="walk">Walking<small>all in focus</small></button>
+            <button type="button" data-k="cam" data-v="zoom">Rod zoom<small>background blurred</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Lens effects (aberration, grain, vignette)</span></span>
+          <div class="seg-ctl" role="group" aria-label="Lens effects">
+            <button type="button" data-k="merge" data-v="sep">3 custom passes<small>3 × 0.9 ms floor</small></button>
+            <button type="button" data-k="merge" data-v="uber">In the uber pass<small>+0.4 ms math</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Depth of field</span></span>
+          <div class="seg-ctl three" role="group" aria-label="Depth of field">
+            <button type="button" data-k="dof" data-v="always">Bokeh, always<small>7 ms</small></button>
+            <button type="button" data-k="dof" data-v="zoomb">Bokeh, zoom only<small>7 ms in zoom</small></button>
+            <button type="button" data-k="dof" data-v="zoomg">Gaussian ½, zoom<small>1.1 ms in zoom</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Bloom</span></span>
+          <div class="seg-ctl" role="group" aria-label="Bloom">
+            <button type="button" data-k="bloom" data-v="full">Full res, 8 sizes<small>5.2 ms</small></button>
+            <button type="button" data-k="bloom" data-v="half">Half res, 5 sizes<small>1.6 ms</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Anti-aliasing</span></span>
+          <div class="seg-ctl" role="group" aria-label="Anti-aliasing">
+            <button type="button" data-k="aa" data-v="taa">TAA<small>history buffer · 1.8 ms</small></button>
+            <button type="button" data-k="aa" data-v="fxaa">FXAA<small>this frame only · 0.6 ms</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>HDR colour format</span></span>
+          <div class="seg-ctl" role="group" aria-label="HDR format">
+            <button type="button" data-k="hdr" data-v="64">64-bit<small>RGBA16F · 8 B/px</small></button>
+            <button type="button" data-k="hdr" data-v="32">32-bit<small>R11G11B10 · 4 B/px</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two-col">
+    <div class="panel">
+      <h2>GPU capture</h2>
+      <pre class="capture" id="report"></pre>
+    </div>
+    <div class="panel">
+      <h2>Pass by pass</h2>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Pass</th><th class="num">Bandwidth</th><th class="num">Math</th><th class="num">Total</th></tr></thead>
+          <tbody id="passes"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 031: post-processing budgets</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Touching the screen costs</h3><p>Reading and writing 1,152,000 pixels of HDR colour moves about 18.4 MB: about 0.9 ms before any math. Three tiny effects as three passes cost 3.1 ms.</p></div>
+      <div class="note"><h3>Run it only where it shows</h3><p>Depth of field while walking blurred nothing and cost 7 ms. Blurry effects don't need full resolution: bloom at half resolution keeps the glow for 1.6 ms instead of 5.2.</p></div>
+      <div class="note"><h3>Bytes are the phone's limit</h3><p>Half the bytes per pixel halves the bandwidth part of every pass, not the math. After the fixes, post is 2.7 ms walking and 3.45 ms zoomed.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. It uses the lesson's numbers: scene 15.81 ms, a bandwidth floor of about 0.9 ms per full-screen 64-bit pass, the per-pass split of bandwidth and math from the lesson, and 32-bit HDR halving every pass's bandwidth. Real costs depend on the GPU, the driver and how passes are scheduled; real anti-aliasing usually runs on 8-bit colour after tonemapping. The picture is an illustration.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+  const SCENE = 15.81, BUDGET = 28, POST_BUDGET = 4;
+  const st = { cam: "walk", merge: "sep", dof: "always", bloom: "full", aa: "taa", hdr: "64" };
+
+  function passes(s) {
+    const L = [];
+    L.push(s.bloom === "full" ? { id: "Bloom", n: "Bloom, full res (8 sizes)", bw: 3.6, m: 1.6, c: "--c-bloom" } : { id: "Bloom", n: "Bloom, ½ res (5 sizes)", bw: 1.1, m: 0.5, c: "--c-bloom" });
+    if (s.dof === "always" || (s.dof === "zoomb" && s.cam === "zoom")) L.push({ id: "DoF", n: "DoF, Bokeh, full res", bw: 2.4, m: 4.6, c: "--c-dof" });
+    if (s.dof === "zoomg" && s.cam === "zoom") L.push({ id: "DoF", n: "DoF, Gaussian, ½ res", bw: 0.7, m: 0.4, c: "--c-dof" });
+    if (s.merge === "sep") {
+      L.push({ id: "Aberr.", n: "Chromatic aberration (custom)", bw: 0.9, m: 0.2, c: "--c-ab" });
+      L.push({ id: "Grain", n: "Film grain (custom)", bw: 0.9, m: 0.1, c: "--c-grain" });
+      L.push({ id: "Vign.", n: "Vignette (custom)", bw: 0.9, m: 0.1, c: "--c-vig" });
+      L.push({ id: "Uber", n: "Uber: tonemap + grade", bw: 0.9, m: 0.4, c: "--c-uber" });
+    } else L.push({ id: "Uber", n: "Uber: tonemap, grade, lens effects", bw: 0.9, m: 0.8, c: "--c-uber" });
+    L.push(s.aa === "taa" ? { id: "TAA", n: "TAA", bw: 1.2, m: 0.6, c: "--c-aa" } : { id: "FXAA", n: "FXAA", bw: 0.4, m: 0.2, c: "--c-aa" });
+    const k = s.hdr === "32" ? 0.5 : 1;
+    for (const p of L) { p.bw *= k; p.t = p.bw + p.m; }
+    return L;
+  }
+  function model(s) {
+    const L = passes(s);
+    const post = L.reduce((a, p) => a + p.t, 0), bw = L.reduce((a, p) => a + p.bw, 0);
+    const gpu = SCENE + post;
+    return { L, post, bw, gpu, fps: 1000 / Math.max(gpu, 1000 / 30) };
+  }
+  const r2 = (v) => Math.round(v * 100) / 100;
+  const f2 = (v) => r2(v).toLocaleString("en-US", { maximumFractionDigits: 2 });
+
+  // ---------- picture (illustration) ----------
+  const LAN = [];
+  for (let i = 0; i < 20; i++) LAN.push([4 + i * 8, 44, 1.6]);
+  for (let i = 0; i < 40; i++) LAN.push([2 + i * 4, 34, 1.1]);
+  for (let i = 0; i < 60; i++) LAN.push([1.33 + i * 8 / 3, 26, 0.7]);
+  function picture() {
+    const cv = $("cv"), box = cv.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    const Wp = Math.max(1, Math.round(box.width * dpr)), Hp = Math.max(1, Math.round(box.height * dpr));
+    cv.width = Wp; cv.height = Hp;
+    const ctx = cv.getContext("2d"), sx = Wp / 160, sy = Hp / 72;
+    const base = document.createElement("canvas"); base.width = Wp; base.height = Hp;
+    const b = base.getContext("2d");
+    b.fillStyle = css("--skyc"); b.fillRect(0, 0, Wp, 18 * sy);
+    b.fillStyle = css("--house"); b.fillRect(0, 18 * sy, Wp, 30 * sy);
+    b.fillStyle = "rgba(0,0,0,.35)";
+    for (let i = 0; i < 20; i++) { b.fillRect((i * 8 + 1.5) * sx, 22 * sy, 2 * sx, 3 * sy); b.fillRect((i * 8 + 4.5) * sx, 22 * sy, 2 * sx, 3 * sy); b.fillRect(i * 8 * sx, 18 * sy, Math.max(1, 0.3 * sx), 30 * sy); }
+    b.fillStyle = css("--road"); b.fillRect(0, 48 * sy, Wp, 24 * sy);
+    // the fish and the fishing line in front
+    b.strokeStyle = "#e9eef3"; b.lineWidth = Math.max(1, 0.25 * sx);
+    b.beginPath(); b.moveTo(150 * sx, 0); b.lineTo(96 * sx, 60 * sy); b.stroke();
+    b.fillStyle = "#e9774b"; b.beginPath(); b.ellipse(96 * sx, 62 * sy, 6 * sx, 2.6 * sy, -0.2, 0, Math.PI * 2); b.fill();
+    const lamps = (g, scale, alpha) => { g.fillStyle = css("--lan"); g.globalAlpha = alpha; for (const [x, y, rr] of LAN) { g.beginPath(); g.arc(x * sx, y * sy, rr * sx * scale, 0, Math.PI * 2); g.fill(); } g.globalAlpha = 1; };
+    lamps(b, 1, 1);
+    const zoom = st.cam === "zoom";
+    // depth of field: in the zoom, blur the background and keep the fish sharp; walking, everything is in focus
+    if (zoom) {
+      ctx.filter = `blur(${(st.dof === "zoomg" ? 2.2 : 3) * dpr}px)`; ctx.drawImage(base, 0, 0); ctx.filter = "none";
+      ctx.save(); ctx.beginPath(); ctx.ellipse(96 * sx, 62 * sy, 14 * sx, 8 * sy, 0, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(base, 0, 0); ctx.restore();
+    } else ctx.drawImage(base, 0, 0);
+    // bloom
+    const glow = document.createElement("canvas"); glow.width = Wp; glow.height = Hp; const g = glow.getContext("2d");
+    lamps(g, 2.2, 1);
+    ctx.globalCompositeOperation = "lighter";
+    ctx.filter = `blur(${(st.bloom === "full" ? 5 : 6) * dpr}px)`; ctx.globalAlpha = 0.8; ctx.drawImage(glow, 0, 0);
+    ctx.filter = "none"; ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
+    // TAA ghost of the fishing line
+    if (st.aa === "taa") { ctx.strokeStyle = "rgba(233,238,243,.35)"; ctx.lineWidth = Math.max(1, 0.25 * sx); ctx.beginPath(); ctx.moveTo(146 * sx, 0); ctx.lineTo(92 * sx, 60 * sy); ctx.stroke(); }
+    // vignette
+    const vg = ctx.createRadialGradient(Wp / 2, Hp / 2, Hp * 0.35, Wp / 2, Hp / 2, Wp * 0.62);
+    vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.55)");
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, Wp, Hp);
+    // grain
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    ctx.fillStyle = "rgba(255,255,255,.06)";
+    for (let i = 0; i < 900; i++) ctx.fillRect(rnd() * Wp, rnd() * Hp, dpr, dpr);
+    $("camTag").textContent = zoom ? "rod zoom" : "walking";
+  }
+
+  // ---------- bars ----------
+  function timeline(m) {
+    const box = $("timeline").clientWidth || 600, Wd = Math.max(300, Math.min(700, Math.round(box)));
+    const max = 19, X = (v) => (v / max) * Wd, top = 6, bh = 30;
+    let g = `<rect x="0" y="${top}" width="${Wd}" height="${bh}" rx="4" style="fill:var(--field);stroke:var(--line)"/>`;
+    let x = 0;
+    for (const p of m.L) {
+      const w = X(p.t), wb = X(p.bw);
+      g += `<rect class="bar" x="${x}" y="${top}" width="${w}" height="${bh}" style="fill:var(${p.c});stroke:var(--panel);stroke-width:1"><title>${p.n}: ${f2(p.bw)} bandwidth + ${f2(p.m)} math = ${f2(p.t)} ms</title></rect>`;
+      g += `<rect class="bar" x="${x}" y="${top + bh - 6}" width="${wb}" height="6" style="fill:var(--ink);opacity:.35"/>`;
+      if (w > 40) g += `<text x="${x + w / 2}" y="${top + 19}" text-anchor="middle" style="fill:#fff;font-weight:600">${p.id}</text>`;
+      x += w;
+    }
+    const xb = X(POST_BUDGET);
+    g += `<line x1="${xb}" x2="${xb}" y1="0" y2="${top + bh + 6}" style="stroke:var(--good);stroke-width:2.5;stroke-dasharray:5 4"/>`;
+    g += `<text x="${xb + 4}" y="${top + bh + 20}" style="fill:var(--good);font-weight:600">post budget 4 ms</text>`;
+    g += `<text x="${Wd}" y="${top + bh + 20}" text-anchor="end" style="fill:var(${m.post > POST_BUDGET ? "--bad" : "--good"});font-weight:700">${f2(m.post)} ms</text>`;
+    $("timeline").innerHTML = `<svg viewBox="0 0 ${Wd} ${top + bh + 28}" role="img" aria-label="Post passes in order; the dark strip at the bottom of each is its bandwidth part">${g}</svg>`;
+
+    const max2 = 36, X2 = (v) => (v / max2) * Wd;
+    let h = `<rect x="0" y="${top}" width="${Wd}" height="${bh}" rx="4" style="fill:var(--field);stroke:var(--line)"/>`;
+    h += `<rect class="bar" x="0" y="${top}" width="${X2(SCENE)}" height="${bh}" style="fill:var(--c-scene)"/><text x="${X2(SCENE) / 2}" y="${top + 19}" text-anchor="middle" style="fill:var(--panel);font-weight:600">scene 15.81</text>`;
+    h += `<rect class="bar" x="${X2(SCENE)}" y="${top}" width="${X2(m.post)}" height="${bh}" style="fill:var(${m.post > POST_BUDGET ? "--bad" : "--good"})"/>`;
+    if (X2(m.post) > 60) h += `<text x="${X2(SCENE) + X2(m.post) / 2}" y="${top + 19}" text-anchor="middle" style="fill:#fff;font-weight:600">post ${f2(m.post)}</text>`;
+    const xg = X2(BUDGET);
+    h += `<line x1="${xg}" x2="${xg}" y1="0" y2="${top + bh + 6}" style="stroke:var(--good);stroke-width:2.5;stroke-dasharray:5 4"/>`;
+    h += `<text x="${xg}" y="${top + bh + 20}" text-anchor="middle" style="fill:var(--good);font-weight:600">GPU budget 28</text>`;
+    $("frame").innerHTML = `<svg viewBox="0 0 ${Wd} ${top + bh + 28}" role="img" aria-label="GPU frame: scene plus post against 28 ms">${h}</svg>`;
+  }
+
+  function render() {
+    const m = model(st);
+    picture(); timeline(m);
+    const other = model({ ...st, cam: st.cam === "walk" ? "zoom" : "walk" });
+    $("sPost").textContent = f2(m.post); $("sPost").className = "v " + (m.post <= POST_BUDGET + 1e-9 ? "good" : "bad");
+    $("sPostS").textContent = `ms · budget 4 · ${st.cam === "walk" ? "zoom" : "walk"}: ${f2(other.post)}`;
+    $("sGpu").textContent = f2(m.gpu); $("sGpu").className = "v " + (m.gpu <= BUDGET + 1e-9 ? "good" : "bad");
+    $("sGpuS").textContent = `ms · ${m.fps.toFixed(1)} fps · budget 28`;
+    $("sPass").textContent = String(m.L.length);
+    $("sBw").textContent = Math.round((m.bw / m.post) * 100) + "%"; $("sBwS").textContent = `${f2(m.bw)} of ${f2(m.post)} ms is moving bytes`;
+    const both = Math.max(m.post, other.post) <= POST_BUDGET + 1e-9 && st.dof !== "always";
+    $("goalPill").className = "pill " + (both ? "ok" : "over");
+    $("goalPill").textContent = both ? "Goal met (walk and zoom)" : m.gpu > BUDGET ? "GPU over budget" : "Post over budget";
+    for (const b of document.querySelectorAll("[data-k]")) b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v));
+
+    let co;
+    if (st.merge === "sep") co = `<span class="warn">${m.L.length} full-screen passes.</span> The three lens effects are ${f2(m.L.filter((p) => ["Aberr.", "Grain", "Vign."].includes(p.id)).reduce((a, p) => a + p.t, 0))} ms, almost all of it carrying the screen through memory.`;
+    else if (st.dof === "always" || (st.dof === "zoomb" && st.cam === "zoom")) co = `Bokeh depth of field is ${f2(m.L.find((p) => p.id === "DoF").t)} ms of the ${f2(m.post)}.${st.cam === "walk" ? " While walking, everything is in focus: <span class=\"warn\">it blurs nothing</span>." : ""}`;
+    else if (st.bloom === "full") co = `Bloom starts at full resolution: ${f2(m.L[0].t)} ms, mostly bandwidth, for detail its own blur removes.`;
+    else if (m.post > POST_BUDGET) co = `${f2(m.post)} ms: close. ${st.aa === "taa" ? "TAA reads a history buffer every frame and ghosts behind the fishing line." : "Every pass still moves 8 bytes per pixel; " + Math.round((m.bw / m.post) * 100) + "% of post is bandwidth."}`;
+    else co = `Post ${f2(m.post)} ms ${st.cam === "walk" ? "walking" : "in the zoom"}, ${f2(other.post)} ms ${st.cam === "walk" ? "in the zoom" : "walking"}: both under 4 ms. GPU ${f2(m.gpu)} ms.`;
+    $("coach").innerHTML = co;
+
+    let rep = `<span class="dim">GPU capture · festival street · ${st.cam === "walk" ? "walking" : "rod zoom"} · ${st.hdr}-bit HDR</span>\n`;
+    rep += `Scene                          ${f2(SCENE).padStart(6)} ms\n`;
+    for (const p of m.L) rep += `  ${p.n.padEnd(29)}${f2(p.t).padStart(6)} ms\n`;
+    rep += `Post-processing                ${(m.post > POST_BUDGET ? '<span class="warn">' : '<span class="ok">') + f2(m.post).padStart(6)} ms</span>  (budget 4)\n`;
+    rep += `GPU frame                      ${(m.gpu > BUDGET ? '<span class="warn">' : '<span class="ok">') + f2(m.gpu).padStart(6)} ms</span>  → ${m.fps.toFixed(1)} fps\n`;
+    $("report").innerHTML = rep;
+    $("passes").innerHTML = m.L.map((p) => `<tr><td><span class="sw" style="background:var(${p.c})"></span>${p.n}</td><td class="num">${f2(p.bw)}</td><td class="num">${f2(p.m)}</td><td class="num">${f2(p.t)}</td></tr>`).join("")
+      + `<tr class="cur"><td>Total</td><td class="num">${f2(m.bw)}</td><td class="num">${f2(m.post - m.bw)}</td><td class="num ${m.post > POST_BUDGET ? "bad" : "good"}">${f2(m.post)}</td></tr>`;
+  }
+
+  for (const b of document.querySelectorAll("[data-k]")) b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); });
+
+  const base = { cam: "walk", merge: "sep", dof: "always", bloom: "full", aa: "taa", hdr: "64" };
+  const STEPS = [
+    { t: "The festival look, as delivered", d: "7 passes: post 18.4 ms, GPU 34.21 ms, 29.2 fps. Bandwidth is 10.8 ms of it: 59%.", s: {} },
+    { t: "Merge the lens effects into the uber pass", d: "Aberration, grain and vignette move into the pass that already tonemaps. Their math stays (+0.4 ms), three 0.9 ms floors go: post 15.7 ms, GPU 31.51 ms.", s: { merge: "uber" } },
+    { t: "Depth of field only in the zoom", d: "While walking, Bokeh DoF blurred nothing. Turned on only for the rod zoom: walking post 8.7 ms, GPU 24.51 ms.", s: { merge: "uber", dof: "zoomb" } },
+    { t: "The zoom: a cheaper blur", d: "In the zoom, Bokeh would cost 7 ms again. Gaussian DoF at half resolution: 1.1 ms. Zoom post 9.8 ms, GPU 25.61 ms.", s: { merge: "uber", dof: "zoomg", cam: "zoom" } },
+    { t: "Bloom at half resolution", d: "The glow starts at half resolution with 5 sizes: 5.2 → 1.6 ms. Zoom post 6.2 ms, walking 5.1 ms.", s: { merge: "uber", dof: "zoomg", cam: "zoom", bloom: "half" } },
+    { t: "FXAA instead of TAA", d: "No history buffer, no ghost behind the fishing line: 1.8 → 0.6 ms. Walking post 3.9 ms fits, but the zoom is 5 ms.", s: { merge: "uber", dof: "zoomg", cam: "zoom", bloom: "half", aa: "fxaa" } },
+    { t: "32-bit HDR", d: "R11G11B10 halves every pass's bandwidth. Zoom post 3.45 ms, GPU 19.26 ms; walking 2.7 ms, GPU 18.51 ms. Both under 4 ms.", s: { merge: "uber", dof: "zoomg", cam: "zoom", bloom: "half", aa: "fxaa", hdr: "32" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      Object.assign(st, base, s.s);
+      render();
+      $("cv").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("cv").parentElement.clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("cv").parentElement);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+})();
+</script>
