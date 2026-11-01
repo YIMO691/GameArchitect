@@ -104,6 +104,13 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 .head-line { font-family: var(--f-mono); font-size: 13px; margin: 0; }
 .tbl-box { overflow-x: auto; }
 table.prof { border-collapse: collapse; width: 100%; font-size: 13px; }
+.seg-ctl.three { grid-template-columns: repeat(3, 1fr); }
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.hyp-grid { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .hyp-grid { grid-template-columns: minmax(0, 1fr); } }
+table.prof td.ok { color: var(--good); font-weight: 600; }
+table.prof td.no { color: var(--bad); font-weight: 600; }
+table.prof td.mid { color: var(--accent); font-weight: 600; }
 table.prof th, table.prof td { padding: 6px 6px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 table.prof th { font-family: var(--f-body); font-size: 11px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
 table.prof th:first-child, table.prof td:first-child { text-align: left; white-space: normal; }
@@ -144,8 +151,9 @@ table.prof td .ind { display: inline-block; }
     <div class="crumbs">
       <a href="../index.html">← All labs</a>
       <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/003-the-measurement-mindset.md">Read Lesson 003 ↗</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/035-hypothesis-driven-profiling.md">Read Lesson 035 ↗</a>
     </div>
-    <div class="eyebrow">Lab 003 · Lesson 003 · simulation using the lesson's numbers</div>
+    <div class="eyebrow">Lab 003 · Lessons 003 and 035 · simulation using the lesson's numbers</div>
     <h1>Profiler Detective Lab</h1>
     <p class="lede">A 300-frame recording of the horde chase. The FPS counter says the game is fine. Find the frames the players feel, read them, and prove the fix.</p>
   </header>
@@ -228,10 +236,70 @@ table.prof td .ind { display: inline-block; }
     </div>
   </section>
 
+  <section class="panel" id="netPanel" aria-labelledby="netH">
+    <div class="eyebrow">Lesson 035 · hypothesis-driven profiling</div>
+    <h2 id="netH">The net hitch: a hypothesis board</h2>
+    <div class="goal">
+      <p><strong>The Reef, hauling in a full net, mid-range phone at 30 fps.</strong> Goal: the haul frame's main thread at most 33.33 ms, with 300 fish and the catch summary on.</p>
+      <span id="hGoal" class="pill over">Not yet</span>
+    </div>
+    <div class="hyp-grid">
+      <div class="panel">
+        <div class="stats">
+          <div class="stat"><span class="k">Haul frame</span><span class="v" id="hMs">0</span><span class="s" id="hMsS">ms main thread</span></div>
+          <div class="stat"><span class="k">Normal frame</span><span class="v">14.00</span><span class="s">ms main thread</span></div>
+        </div>
+        <div class="controls">
+          <div class="field-row">
+            <span class="lbl"><span>Fish in the net</span></span>
+            <div class="seg-ctl three" role="group" aria-label="Fish in the net">
+              <button type="button" data-h="fish" data-v="50">50</button>
+              <button type="button" data-h="fish" data-v="150">150</button>
+              <button type="button" data-h="fish" data-v="300">300</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="lbl"><span>Catch summary UI</span></span>
+            <div class="seg-ctl" role="group" aria-label="Catch summary UI">
+              <button type="button" data-h="ui" data-v="on">On</button>
+              <button type="button" data-h="ui" data-v="off">Off (test only)</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="lbl"><span>Summary icons</span></span>
+            <div class="seg-ctl" role="group" aria-label="Summary icons">
+              <button type="button" data-h="icons" data-v="fish">One per fish</button>
+              <button type="button" data-h="icons" data-v="species">Per species, pooled</button>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="lbl"><span>Incremental GC</span></span>
+            <div class="seg-ctl" role="group" aria-label="Incremental GC">
+              <button type="button" data-h="gc" data-v="off">Off</button>
+              <button type="button" data-h="gc" data-v="on">On</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Profiler · haul frame (phone, dev build)</h3>
+        <div class="tbl-box"><table class="prof" id="hProf"></table></div>
+        <p class="fine">No GC.Collect marker in the haul frame at any setting.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Hypotheses: each one predicts a number</h3>
+      <div class="tbl-box"><table class="prof" id="hTbl"></table></div>
+      <p class="coach" id="hCoach"></p>
+    </div>
+  </section>
+
   <section class="panel" aria-labelledby="tryH">
     <h2 id="tryH">Try this</h2>
     <p class="fine">Tap <strong>Set up</strong> on each step in order. It replays the lesson: the 65 fps counter, the spike hunt, the prediction, the fix, and the editor trap.</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 035 · The net hitch</p>
+    <ol class="steps" id="steps35" style="counter-reset: step 7"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -241,6 +309,7 @@ table.prof td .ind { display: inline-block; }
       <div class="note"><h3>Self time and calls find the worker</h3><p>Sorted by total, a manager function sits on top. Sorted by self, FindPath and its 5,000 calls stand out. Comparing with a normal frame shows the one row that changed.</p></div>
       <div class="note"><h3>Measure where it counts</h3><p>The editor with Deep Profile gets the shape roughly right but the sizes wrong, and even flips the normal frame to CPU-bound. Decide and prove on the target build.</p></div>
     </div>
+    <p class="fine">The net hitch (Lesson 035): normal main thread 14.0 ms; trigger callbacks 2 ms per 300 fish; one summary icon 0.06 ms to instantiate; layout rebuild 0.02 ms per icon; per species, 12 pooled icons. A hypothesis "matches" when its prediction is within 1 ms of the observed haul frame, "close" within 3 ms.</p>
     <p class="fine">This lab is a simulation, not a measurement. It uses Lesson 003's numbers: other CPU work 12 ms, GPU 14.5 ms every frame, one path costs 10.8 µs, each zombie re-plans every 60 frames. "Editor + Deep Profile" is modelled as 2× on normal CPU work and 3× on FindPath; real overhead varies a lot by project. Real recordings are noisier: frames wobble by a few tenths of a millisecond.</p>
   </section>
 </div>
@@ -447,12 +516,73 @@ table.prof td .ind { display: inline-block; }
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
-      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active");
       apply(s.s);
       $(s.go).scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
     });
   });
+
+  // ---------- Lesson 035: the net hitch ----------
+  const hs = { fish: 300, ui: "on", icons: "fish", gc: "off" };
+  const BASE = 14, FRAME30 = 1000 / 30, PER = 26 / 300;
+  function haul(s) {
+    const n = s.icons === "fish" ? s.fish : 12;
+    const trig = s.fish * (2 / 300), inst = s.ui === "on" ? n * 0.06 : 0, lay = s.ui === "on" ? n * 0.02 : 0;
+    return { trig, inst, lay, n, ms: BASE + trig + inst + lay };
+  }
+  const HYP = [
+    { k: "H1", t: "GC: the catch list makes garbage, and the collector runs on the haul", p: (s) => (s.gc === "on" ? 16 : 40) },
+    { k: "H2", t: "Physics: 300 fish enter the net trigger at once", p: (s) => BASE + s.fish * PER },
+    { k: "H3", t: "UI: the catch summary creates one icon per fish", p: (s) => BASE + (s.ui === "on" ? (s.icons === "fish" ? s.fish : 12) * PER : 0) },
+  ];
+  function renderNet() {
+    const o = haul(hs);
+    $("hMs").textContent = f2(o.ms); $("hMs").className = "v " + (o.ms > FRAME30 ? "bad" : "good");
+    $("hMsS").textContent = o.ms > FRAME30 ? `ms · over 33.33: a dropped frame` : `ms · under 33.33`;
+    document.querySelectorAll("button[data-h]").forEach((b) => b.setAttribute("aria-pressed", String(String(hs[b.dataset.h]) === b.dataset.v)));
+    const ok = o.ms <= FRAME30 && hs.fish === 300 && hs.ui === "on";
+    $("hGoal").className = "pill " + (ok ? "ok" : "over");
+    $("hGoal").textContent = ok ? "Goal met" : hs.ui === "off" ? "Summary off is a test, not a fix" : hs.fish !== 300 ? "Test with 300 fish" : "Not yet";
+    const rows = [["Everything else (normal frame)", BASE, ""], ["Physics · OnTriggerEnter", o.trig, `${hs.fish} calls`], ["CatchSummary · Instantiate icon", o.inst, hs.ui === "on" ? `${o.n} calls` : "0 calls"], ["Canvas · layout rebuild", o.lay, hs.ui === "on" ? `${o.n} items` : "—"]];
+    $("hProf").innerHTML = `<thead><tr><th>Marker</th><th>ms</th><th>calls</th></tr></thead><tbody>` + rows.map((r) => `<tr class="${r[1] > 5 && r[0] !== rows[0][0] ? "hot" : ""}"><td class="name">${r[0]}</td><td>${f2(r[1])}</td><td>${r[2]}</td></tr>`).join("") + `<tr><td><strong>Haul frame</strong></td><td><strong>${f2(o.ms)}</strong></td><td></td></tr></tbody>`;
+    let h = `<thead><tr><th>Hypothesis</th><th>Predicts</th><th>Observed</th><th>Verdict</th></tr></thead><tbody>`;
+    HYP.forEach((x) => {
+      const pr = x.p(hs), d = Math.abs(pr - o.ms);
+      const v = d <= 1 ? ["ok", "matches"] : d <= 3 ? ["mid", "close"] : ["no", "wrong"];
+      h += `<tr><td><strong>${x.k}</strong> ${x.t}</td><td>${f2(pr)}</td><td>${f2(o.ms)}</td><td class="${v[0]}">${v[1]}</td></tr>`;
+    });
+    $("hTbl").innerHTML = h + "</tbody>";
+    const preds = HYP.map((x) => x.p(hs));
+    const spread = Math.max(...preds.slice(1)) - Math.min(...preds.slice(1));
+    $("hCoach").textContent = spread < 0.05
+      ? "H2 and H3 predict the same number here: this test can't tell them apart. Pick a test where their predictions differ."
+      : `This setting separates H2 and H3 by ${f1(spread)} ms. A good test is one where the hypotheses disagree.`;
+  }
+  document.querySelectorAll("button[data-h]").forEach((b) => b.addEventListener("click", () => {
+    const k = b.dataset.h; hs[k] = k === "fish" ? +b.dataset.v : b.dataset.v; renderNet();
+  }));
+  function applyNet(s) { Object.assign(hs, { fish: 300, ui: "on", icons: "fish", gc: "off" }, s); renderNet(); }
+  const STEPS35 = [
+    { t: "The hitch, and three written hypotheses", d: "Haul frame 40.00 ms, normal 14.0. Each hypothesis predicts 40.00 here, so this frame proves nothing yet. Read what each one predicts when something changes.", s: {} },
+    { t: "Test H1: incremental GC on", d: "H1 predicts the hitch drops to about 16 ms. Observed: still 40.00 ms, and no GC.Collect marker in the frame. H1 is wrong. Cost of the test: one setting, one haul.", s: { gc: "on" } },
+    { t: "A test that can't decide: 150 fish", d: "Haul frame 27.00 ms. H2 and H3 both predicted 27.00: both scale with the fish. The test was real work and taught nothing new about which one it is.", s: { fish: 150 } },
+    { t: "The test that separates them: summary off", d: "300 fish, summary UI off (a test, not a fix). H2 predicted 40.00, H3 predicted 14.00. Observed 16.00: H3 explains 24 of the 26 ms; the 2 ms left are the trigger callbacks.", s: { ui: "off" } },
+    { t: "The fix: one pooled icon per species", d: "Summary back on, 12 pooled icons instead of 300 new ones: haul frame 16.96 ms, under 33.33. H3 predicted 15.04: close, and the 2 ms of triggers are the gap. Goal met.", s: { icons: "species" } },
+  ];
+  const steps35 = $("steps35");
+  STEPS35.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + STEPS.length}">Set up</button>`;
+    steps35.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      applyNet(s.s);
+      $("netPanel").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    });
+  });
+  renderNet();
 
   render();
   let lastW = 0;

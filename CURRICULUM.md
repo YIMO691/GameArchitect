@@ -61,7 +61,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 ## Module 4 — CPU & memory optimization
 | # | Title | Status |
 |---|-------|--------|
-| 035 | Hypothesis-driven profiling methodology | ⬜ |
+| 035 | Hypothesis-driven profiling methodology: the net hitch that took two days, then forty minutes | ✅ |
 | 036 | Hot paths: algorithms before micro-optimizations | ⬜ |
 | 037 | Spatial partitioning: grids, quadtrees, BVHs | ⬜ |
 | 038 | Physics cost and how to tame it | ⬜ |
