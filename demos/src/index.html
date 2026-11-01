@@ -215,6 +215,13 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
       <ul><li>The bandwidth floor of a full-screen pass</li><li>Merging cheap effects into the uber pass</li><li>Effects only when visible</li><li>Half-resolution blurs: bloom and DoF</li><li>TAA vs FXAA, 64-bit vs 32-bit HDR</li><li>A post budget line in the frame</li></ul>
       <span class="go">Open lab →</span>
     </a>
+    <a class="card" href="032-tile-lab/index.html">
+      <div class="meta"><span class="tag live">live</span><span>Lesson 032</span><span>simulation</span></div>
+      <h3>Tile Lab</h3>
+      <p>Lantern Harbor with MSAA 4× moves 395 MB per frame on a tile-based phone GPU: GPU time is fine, but the phone is hot after 8 minutes. Clear instead of Load, resolve on the tile, let the water read the tile instead of copying the screen, and watch the trips to memory shrink to 172 MB, while MSAA ends up costing 0 MB.</p>
+      <ul><li>Immediate-mode vs tile-based GPUs</li><li>Load and store actions per render pass</li><li>Render pass breaks and screen copies</li><li>MSAA resolved on the tile</li><li>Bytes per frame as a budget (heat, battery)</li></ul>
+      <span class="go">Open lab →</span>
+    </a>
   </section>
 
   <section class="panel" aria-labelledby="planH">
@@ -243,6 +250,7 @@ td.mono { font-family: var(--f-mono); white-space: nowrap; }
           <tr><td>Texture Lab</td><td class="mono">029</td><td>Lantern Harbor's textures on a low-end and a mid-range phone: the kill line, Read/Write copies, RGBA32 vs ASTC, max size vs mip streaming, and the streaming budget under the rod zoom. Live.</td></tr>
           <tr><td>Lighting Lab</td><td class="mono">030</td><td>The Lantern Festival street with 120 lights: forward per-object lists and their missing light, deferred and its G-buffer, Forward+ tiles, and baking the far lanterns. Live.</td></tr>
           <tr><td>Post Lab</td><td class="mono">031</td><td>The festival look's seven full-screen effects: bandwidth vs math per pass, merging into the uber pass, depth of field only in the zoom, half-resolution bloom, TAA vs FXAA and 32-bit HDR, against a 4 ms post budget. Live.</td></tr>
+          <tr><td>Tile Lab</td><td class="mono">032</td><td>The harbor frame on a tile-based phone GPU: load and store actions, MSAA resolve on the tile, the water's screen copies as a pass break, and bytes per frame against a bandwidth budget. Live.</td></tr>
           <tr><td>Netcode Lab</td><td class="mono">048 · 049</td><td>Lag, interpolation, prediction and rollback with a fake network.</td></tr>
         </tbody>
       </table>

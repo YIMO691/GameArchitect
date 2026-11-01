@@ -79,6 +79,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `029-texture-lab` | 029 |
 | `030-lighting-lab` | 030 |
 | `031-post-lab` | 031 |
+| `032-tile-lab` | 032 |
 | `048-netcode` | 048, 049 |
 
 Lessons not in the map get a new lab when their main idea is something that changes on screen or in numbers. For lessons about process or communication (e.g. writing design docs, estimating risk), build a small interactive tool instead: a decision table, a budget calculator, a trade-off picker with the lesson's real numbers. When a new lab spans later lessons too, add its row to this map.

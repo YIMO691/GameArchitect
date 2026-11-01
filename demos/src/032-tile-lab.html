@@ -1,0 +1,392 @@
+<title>Tile Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. The render passes with their trips to memory and the bytes bar on the left, readouts and controls on the right; the memory counters and a pass table below. One column on phones. */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Tile Lab additions: the render pass diagram and the bytes bar. */
+:root { --c-sh: #9aa0a6; --c-op: #4e79a7; --c-cp: #e5534b; --c-tr: #b07aa1; --c-rs: #f28e2b; --c-po: #d4a72c; --c-ui: #59a14f; --c-tx: #c9d1d9; --chip: #dafbe1; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c-tx: #3a4552; --chip: #12361f; } }
+:root[data-theme="dark"] { --c-tx: #3a4552; --chip: #12361f; }
+.passes svg, .mb svg { display: block; width: 100%; height: auto; }
+.passes text, .mb text { font-family: var(--f-mono); font-size: 12px; }
+.mb rect.bar { transition: width 0.25s ease, x 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .mb rect.bar { transition: none; } }
+.tbl-wrap { overflow-x: auto; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/032-mobile-gpus-tile-based-rendering-and-bandwidth.md">Read Lesson 032 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 032 · Lesson 032 · simulation using the lesson's numbers</div>
+    <h1>Tile Lab</h1>
+    <p class="lede">The harbor frame on a tile-based phone GPU. Each render pass draws on the chip; only its <strong>loads</strong> and <strong>stores</strong> go to main memory. Change them and watch the frame's bytes, not only its milliseconds.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>Lantern Harbor at sunset, mid-range phone, MSAA 4×.</strong> Goal: ≤ 180 MB per frame (about 5.3 GB/s at 30 fps) so the phone stays cool, and GPU ≤ 28 ms.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Render passes and controls">
+    <div class="panel">
+      <h2>Render passes</h2>
+      <div class="passes" id="passes"></div>
+      <p class="legend">Green box: a render pass on the chip. Red arrows: loads (up) and stores (down) to main memory, with their MB. Dashed: a render pass break.</p>
+      <h3>Bytes per frame</h3>
+      <div class="mb" id="mb"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Bytes per frame</span><span class="v" id="sMb">0</span><span class="s">MB · budget 180</span></div>
+        <div class="stat"><span class="k">Bandwidth</span><span class="v" id="sGbs">0</span><span class="s" id="sGbsS">GB/s at 30 fps</span></div>
+        <div class="stat"><span class="k">GPU</span><span class="v" id="sGpu">0</span><span class="s" id="sGpuS">ms</span></div>
+        <div class="stat"><span class="k">30-minute test</span><span class="v" id="sHeat">0</span><span class="s" id="sHeatS"></span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>MSAA</span></span>
+          <div class="seg-ctl" role="group" aria-label="MSAA">
+            <button type="button" data-k="msaa" data-v="1">Off<small>1 sample · 4.39 MB</small></button>
+            <button type="button" data-k="msaa" data-v="4">4×<small>4 samples · 17.58 MB</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Opaque pass starts with</span></span>
+          <div class="seg-ctl" role="group" aria-label="Load action">
+            <button type="button" data-k="load" data-v="load">Load<small>reads last frame</small></button>
+            <button type="button" data-k="load" data-v="clear">Clear<small>free on a tile</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>End of the last MSAA pass</span></span>
+          <div class="seg-ctl" role="group" aria-label="Store action">
+            <button type="button" data-k="res" data-v="store">Store samples<small>+ a resolve pass</small></button>
+            <button type="button" data-k="res" data-v="tile">Resolve on tile<small>depth Don't care</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>The water reads what is under it via</span></span>
+          <div class="seg-ctl" role="group" aria-label="Water reads">
+            <button type="button" data-k="water" data-v="copy">Screen copies<small>a pass break</small></button>
+            <button type="button" data-k="water" data-v="fetch">Framebuffer fetch<small>one render pass</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>UI</span></span>
+          <div class="seg-ctl" role="group" aria-label="UI">
+            <button type="button" data-k="ui" data-v="own">Its own pass<small>load + store</small></button>
+            <button type="button" data-k="ui" data-v="post">In the last post pass<small>0 MB</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Shadow map</span></span>
+          <div class="seg-ctl" role="group" aria-label="Shadow map">
+            <button type="button" data-k="shadow" data-v="2048">2048²<small>16 MB</small></button>
+            <button type="button" data-k="shadow" data-v="1024">1024²<small>4 MB</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="two-col">
+    <div class="panel">
+      <h2>GPU memory counters</h2>
+      <pre class="capture" id="report"></pre>
+    </div>
+    <div class="panel">
+      <h2>Pass by pass</h2>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Pass</th><th>Load → store</th><th class="num">MB</th></tr></thead>
+          <tbody id="tbl"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 032: tile-based rendering and bandwidth</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>The chip is cheap, the walk is not</h3><p>Depth tests, blending and MSAA samples happen in tile memory. Only loads and stores reach main memory: 4.39 MB per buffer, 17.58 MB with MSAA 4×.</p></div>
+      <div class="note"><h3>Pass breaks multiply trips</h3><p>The water's screen copies split one pass into three. The same screen went to memory and back again and again: 114 MB per frame.</p></div>
+      <div class="note"><h3>Bytes are heat</h3><p>From 307 to 172 MB per frame, GPU time stays at 19 ms. Bandwidth falls by 44%, and that is the difference between a hot phone and a cool one.</p></div>
+    </div>
+    <p class="fine">This lab is a simulation, not a measurement. It uses the lesson's numbers: one 1600 × 720 × 4-byte buffer is 4.39 MB, textures and vertex data are 140 MB, post is 24 MB, memory work is about 20 MB per ms, the pixel station is 16 ms, and the team's budget of 180 MB per frame comes from its long-play tests. Real phones also compress buffers (AFBC, UBWC), which lowers the real bytes, and heat depends on much more than memory traffic.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const S = 1600 * 720 * 4 / 1048576;  // 4.39 MB
+  const TEX = 140, POST = 24, PIX = 16, VTX = 8, RAS = 4, MB_PER_MS = 20, BUDGET_MB = 180, BUDGET_GPU = 28;
+  const st = { msaa: "4", load: "load", res: "store", water: "copy", ui: "own", shadow: "2048" };
+
+  function model(s) {
+    const k = +s.msaa, P = [];
+    const ld = s.load === "load" ? 2 * k * S : 0;
+    P.push({ n: `Shadow ${s.shadow}²`, c: "--c-sh", load: 0, store: s.shadow === "2048" ? 16 : 4, how: "clear → depth" });
+    if (s.water === "copy") {
+      P.push({ n: "Opaque", c: "--c-op", load: ld, store: 2 * k * S, how: `${s.load === "load" ? "load" : "clear"} → store ${k > 1 ? "samples" : "colour + depth"}`, brk: true });
+      P.push({ n: "Copy colour + depth", c: "--c-cp", load: 2 * k * S, store: 2 * S, how: "read → 2 copies", brk: true });
+      const trStore = s.res === "tile" ? S : 2 * k * S;
+      P.push({ n: "Transparent (water)", c: "--c-tr", load: 2 * k * S, store: trStore, how: `load → ${s.res === "tile" ? "resolve, depth don't care" : "store " + (k > 1 ? "samples" : "colour + depth")}` });
+    } else {
+      const st2 = s.res === "tile" ? S : 2 * k * S;
+      P.push({ n: "Opaque + water", c: "--c-op", load: ld, store: st2, how: `${s.load === "load" ? "load" : "clear"} → ${s.res === "tile" ? "resolve, depth don't care" : "store " + (k > 1 ? "samples" : "colour + depth")}` });
+    }
+    if (s.res === "store" && k > 1) P.push({ n: "MSAA resolve", c: "--c-rs", load: k * S, store: S, how: "read samples → colour" });
+    P.push({ n: s.ui === "post" ? "Post + UI" : "Post", c: "--c-po", load: 0, store: POST, how: "bloom, uber, FXAA", fixed: true });
+    if (s.ui === "own") P.push({ n: "UI", c: "--c-ui", load: S, store: S, how: "load → store" });
+    for (const p of P) p.mb = p.load + p.store;
+    const passMb = P.reduce((a, p) => a + p.mb, 0), mb = passMb + TEX;
+    const mem = mb / MB_PER_MS, gpu = 3 + Math.max(VTX, RAS, PIX, mem);
+    return { P, mb, mem, gpu, gbs: (mb * 30) / 1024, passes: P.length };
+  }
+  const f2 = (v) => (Math.round(v * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
+
+  function diagram(m) {
+    const box = $("passes").clientWidth || 600, W = Math.max(300, Math.min(760, Math.round(box)));
+    const n = m.P.length, gap = 8, bw = (W - gap * (n - 1)) / n, top = 8, bh = 54, memY = 168;
+    let g = `<rect x="0" y="${memY}" width="${W}" height="34" rx="6" style="fill:var(--field);stroke:var(--line)"/><text x="${W / 2}" y="${memY + 22}" text-anchor="middle" style="fill:var(--muted)">main memory (RAM)</text>`;
+    m.P.forEach((p, i) => {
+      const x = i * (bw + gap);
+      g += `<rect x="${x}" y="${top}" width="${bw}" height="${bh}" rx="6" style="fill:var(--chip);stroke:var(--good);stroke-width:1.5"/>`;
+      g += `<rect x="${x}" y="${top}" width="6" height="${bh}" rx="2" style="fill:var(${p.c})"/>`;
+      const words = p.n.split(" "), lines = [];
+      let cur = "";
+      for (const w of words) { if ((cur + " " + w).trim().length * 7.2 > bw - 12) { lines.push(cur.trim()); cur = w; } else cur += " " + w; }
+      lines.push(cur.trim());
+      const longest = Math.max(...lines.map((l) => l.length));
+      const fs = Math.max(8, Math.min(12, (bw - 14) / (longest * 0.7)));
+      lines.slice(0, 3).forEach((l, j) => { g += `<text x="${x + bw / 2 + 3}" y="${top + 18 + j * 14}" text-anchor="middle" style="fill:var(--ink);font-weight:600;font-size:${fs.toFixed(1)}px">${l}</text>`; });
+      const cx = x + bw / 2;
+      if (p.load > 0) { const ax = cx - 10; g += `<line x1="${ax}" y1="${memY - 2}" x2="${ax}" y2="${top + bh + 8}" style="stroke:var(--bad);stroke-width:2.5"/><polygon points="${ax},${top + bh + 2} ${ax - 5},${top + bh + 11} ${ax + 5},${top + bh + 11}" style="fill:var(--bad)"/>`; }
+      if (p.store > 0) { const ax = cx + 10; g += `<line x1="${ax}" y1="${top + bh + 2}" x2="${ax}" y2="${memY - 8}" style="stroke:var(${p.fixed ? "--muted" : "--bad"});stroke-width:2.5"/><polygon points="${ax},${memY - 2} ${ax - 5},${memY - 11} ${ax + 5},${memY - 11}" style="fill:var(${p.fixed ? "--muted" : "--bad"})"/>`; }
+      g += `<text x="${cx}" y="${top + bh + 58}" text-anchor="middle" style="fill:var(${p.fixed ? "--muted" : "--bad"});font-weight:700;font-size:${bw < 70 ? 10 : 12}px;paint-order:stroke;stroke:var(--panel);stroke-width:3px">${f2(p.mb)}</text>`;
+      if (p.brk) g += `<line x1="${x + bw + gap / 2}" y1="${top - 4}" x2="${x + bw + gap / 2}" y2="${top + bh + 4}" style="stroke:var(--bad);stroke-width:2;stroke-dasharray:4 3"/>`;
+    });
+    $("passes").innerHTML = `<svg viewBox="0 0 ${W} ${memY + 40}" role="img" aria-label="Render passes with their loads and stores to main memory">${g}</svg>`;
+  }
+
+  function bar(m) {
+    const box = $("mb").clientWidth || 600, W = Math.max(300, Math.min(760, Math.round(box))), max = 420, X = (v) => (v / max) * W, top = 6, bh = 28;
+    let g = `<rect x="0" y="${top}" width="${W}" height="${bh}" rx="4" style="fill:var(--field);stroke:var(--line)"/>`;
+    let x = 0;
+    for (const p of m.P.concat([{ n: "Textures + vertices", mb: TEX, c: "--c-tx" }])) {
+      const w = X(p.mb);
+      g += `<rect class="bar" x="${x}" y="${top}" width="${w}" height="${bh}" style="fill:var(${p.c});stroke:var(--panel);stroke-width:1"><title>${p.n}: ${f2(p.mb)} MB</title></rect>`;
+      x += w;
+    }
+    const xb = X(BUDGET_MB);
+    g += `<line x1="${xb}" x2="${xb}" y1="0" y2="${top + bh + 6}" style="stroke:var(--good);stroke-width:2.5;stroke-dasharray:5 4"/>`;
+    g += `<text x="${xb}" y="${top + bh + 20}" text-anchor="middle" style="fill:var(--good);font-weight:600">budget 180</text>`;
+    g += `<text x="${W}" y="${top + bh + 20}" text-anchor="end" style="fill:var(${m.mb > BUDGET_MB ? "--bad" : "--good"});font-weight:700">${f2(m.mb)} MB</text>`;
+    $("mb").innerHTML = `<svg viewBox="0 0 ${W} ${top + bh + 28}" role="img" aria-label="Bytes per frame against the 180 MB budget">${g}</svg>`;
+  }
+
+  function render() {
+    const m = model(st);
+    diagram(m); bar(m);
+    $("sMb").textContent = f2(m.mb); $("sMb").className = "v " + (m.mb <= BUDGET_MB ? "good" : "bad");
+    $("sGbs").textContent = f2(m.gbs); $("sGbs").className = "v " + (m.mb <= BUDGET_MB ? "good" : "bad");
+    $("sGpu").textContent = f2(m.gpu); $("sGpu").className = "v " + (m.gpu <= BUDGET_GPU ? "good" : "bad");
+    $("sGpuS").textContent = `ms · memory station ${f2(m.mem)} · pixel 16`;
+    const cool = m.mb <= BUDGET_MB;
+    $("sHeat").textContent = cool ? "cool" : "hot"; $("sHeat").className = "v " + (cool ? "good" : "bad");
+    $("sHeatS").textContent = cool ? "30 fps for all 30 minutes" : m.mb > 390 ? "throttles at ~8 min → 22 fps" : "over the bandwidth budget";
+    $("goalPill").className = "pill " + (cool && m.gpu <= BUDGET_GPU ? "ok" : "over");
+    $("goalPill").textContent = cool && m.gpu <= BUDGET_GPU ? "Goal met" : "Too many bytes";
+    for (const b of document.querySelectorAll("[data-k]")) b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v));
+
+    const msaaOther = model({ ...st, msaa: st.msaa === "4" ? "1" : "4" });
+    const msaaCost = st.msaa === "4" ? m.mb - msaaOther.mb : msaaOther.mb - m.mb;
+    let co;
+    if (st.load === "load") co = `<span class="warn">The opaque pass loads last frame's screen</span> (${f2(2 * +st.msaa * S)} MB) and then paints the sky over it. Clear is free on a tile.`;
+    else if (st.res === "store" && st.msaa === "4") co = `<span class="warn">MSAA samples go to memory</span> and a resolve pass reads them back. Resolve on the tile and only ${f2(S)} MB of colour leaves the chip.`;
+    else if (st.water === "copy") co = `<span class="warn">The water's screen copies break the frame into passes.</span> The same screen goes out and comes back: ${f2(m.P.slice(1, 4).reduce((a, p) => a + p.mb, 0))} MB for opaque, copies and water.`;
+    else if (!cool) co = `Close: ${f2(m.mb)} MB. The UI pass and the shadow map still make their own trips.`;
+    else co = `${f2(m.mb)} MB per frame, ${f2(m.gbs)} GB/s: the phone stays cool. MSAA 4× now costs ${f2(msaaCost)} MB of extra bandwidth, because its samples never leave the chip.`;
+    $("coach").innerHTML = co;
+
+    let rep = `<span class="dim">Android GPU Inspector · harbor at sunset · MSAA ${st.msaa === "4" ? "4×" : "off"}</span>\n`;
+    rep += `Render passes      ${m.passes}\n`;
+    rep += `Attachment trips   ${f2(m.mb - TEX)} MB\n`;
+    rep += `Textures + verts   ${f2(TEX)} MB\n`;
+    rep += `Total per frame    ${(m.mb > BUDGET_MB ? '<span class="warn">' : '<span class="ok">') + f2(m.mb)} MB</span>  (budget 180)\n`;
+    rep += `× 30 fps           ${f2(m.gbs)} GB/s\n`;
+    rep += `Memory station     ${f2(m.mb)} ÷ 20 = ${f2(m.mem)} ms\n`;
+    rep += `GPU                3 + max(8, 4, 16, ${f2(m.mem)}) = ${f2(m.gpu)} ms\n`;
+    rep += `MSAA 4× costs      ${f2(msaaCost)} MB per frame in this setup\n`;
+    $("report").innerHTML = rep;
+    $("tbl").innerHTML = m.P.map((p) => `<tr><td><span class="sw" style="background:var(${p.c})"></span>${p.n}</td><td>${p.how}</td><td class="num">${f2(p.mb)}</td></tr>`).join("")
+      + `<tr><td><span class="sw" style="background:var(--c-tx)"></span>Textures + vertices</td><td>sampled while drawing</td><td class="num">${f2(TEX)}</td></tr>`
+      + `<tr class="cur"><td>Total</td><td></td><td class="num ${m.mb > BUDGET_MB ? "bad" : "good"}">${f2(m.mb)}</td></tr>`;
+  }
+
+  for (const b of document.querySelectorAll("[data-k]")) b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); });
+
+  const base = { msaa: "4", load: "load", res: "store", water: "copy", ui: "own", shadow: "2048" };
+  const STEPS = [
+    { t: "The hot harbor: MSAA 4× and seven passes", d: "395.33 MB per frame, 11.58 GB/s. GPU 22.77 ms is under budget, but the phone throttles at about 8 minutes.", s: {} },
+    { t: "Clear instead of Load", d: "The opaque pass stops reading last frame's screen: −35.16 MB. 360.17 MB per frame.", s: { load: "clear" } },
+    { t: "Resolve on the tile", d: "Only the averaged colour leaves the chip; depth is Don't care; the resolve pass disappears: −52.73 MB. 307.44 MB. GPU 19 ms: the pixel station is now the limiter.", s: { load: "clear", res: "tile" } },
+    { t: "Framebuffer fetch: one render pass", d: "The water reads the pixel under it on the tile. No copies, no pass break: −114.26 MB. 193.18 MB, 5.66 GB/s. GPU still 19 ms.", s: { load: "clear", res: "tile", water: "fetch" } },
+    { t: "UI in post, 1024 shadow map", d: "−8.79 and −12 MB: 172.39 MB, 5.05 GB/s. Under the 180 MB budget: the phone stays cool.", s: { load: "clear", res: "tile", water: "fetch", ui: "post", shadow: "1024" } },
+    { t: "Now turn MSAA off", d: "Still 172.39 MB. MSAA 4× costs 0 MB of bandwidth when its samples never leave the chip.", s: { load: "clear", res: "tile", water: "fetch", ui: "post", shadow: "1024", msaa: "1" } },
+    { t: "Compare: MSAA off in the old setup", d: "241.52 MB. In the old setup MSAA 4× cost 153.8 MB per frame. Same feature, two very different bills.", s: { msaa: "1" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      [...stepsEl.children].forEach((c) => c.classList.remove("active"));
+      li.classList.add("active");
+      Object.assign(st, base, s.s);
+      render();
+      $("passes").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("passes").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("passes"));
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+})();
+</script>

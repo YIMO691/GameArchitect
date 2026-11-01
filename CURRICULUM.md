@@ -54,7 +54,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 029 | Texture memory, compression and mip streaming: the harbor that crashed only the cheap phones | ✅ |
 | 030 | Lighting cost, forward vs deferred vs clustered: the 120 lanterns that lit only half the street | ✅ |
 | 031 | Post-processing budgets: the festival look that cost 18.4 ms after the frame was done | ✅ |
-| 032 | Mobile GPUs: tile-based rendering and bandwidth | ⬜ |
+| 032 | Mobile GPUs, tile-based rendering and bandwidth: the harbor that ran at 30 fps for eight minutes | ✅ |
 | 033 | GPU profiling tools: RenderDoc, PIX, vendor tools | ⬜ |
 | 034 | Review: Module 3 + rendering case study | ⬜ |
 
