@@ -85,3 +85,4 @@ AI tools write plausible code quickly. What they can't do on their own is make d
 | 062 | [Performance Budgets as a Team Process](lessons/062-performance-budgets-as-a-team-process.md) | [Budget Board Lab](https://yimo691.github.io/GameArchitect/demos/062-budget-board-lab/) | 2026-11-01 |
 | 063 | [Automated Performance Testing](lessons/063-automated-performance-testing.md) | [Perf Test Lab](https://yimo691.github.io/GameArchitect/demos/063-perf-test-lab/) | 2026-11-01 |
 | 064 | [Crash Analysis and Stability Engineering](lessons/064-crash-analysis-and-stability-engineering.md) | [Crash Triage Lab](https://yimo691.github.io/GameArchitect/demos/064-crash-triage-lab/) | 2026-11-01 |
+| 065 | [Managing Technical Debt and Refactoring Legacy Code](lessons/065-managing-technical-debt-and-refactoring-legacy-code.md) | [Debt Lab](https://yimo691.github.io/GameArchitect/demos/065-debt-lab/) | 2026-11-01 |

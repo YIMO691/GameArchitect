@@ -99,7 +99,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 062 | Performance budgets as a team process | ✅ |
 | 063 | Automated performance testing | ✅ |
 | 064 | Crash analysis and stability engineering | ✅ |
-| 065 | Managing technical debt and refactoring legacy code | ⬜ |
+| 065 | Managing technical debt and refactoring legacy code | ✅ |
 | 066 | Review: Module 6 | ⬜ |
 
 ## Module 7 — The architect's craft
