@@ -1,0 +1,365 @@
+<title>Trade-off Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. matrix left, readouts and controls right */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Trade-off Lab additions. */
+.viz svg { display: block; width: 100%; height: auto; }
+.viz text { font-family: var(--f-mono); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.seg-ctl.three { grid-template-columns: repeat(3, 1fr); }
+.mx { width: 100%; border-collapse: collapse; font-size: 13px; }
+.mx th, .mx td { border-bottom: 1px solid var(--line); padding: 6px 6px; text-align: center; }
+.mx th:first-child, .mx td:first-child { text-align: left; }
+.mx td.sc { font-family: var(--f-mono); font-weight: 700; }
+.mx td.s5 { color: var(--good); } .mx td.s1 { color: var(--bad); }
+.mx td.w { font-family: var(--f-mono); color: var(--accent); }
+.mx tr.must td { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.mx td.out { color: var(--muted); text-decoration: line-through; }
+.mx small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
+.mxwrap { overflow-x: auto; }
+@media (max-width: 520px) { .mx { font-size: 12px; } .mx th, .mx td { padding: 5px 3px; } .mx small { font-size: 10px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/069-a-framework-for-evaluating-trade-offs.md">Read Lesson 069 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 069 · Lesson 069 · simulation using the lesson's numbers</div>
+    <h1>Trade-off Lab</h1>
+    <p class="lede">Three ways to run the Reef's fishing tournaments: on the game servers, in a new service, or in a managed cloud product. Choose how the team decides (one favourite number, adding up scores, or weights from its goals), whether must-haves come first, and whether the winner gets an exit plan, then see whether the choice holds when the weights change.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>One decision that has to hold.</strong> Goal: the winner <strong>passes every must-have</strong> and <strong>still wins</strong> under the other set of weights the team argued about.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Decision matrix and controls">
+    <div class="panel">
+      <h2>The decision matrix</h2>
+      <div class="mxwrap"><table class="mx" id="mx"></table></div>
+      <p class="coach" id="coach"></p>
+      <h3>Totals</h3>
+      <div class="viz" id="chart"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Winner</span><span class="v" id="sWin">–</span><span class="s" id="sWinS">by this method</span></div>
+        <div class="stat"><span class="k">Margin</span><span class="v" id="sMar">0</span><span class="s">% ahead of second place</span></div>
+        <div class="stat"><span class="k">Tournament end</span><span class="v" id="sPeak">–</span><span class="s">50,000 entries in 1 minute</span></div>
+        <div class="stat"><span class="k">Other weights</span><span class="v" id="sRob">–</span><span class="s" id="sRobS">same winner?</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>How the team decides</span></span>
+          <div class="seg-ctl three" role="group" aria-label="Method">
+            <button type="button" data-k="m" data-v="fav">Cheapest<small>one number</small></button>
+            <button type="button" data-k="m" data-v="sum">Add up<small>all scores equal</small></button>
+            <button type="button" data-k="m" data-v="wt">Weighted<small>by our goals</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Must-haves</span></span>
+          <div class="seg-ctl" role="group" aria-label="Must-haves">
+            <button type="button" data-k="must" data-v="no">Just a score<small>peak load is one criterion</small></button>
+            <button type="button" data-k="must" data-v="yes">Filter first<small>fails peak: out</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Weights (weighted only)</span></span>
+          <div class="seg-ctl" role="group" aria-label="Weights">
+            <button type="button" data-k="w" data-v="goals">Ship this summer<small>time × 3, flexibility × 2</small></button>
+            <button type="button" data-k="w" data-v="flex">Flexibility first<small>time × 1, flexibility × 5</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Exit plan for the managed product</span></span>
+          <div class="seg-ctl" role="group" aria-label="Exit plan">
+            <button type="button" data-k="exit" data-v="no">None<small>call it directly</small></button>
+            <button type="button" data-k="exit" data-v="yes">Our interface<small>in front, +1 week</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 069: evaluating trade-offs</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>One number hides the rest</h3><p>Picking the cheapest option ignores the one criterion that can't fail: tournament end. Must-haves are a filter, not a score.</p></div>
+      <div class="note"><h3>Equal scores are a tie in disguise</h3><p>Adding up 1–5 scores treats "cheaper" and "ships two months sooner" as equally important. Weights from the team's goals make the difference visible.</p></div>
+      <div class="note"><h3>Check what would change your mind</h3><p>Try the weights you're unsure about. If the winner flips, make it robust (here, an interface in front of the managed product) or write down the condition to revisit.</p></div>
+    </div>
+    <p class="fine">This lab is a model, not a measurement. It uses Lesson 069's scores (1–5) for each option: game servers cost $1,200 a month, ship in 6 weeks, handle 20,000 entries a minute; a new service costs $2,000, ships in 12 weeks, scales; the managed product costs $3,500, ships in 3 weeks (4 with our interface in front), scales, and locks us in (flexibility 2, or 4 with the interface). Weights for "ship this summer": cost 1, time 3, operations 2, flexibility 2, team skills 1; "flexibility first": cost 1, time 1, operations 2, flexibility 5, skills 1. When peak load isn't a must-have, it counts with weight 1.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const OPTS = ["Game servers", "New service", "Managed product"];
+  const SHORT = ["Servers", "Service", "Managed"];
+  const CRIT = [
+    { n: "Peak load", sub: "50,000 entries a minute", k: "peak", s: [1, 5, 5], note: ["20,000/min", "scales", "scales"] },
+    { n: "Cost", sub: "per month", k: "cost", s: [5, 4, 2], note: ["$1,200", "$2,000", "$3,500"] },
+    { n: "Time to ship", sub: "summer season", k: "time", s: [3, 1, 5], note: ["6 weeks", "12 weeks", "3 weeks"] },
+    { n: "Operations", sub: "2 online engineers", k: "ops", s: [3, 2, 5], note: ["shared on-call", "new on-call", "vendor runs it"] },
+    { n: "Flexibility", sub: "custom formats later", k: "flex", s: [4, 5, 2], note: ["our code", "our code", "vendor's rules"] },
+    { n: "Team skills", sub: "what we know", k: "skill", s: [5, 3, 3], note: ["known", "new stack", "new API"] },
+  ];
+  const W = { goals: { peak: 1, cost: 1, time: 3, ops: 2, flex: 2, skill: 1 }, flex: { peak: 1, cost: 1, time: 1, ops: 2, flex: 5, skill: 1 } };
+  const st = { m: "fav", must: "no", w: "goals", exit: "no" };
+  function score(c, o, s) {
+    if (o === 2 && s.exit === "yes") { if (c.k === "time") return 4; if (c.k === "flex") return 4; }
+    return c.s[o];
+  }
+  function totals(s, wkey) {
+    const out = [];
+    for (let o = 0; o < 3; o++) {
+      const passes = score(CRIT[0], o, s) >= 5;
+      if (s.must === "yes" && !passes) { out.push(null); continue; }
+      let t = 0;
+      for (const c of CRIT) {
+        if (c.k === "peak" && s.must === "yes") continue;
+        if (s.m === "fav") { if (c.k === "cost") t = score(c, o, s); continue; }
+        const w = s.m === "sum" ? 1 : W[wkey][c.k];
+        t += w * score(c, o, s);
+      }
+      out.push(t);
+    }
+    return out;
+  }
+  function winner(t) {
+    let best = -1, second = -1;
+    t.forEach((v, o) => { if (v === null) return; if (best < 0 || v > t[best]) { second = best; best = o; } else if (second < 0 || v > t[second]) second = o; });
+    return { best, second, margin: second >= 0 ? (t[best] - t[second]) / t[second] * 100 : 0 };
+  }
+
+  function table(s, t) {
+    const wt = s.m === "wt";
+    let h = `<tr><th>Criterion</th>${wt ? "<th>Weight</th>" : ""}${SHORT.map((o) => `<th>${o}</th>`).join("")}</tr>`;
+    for (const c of CRIT) {
+      const must = c.k === "peak" && s.must === "yes";
+      const used = s.m !== "fav" || c.k === "cost" || must;
+      h += `<tr class="${must ? "must" : ""}"><td>${c.n}<small>${must ? "must-have" : c.sub}</small></td>`;
+      if (wt) h += `<td class="w">${must ? "must" : "×" + W[s.w][c.k]}</td>`;
+      for (let o = 0; o < 3; o++) {
+        const v = score(c, o, s), out = t[o] === null;
+        const note = (o === 2 && s.exit === "yes" && c.k === "time") ? "4 weeks" : (o === 2 && s.exit === "yes" && c.k === "flex") ? "our interface" : c.note[o];
+        h += `<td class="sc s${v} ${out || !used ? "out" : ""}" style="${!used && !out ? "opacity:.45;text-decoration:none" : ""}">${v}<small>${note}</small></td>`;
+      }
+      h += `</tr>`;
+    }
+    $("mx").innerHTML = h;
+  }
+
+  function chart(s, t, win) {
+    const box = $("chart").clientWidth || 600, Wd = Math.max(300, Math.min(680, Math.round(box)));
+    const L = 92, R = Wd - 60, max = Math.max(5, ...t.filter((v) => v !== null)), X = (v) => L + (v / max) * (R - L);
+    let g = "";
+    t.forEach((v, o) => {
+      const y = 8 + o * 34;
+      g += `<text x="0" y="${y + 17}" style="fill:var(--ink)">${SHORT[o]}</text>`;
+      if (v === null) { g += `<text x="${L}" y="${y + 17}" style="fill:var(--bad)">out: fails the must-have</text>`; return; }
+      const col = o === win.best ? "--good" : "--p1";
+      g += `<rect x="${L}" y="${y}" width="${Math.max(2, X(v) - L)}" height="24" rx="3" style="fill:var(${col})"/>`;
+      g += `<text x="${X(v) + 6}" y="${y + 17}" style="fill:var(--ink);font-weight:700">${v}</text>`;
+    });
+    $("chart").innerHTML = `<svg viewBox="0 0 ${Wd} 110" role="img" aria-label="Total score per option">${g}</svg>`;
+    $("legend").innerHTML = `<span><i style="background:var(--good)"></i>winner</span><span><i style="background:var(--p1)"></i>other options</span><span>${s.m === "fav" ? "score: cost only" : s.m === "sum" ? "score: sum of 1–5 scores" : "score: sum of weight × score"}</span>`;
+  }
+
+  function render() {
+    const t = totals(st, st.w), win = winner(t);
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
+    document.querySelectorAll('button[data-k="w"]').forEach((b) => { b.disabled = st.m !== "wt"; b.style.opacity = st.m === "wt" ? 1 : 0.45; });
+    table(st, t); chart(st, t, win);
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    const peakOk = score(CRIT[0], win.best, st) >= 5;
+    set("sWin", !peakOk, SHORT[win.best]);
+    $("sWinS").textContent = OPTS[win.best].toLowerCase() + " wins";
+    set("sMar", win.margin < 15, win.margin.toFixed(1));
+    set("sPeak", !peakOk, peakOk ? "Works" : "Outage");
+    let robust = null;
+    if (st.m === "wt") {
+      const other = st.w === "goals" ? "flex" : "goals";
+      const w2 = winner(totals(st, other));
+      robust = w2.best === win.best;
+      set("sRob", !robust, robust ? "Holds" : "Flips");
+      $("sRobS").textContent = robust ? `${SHORT[win.best]} also wins under "${other === "flex" ? "flexibility first" : "ship this summer"}"` : `${SHORT[w2.best]} wins under "${other === "flex" ? "flexibility first" : "ship this summer"}"`;
+    } else { $("sRob").textContent = "–"; $("sRob").className = "v"; $("sRobS").textContent = "only for weighted"; }
+    const ok = peakOk && robust === true;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    let c;
+    const tt = t.map((v) => v === null ? "out" : v).join(" / ");
+    if (st.m === "fav") c = peakOk ? `Cheapest among what's left: ${OPTS[win.best].toLowerCase()}. One number still decides everything else.` : `The finance lead's favourite number: game servers are cheapest at $1,200 a month. They handle 20,000 entries a minute, and the first tournament ends with 50,000: an outage at the moment everyone is watching.`;
+    else if (st.m === "sum") c = st.must === "yes" ? `Game servers fail the must-have and drop out. Managed ${t[2]} vs service ${t[1]}: still close, because every criterion counts the same.` : `Adding up 1–5 scores: ${tt}. A ${win.margin.toFixed(1)}% margin is a tie, and game servers are still in the race even though they fail at peak.`;
+    else if (!peakOk) c = `Weights without a must-have filter: ${tt}. Peak load counts as one point among many, so an option that fails it can still score well.`;
+    else if (robust) c = st.exit === "yes" ? `Our own tournament interface in front of the managed product costs a week (3 → 4) but lifts flexibility from 2 to 4. Managed wins under both sets of weights: ${t[2]} vs ${t[1]} here. Goal met.` : `Managed wins under both sets of weights.`;
+    else c = st.w === "goals" ? `Weights from the summer goal: managed ${t[2]}, service ${t[1]}: a ${win.margin.toFixed(1)}% lead. But the online lead argued for flexibility first: under those weights the new service wins. The choice depends on a weight the team isn't sure of.` : `Flexibility first: the new service ${t[1]}, managed ${t[2]}. If custom tournament formats really matter most, the service wins. Which weights are right is the real question.`;
+    $("coach").textContent = c;
+  }
+  function apply(s) { Object.assign(st, { m: "fav", must: "no", w: "goals", exit: "no" }, s); render(); }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { if (b.disabled) return; st[b.dataset.k] = b.dataset.v; render(); }));
+
+  const STEPS = [
+    { t: "As argued: the cheapest", d: "Game servers cost $1,200 a month, the least. They handle 20,000 entries a minute; the first tournament ends with 50,000. Outage.", s: {} },
+    { t: "Add up the scores", d: "Six criteria, 1–5 each, all equal: managed 22, servers 21, service 20. A 4.8% margin is a tie, and servers are still in.", s: { m: "sum" } },
+    { t: "Must-haves first", d: "Peak load isn't a score, it's a filter: servers are out. Without the peak row: managed 17, service 15, 13.3% apart: still close.", s: { m: "sum", must: "yes" } },
+    { t: "Weights from our goals", d: "Ship this summer (time × 3), two online engineers (operations × 2), custom formats later (flexibility × 2): managed 34, service 24, 41.7% ahead. But does it hold?", s: { m: "wt", must: "yes" } },
+    { t: "Try the other weights", d: "The online lead says flexibility matters most (× 5) and time less (× 1). Now the service wins 37 to 30. The decision flips on one weight.", s: { m: "wt", must: "yes", w: "flex" } },
+    { t: "Add an exit plan", d: "Put our own tournament interface in front of the managed product: +1 week, flexibility 2 → 4. Managed wins 35 to 24 with our weights, 39 to 37 with flexibility first. Goal met.", s: { m: "wt", must: "yes", exit: "yes" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("mx").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("chart"));
+})();
+</script>

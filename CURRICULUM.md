@@ -107,7 +107,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 |---|-------|--------|
 | 067 | Writing technical design documents: two lines in chat, three different harbours | ✅ |
 | 068 | Architecture decision records: the reason that left with the online lead | ✅ |
-| 069 | A framework for evaluating trade-offs | ⬜ |
+| 069 | A framework for evaluating trade-offs: the cheapest option that failed at the final whistle | ✅ |
 | 070 | Reviewing code as an architect | ⬜ |
 | 071 | Working with designers and artists | ⬜ |
 | 072 | Estimating technical risk | ⬜ |
