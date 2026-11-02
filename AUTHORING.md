@@ -96,6 +96,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `057-memory-budget-lab` | 057 |
 | `058-thermal-lab` | 058 |
 | `061-cert-lab` | 061 |
+| `062-budget-board-lab` | 062 |
 
 Lessons not in the map get a new lab when their main idea is something that changes on screen or in numbers. For lessons about process or communication (e.g. writing design docs, estimating risk), build a small interactive tool instead: a decision table, a budget calculator, a trade-off picker with the lesson's real numbers. When a new lab spans later lessons too, add its row to this map.
 
