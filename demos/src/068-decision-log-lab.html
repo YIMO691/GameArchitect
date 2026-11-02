@@ -1,0 +1,326 @@
+<title>Decision Log Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. timeline left, readouts and controls right */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Decision Log Lab additions. */
+.viz svg { display: block; width: 100%; height: auto; }
+.viz text { font-family: var(--f-mono); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.seg-ctl.three { grid-template-columns: repeat(3, 1fr); }
+.adr { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-family: var(--f-mono); font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--field); }
+.adr .dim { color: var(--muted); }
+.adr .gone { color: var(--bad); text-decoration: line-through; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/068-architecture-decision-records.md">Read Lesson 068 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 068 · Lesson 068 · simulation using the lesson's numbers</div>
+    <h1>Decision Log Lab</h1>
+    <p class="lede">A year of the Reef team: 30 architecture decisions, 3 people leave, 3 join, and 24 times someone asks "why is it like this?". Choose where the reasons live, what a record says, and how changed decisions are kept, then see how many questions get an answer and how many decisions get undone by accident.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>One year, 24 "why?" questions.</strong> Goal: <strong>0 accidental reversals</strong> and at most <strong>40 hours</strong> spent on writing records, re-debating and incidents together.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="A year of questions and controls">
+    <div class="panel">
+      <h2>12 months of "why is it like this?"</h2>
+      <div class="viz" id="chart"></div>
+      <div class="legend" id="legend"></div>
+      <p class="coach" id="coach"></p>
+      <h3>What Kai finds in month 7: why is docking on the server?</h3>
+      <div class="adr" id="adr"></div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Questions answered</span><span class="v" id="sAns">0</span><span class="s">of 24, by reading</span></div>
+        <div class="stat"><span class="k">Re-debating</span><span class="v" id="sDeb">0</span><span class="s">hours, 6 per lost reason</span></div>
+        <div class="stat"><span class="k">Accidental reversals</span><span class="v" id="sRev">0</span><span class="s">decisions undone, 30 h each</span></div>
+        <div class="stat"><span class="k">Total</span><span class="v" id="sTot">0</span><span class="s">hours: writing + debate + incidents</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>Where the reasons live</span></span>
+          <div class="seg-ctl three" role="group" aria-label="Where the reasons live">
+            <button type="button" data-k="where" data-v="heads">Heads<small>and chat</small></button>
+            <button type="button" data-k="where" data-v="docs">Design docs<small>rewritten</small></button>
+            <button type="button" data-k="where" data-v="adr">Decision records<small>in the repo</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>What a record says</span></span>
+          <div class="seg-ctl" role="group" aria-label="What a record says">
+            <button type="button" data-k="body" data-v="what">Decision only<small>what we chose</small></button>
+            <button type="button" data-k="body" data-v="why">+ context, consequences<small>why, and what we gave up</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>When a decision changes</span></span>
+          <div class="seg-ctl" role="group" aria-label="When a decision changes">
+            <button type="button" data-k="hist" data-v="edit">Edit the record<small>keep it current</small></button>
+            <button type="button" data-k="hist" data-v="super">New record<small>old one superseded</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 068: architecture decision records</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Reasons leave with people</h3><p>Chat scrolls away and people move on. A decision whose reason is gone gets argued again, or quietly undone.</p></div>
+      <div class="note"><h3>The "why" is the point</h3><p>A record that says only what was chosen invites the same debate. Context and consequences (what we gave up) are what end it.</p></div>
+      <div class="note"><h3>Never edit history</h3><p>When a decision changes, write a new record and mark the old one superseded. The path from old to new is often the answer to the next question.</p></div>
+    </div>
+    <p class="fine">This lab is a model, not a measurement. It uses Lesson 068's numbers: 30 decisions in a year, 24 "why?" questions, 3 people leave (months 3, 6, 9) and 3 join. Reasons are found for 8 questions when they live in heads and chat, 12 in design docs that get rewritten, 12 in records that say only what was chosen, 20 in full records edited in place (the 4 about changed decisions lose their history), and 24 with superseding records. A question without an answer costs a 6-hour re-debate; 1 in 4 of them ends with the decision undone, causing an incident of 30 hours. A record costs 0.5 hours to write with the decision only, 1 hour with context and consequences.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const NQ = 24, DEB = 6, INC = 30, ND = 30;
+  // Question attributes: h = answered from heads/chat, d = answered from design docs, c = about a decision that changed.
+  const HEADS = new Set([0, 1, 2, 6, 7, 12, 16, 18]);
+  const DOCS = new Set([0, 1, 2, 3, 6, 7, 8, 12, 14, 16, 18, 19]);
+  const CHANGED = new Set([5, 11, 15, 22]);
+  const KAI = 13; // month 7 question about docking
+  const st = { where: "heads", body: "what", hist: "edit" };
+  function answered(s, i) {
+    if (s.where === "heads") return HEADS.has(i);
+    if (s.where === "docs") return DOCS.has(i);
+    if (s.body === "what") return DOCS.has(i);
+    if (s.hist === "edit") return !CHANGED.has(i);
+    return true;
+  }
+  function model(s) {
+    let ans = 0, lost = 0, rev = 0;
+    const qs = [];
+    for (let i = 0; i < NQ; i++) {
+      const a = answered(s, i);
+      let k = "ok";
+      if (a) ans++; else { lost++; k = lost % 4 === 0 ? "rev" : "deb"; if (k === "rev") rev++; }
+      qs.push({ i, m: 0.25 + i / 2, k });
+    }
+    const write = s.where !== "adr" ? 0 : (s.body === "what" ? 0.5 : 1) * ND;
+    const deb = lost * DEB, inc = rev * INC;
+    return { qs, ans, lost, rev, write, deb, inc, total: write + deb + inc };
+  }
+
+  function chart(m) {
+    const box = $("chart").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box))), narrow = W < 460;
+    const L = 12, R = W - 12, H = 150, Y = 74, X = (mo) => L + (mo / 12) * (R - L);
+    let g = `<line x1="${L}" x2="${R}" y1="${Y}" y2="${Y}" style="stroke:var(--line);stroke-width:2"/>`;
+    for (let mo = 0; mo <= 12; mo++) g += `<line x1="${X(mo)}" x2="${X(mo)}" y1="${Y - 4}" y2="${Y + 4}" style="stroke:var(--line)"/>` + (mo % (narrow ? 3 : 1) === 0 && mo < 12 ? `<text x="${X(mo + 0.5)}" y="${H - 6}" text-anchor="middle" style="fill:var(--muted)">${mo + 1}</text>` : "");
+    for (const mo of [3, 6, 9]) g += `<text x="${X(mo)}" y="16" text-anchor="middle" style="fill:var(--bad)">${narrow ? "−1" : "1 leaves"}</text><line x1="${X(mo)}" x2="${X(mo)}" y1="20" y2="${Y - 18}" style="stroke:var(--bad);stroke-dasharray:3 3"/>`;
+    for (const mo of [4, 7, 10]) g += `<text x="${X(mo)}" y="32" text-anchor="middle" style="fill:var(--good)">${narrow ? "+1" : "1 joins"}</text>`;
+    m.qs.forEach((q) => {
+      const x = X(q.m), up = q.i % 2 === 0, y = up ? Y - 12 : Y + 14;
+      if (q.k === "ok") g += `<circle cx="${x}" cy="${y}" r="6" style="fill:var(--good)"/>`;
+      else if (q.k === "deb") g += `<circle cx="${x}" cy="${y}" r="6" style="fill:var(--p2)"/>`;
+      else g += `<g style="stroke:var(--bad);stroke-width:3"><line x1="${x - 6}" y1="${y - 6}" x2="${x + 6}" y2="${y + 6}"/><line x1="${x - 6}" y1="${y + 6}" x2="${x + 6}" y2="${y - 6}"/></g>`;
+      if (q.i === KAI) g += `<circle cx="${x}" cy="${y}" r="10" style="fill:none;stroke:var(--ink);stroke-width:1.5"/><text x="${x}" y="${y + 26}" text-anchor="middle" style="fill:var(--ink)">Kai</text>`;
+    });
+    g += `<text x="${R}" y="${H - 22}" text-anchor="end" style="fill:var(--muted)">month →</text>`;
+    $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="24 why-questions over 12 months and what happened to each">${g}</svg>`;
+    $("legend").innerHTML = `<span><i style="background:var(--good)"></i>answered by reading</span><span><i style="background:var(--p2)"></i>reason lost: re-debated</span><span><i style="background:var(--bad)"></i>✕ decision undone by accident</span>`;
+  }
+
+  function adr(s) {
+    let h;
+    if (s.where === "heads") h = `<span class="dim">#online, 7 months ago (scrolled away):</span>\n"let's do docking server side, trust me"\n\n<span class="dim">The online lead who decided left in month 3.</span>`;
+    else if (s.where === "docs") h = `Harbour design, v3 (rewritten twice)\n4. Interfaces. Docking: <span class="dim">handled by the server.</span>\n\n<span class="gone">v1: two clients could claim one berth, so the server must decide (Lesson 048).</span> <span class="dim">Removed in v2.</span>`;
+    else if (s.body === "what") h = `ADR-0012  Docking is decided on the server\nStatus: accepted\n\n<span class="dim">Decision: the server assigns berths.</span>\n<span class="dim">(No context, no consequences.)</span>`;
+    else h = `ADR-0012  Docking is decided on the server\nStatus: accepted · owner: online lead\n\nContext: two clients can claim the same berth within one round trip, and 1 in 200 players runs a modified app.\n\nDecision: the client asks; the server assigns berths.\n\nConsequences: docking waits one round trip (up to 180 ms from Sydney), hidden by the mooring animation. We give up instant docking.`;
+    $("adr").innerHTML = h;
+  }
+
+  function render() {
+    const m = model(st);
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
+    const isAdr = st.where === "adr";
+    document.querySelectorAll('button[data-k="body"],button[data-k="hist"]').forEach((b) => { b.disabled = !isAdr; b.style.opacity = isAdr ? 1 : 0.45; });
+    chart(m); adr(st);
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("sAns", m.ans < NQ, m.ans);
+    set("sDeb", m.deb > 0, m.deb);
+    set("sRev", m.rev > 0, m.rev);
+    set("sTot", m.total > 40, m.total);
+    const ok = m.rev === 0 && m.total <= 40;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    let c;
+    if (st.where === "heads") c = `Reasons live in people's heads and in chat that has scrolled away. Only ${m.ans} of 24 questions get an answer; the other ${m.lost} are argued again (${m.deb} hours), and ${m.rev} end with a decision undone that had a good reason: ${m.total} hours.`;
+    else if (st.where === "docs") c = `Design documents describe the system as it is now. Each rewrite drops the reasons that no longer seem important: ${m.ans} of 24 answered, ${m.rev} reversals, ${m.total} hours.`;
+    else if (st.body === "what") c = `One record per decision, but it only says what was chosen. Readers find the decision, not the reason, so the debate starts again: ${m.ans} of 24, ${m.rev} reversals, plus ${m.write} hours of writing. ${m.total} hours, worse than the design docs.`;
+    else if (st.hist === "edit") c = `Context and consequences answer ${m.ans} of 24. The 4 about decisions that later changed fail: editing the record in place erased what we used to do and why we stopped. ${m.rev} reversal, ${m.total} hours.`;
+    else c = `Every decision has a record with its context and what it cost. Changed decisions get a new record; the old one is marked superseded and links to it. 24 of 24 answered, 0 reversals, ${m.total} hours of writing in a year. Goal met.`;
+    $("coach").textContent = c;
+  }
+  function apply(s) { Object.assign(st, { where: "heads", body: "what", hist: "edit" }, s); render(); }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { if (b.disabled) return; st[b.dataset.k] = b.dataset.v; render(); }));
+
+  const STEPS = [
+    { t: "As run: heads and chat", d: "Reasons live with the people who decided. 3 leave during the year. 8 of 24 questions answered, 96 hours of re-debating, 4 decisions undone by accident (120 h): 216 hours.", s: {} },
+    { t: "Keep the design docs", d: "The docs are rewritten as the system changes, and reasons get trimmed. 12 of 24 answered, 3 reversals: 162 hours.", s: { where: "docs" } },
+    { t: "Decision records, decision only", d: "A record per decision in the repo, but it says what, not why. Still 12 of 24, 3 reversals, plus 15 hours of writing: 177 hours.", s: { where: "adr" } },
+    { t: "Add context and consequences", d: "Why we chose it and what we gave up. 20 of 24, but records are edited when decisions change, so the 4 questions about changes fail: 1 reversal, 84 hours.", s: { where: "adr", body: "why" } },
+    { t: "Supersede, never edit", d: "A changed decision gets a new record; the old one says \"superseded by\". 24 of 24, 0 reversals, 30 hours of writing in a year. Goal met.", s: { where: "adr", body: "why", hist: "super" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("chart").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("chart"));
+})();
+</script>

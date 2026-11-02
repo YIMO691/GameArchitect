@@ -106,7 +106,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | # | Title | Status |
 |---|-------|--------|
 | 067 | Writing technical design documents: two lines in chat, three different harbours | ✅ |
-| 068 | Architecture decision records | ⬜ |
+| 068 | Architecture decision records: the reason that left with the online lead | ✅ |
 | 069 | A framework for evaluating trade-offs | ⬜ |
 | 070 | Reviewing code as an architect | ⬜ |
 | 071 | Working with designers and artists | ⬜ |
