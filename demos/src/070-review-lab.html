@@ -1,0 +1,336 @@
+<title>Review Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. issues left, readouts and controls right */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Review Lab additions. */
+.viz svg { display: block; width: 100%; height: auto; }
+.viz text { font-family: var(--f-mono); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.seg-ctl.three { grid-template-columns: repeat(3, 1fr); }
+.qs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 4px; }
+.qs.six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.qgrp { font-size: 12px; color: var(--muted); margin: 8px 0 4px; font-weight: 600; }
+.q { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font-size: 12px; display: grid; gap: 2px; min-height: 48px; }
+.q b { font-size: 12px; line-height: 1.25; }
+.q span { font-family: var(--f-mono); font-size: 11px; }
+.q.ok { border-color: var(--good); box-shadow: inset 3px 0 0 var(--good); }
+.q.ok span { color: var(--good); }
+.q.auto { border-color: var(--p1); box-shadow: inset 3px 0 0 var(--p1); }
+.q.auto span { color: var(--p1); }
+.q.bad { border-color: var(--bad); box-shadow: inset 3px 0 0 var(--bad); }
+.q.bad span { color: var(--bad); }
+@media (max-width: 520px) { .qs, .qs.six { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/070-reviewing-code-as-an-architect.md">Read Lesson 070 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 070 · Lesson 070 · simulation using the lesson's numbers</div>
+    <h1>Review Lab</h1>
+    <p class="lede">A 1,400-line pull request adds the tournament interface. It hides 4 architecture problems, 4 bugs and 6 style issues. Choose how big the change is when it's reviewed, what checks style, in which order reviewers read, and whether they use a checklist, then see what's found and what reaches players.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>One change, three reviewers.</strong> Goal: <strong>no architecture problem</strong> and <strong>no bug</strong> merged, with at most <strong>4 hours</strong> of review.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Issues and controls">
+    <div class="panel">
+      <h2>What's in the change</h2>
+      <div id="qs"></div>
+      <div class="legend" id="legendQ"></div>
+      <p class="coach" id="coach"></p>
+      <h3>Where the comments go</h3>
+      <div class="viz" id="chart"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Comments</span><span class="v" id="sCom">0</span><span class="s">left on the change</span></div>
+        <div class="stat"><span class="k">Real problems found</span><span class="v" id="sFound">0</span><span class="s">of 8 (architecture + bugs)</span></div>
+        <div class="stat"><span class="k">Review time</span><span class="v" id="sHrs">0</span><span class="s">hours, all reviewers</span></div>
+        <div class="stat"><span class="k">Cost after merge</span><span class="v" id="sEsc">0</span><span class="s">hours: 8 per bug, 40 per design problem</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>Change size</span></span>
+          <div class="seg-ctl" role="group" aria-label="Change size">
+            <button type="button" data-k="size" data-v="big">One PR<small>1,400 lines</small></button>
+            <button type="button" data-k="size" data-v="split">Four PRs<small>~350 lines each</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Style and formatting</span></span>
+          <div class="seg-ctl" role="group" aria-label="Style">
+            <button type="button" data-k="style" data-v="human">Reviewers<small>comment on it</small></button>
+            <button type="button" data-k="style" data-v="auto">Tools in CI<small>formatter, linter</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Reading order</span></span>
+          <div class="seg-ctl" role="group" aria-label="Reading order">
+            <button type="button" data-k="order" data-v="line">Line by line<small>top to bottom</small></button>
+            <button type="button" data-k="order" data-v="arch">Outside in<small>interfaces, hot paths first</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Architect's checklist</span></span>
+          <div class="seg-ctl" role="group" aria-label="Checklist">
+            <button type="button" data-k="list" data-v="no">None<small>read and react</small></button>
+            <button type="button" data-k="list" data-v="yes">Five questions<small>+0.5 h</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 070: reviewing code as an architect</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Attention is the budget</h3><p>Every comment about a brace is attention not spent on a hot path. Let tools own style, and reviewers own meaning.</p></div>
+      <div class="note"><h3>Big changes hide big problems</h3><p>Reviewers find far less per line in a 1,400-line change than in a 350-line one. Split by meaning: interface first, then each implementation.</p></div>
+      <div class="note"><h3>Read from the outside in</h3><p>Design problems live in interfaces, dependencies, hot paths and failure modes, not in any one line. Start there, with five questions, before reading the details.</p></div>
+    </div>
+    <p class="fine">This lab is a model, not a measurement. It uses Lesson 070's numbers: 4 architecture problems, 4 bugs and 6 style issues in 1,400 lines. Reviewers find 1 bug in one big PR and 3 in four small ones, plus 1 more when tools take style off their plate. Line by line finds 0 architecture problems in the big PR and 1 in small ones; reading outside in finds 2; with the checklist, 4. Human style review adds 60 comments and 1.5 hours. Review time: 3 hours for the big PR, 2.5 for four small ones, +0.5 for the checklist. A missed bug costs 8 hours after merge; a missed architecture problem 40.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const ARCH = [
+    { n: "Vendor types leak into our interface", c: "every call site tied to the vendor" },
+    { n: "Allocates per entry on the hot path", c: "GC spikes at 50,000 a minute" },
+    { n: "No timeout or fallback on vendor calls", c: "a slow vendor freezes results" },
+    { n: "Results polled every frame, no cache", c: "1 request per player per frame" },
+  ];
+  const ORD = { line: [1, 0, 2, 3], arch: [0, 1, 2, 3] };
+  const BUGS = [
+    { n: "Entry at 30:00.000 rejected", c: "off by one at the whistle" },
+    { n: "Retry submits a catch twice", c: "double scores" },
+    { n: "End time in local time zone", c: "ends early in Sydney" },
+    { n: "Empty player name crashes results", c: "null check missing" },
+  ];
+  const STYLE = ["Names", "Brace style", "Unused imports", "Long lines", "Comment typos", "Import order"];
+  const st = { size: "big", style: "human", order: "line", list: "no" };
+  function model(s) {
+    const big = s.size === "big", auto = s.style === "auto", chk = s.list === "yes";
+    const nb = (big ? 1 : 3) + (auto ? 1 : 0);
+    const na = s.order === "arch" ? (chk ? 4 : 2) : (big ? 0 : 1) + (chk ? 1 : 0);
+    const foundA = new Set(ORD[s.order].slice(0, na));
+    const nits = auto ? 0 : 60;
+    const comments = nits + nb + na;
+    const hrs = (big ? 3 : 2.5) + (auto ? 0 : 1.5) + (chk ? 0.5 : 0);
+    const esc = (4 - nb) * 8 + (4 - na) * 40;
+    return { nb, na, foundA, nits, comments, hrs, esc };
+  }
+
+  function grid(m) {
+    let h = `<div class="qgrp">Architecture (4)</div><div class="qs">`;
+    ARCH.forEach((a, i) => { const f = m.foundA.has(i); h += `<div class="q ${f ? "ok" : "bad"}"><b>${a.n}</b><span>${f ? "found in review" : "merged: " + a.c}</span></div>`; });
+    h += `</div><div class="qgrp">Bugs (4)</div><div class="qs">`;
+    BUGS.forEach((b, i) => { const f = i < m.nb; h += `<div class="q ${f ? "ok" : "bad"}"><b>${b.n}</b><span>${f ? "found in review" : "merged: " + b.c}</span></div>`; });
+    h += `</div><div class="qgrp">Style (6)</div><div class="qs six">`;
+    STYLE.forEach((x) => { h += `<div class="q ${st.style === "auto" ? "auto" : "ok"}"><b>${x}</b><span>${st.style === "auto" ? "fixed by tool" : "10 comments"}</span></div>`; });
+    h += `</div>`;
+    $("qs").innerHTML = h;
+    $("legendQ").innerHTML = `<span><i style="background:var(--good)"></i>found in review</span><span><i style="background:var(--p1)"></i>fixed by a tool, no comment</span><span><i style="background:var(--bad)"></i>merged, found later</span>`;
+  }
+
+  function chart(m) {
+    const box = $("chart").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box)));
+    const L = 8, R = W - 8, MAX = 64, X = (v) => L + (v / MAX) * (R - L);
+    let g = "", x = 0;
+    const seg = (v, col, lab) => { if (v <= 0) return; g += `<rect x="${X(x)}" y="14" width="${Math.max(3, X(x + v) - X(x) - 1)}" height="26" rx="3" style="fill:var(${col})"/>`; if (X(x + v) - X(x) > 30) g += `<text x="${(X(x) + X(x + v)) / 2}" y="31" text-anchor="middle" style="fill:#fff;font-weight:700">${lab}</text>`; x += v; };
+    seg(m.nits, "--muted", m.nits + " style"); seg(m.nb, "--p4", m.nb + ""); seg(m.na, "--good", m.na + "");
+    g += `<text x="${Math.min(X(x) + 6, R)}" y="58" text-anchor="${X(x) > R - 140 ? "end" : "start"}" style="fill:var(--ink);font-weight:700">${m.comments} comments, ${m.nb + m.na} about real problems</text>`;
+    $("chart").innerHTML = `<svg viewBox="0 0 ${W} 66" role="img" aria-label="Comments by kind">${g}</svg>`;
+    $("legend").innerHTML = `<span><i style="background:var(--muted)"></i>style</span><span><i style="background:var(--p4)"></i>bugs</span><span><i style="background:var(--good)"></i>architecture</span>`;
+  }
+
+  function render() {
+    const m = model(st);
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
+    grid(m); chart(m);
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("sCom", m.nits > 0, m.comments);
+    set("sFound", m.nb + m.na < 8, m.nb + m.na);
+    set("sHrs", m.hrs > 4, m.hrs.toFixed(1));
+    set("sEsc", m.esc > 0, m.esc);
+    const ok = m.esc === 0 && m.hrs <= 4;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    let c;
+    const big = st.size === "big";
+    if (st.style === "human" && big && st.order === "line") c = `Three reviewers read 1,400 lines top to bottom and leave ${m.comments} comments, ${m.nits} of them about names, braces and imports. They find ${m.nb} bug${m.nb === 1 ? "" : "s"} and ${m.na} architecture problem${m.na === 1 ? "" : "s"}. ${m.esc} hours of fixes follow the merge.`;
+    else if (st.style === "human") c = `${m.nits} of ${m.comments} comments are still about style: attention spent on braces instead of behaviour. ${m.nb + m.na} of 8 real problems found, ${m.esc} hours after merge.`;
+    else if (big && st.order === "line") c = `A formatter and linter in CI fix all 6 style issues with no comments. Reviewers find one more bug (${m.nb}), but in 1,400 lines they still find ${m.na} architecture problems: ${m.esc} hours after merge.`;
+    else if (st.order === "line") c = `Four PRs of about 350 lines: the interface first, then the vendor adapter, the results cache and the UI. Reviewers find all ${m.nb} bugs and ${m.na} design problem${m.na === 1 ? "" : "s"}, but reading line by line, problems that live between files slip through: ${m.esc} hours.`;
+    else if (st.list === "no") c = `Reading outside in (interfaces and dependencies first, then hot paths) finds the leaked vendor types and the per-entry allocation. But nobody asks what happens when the vendor is slow, or how results are read at peak: ${m.esc} hours.`;
+    else if (m.esc === 0) c = `Five questions before the details: boundaries, dependencies, hot paths, failure modes, load. All 4 design problems and all 4 bugs found in ${m.hrs.toFixed(1)} hours, and ${m.comments} comments, each about something real. Goal met.`;
+    else c = `The checklist and outside-in reading find all 4 design problems, but in one 1,400-line change reviewers still miss ${4 - m.nb} bug${4 - m.nb === 1 ? "" : "s"}: ${m.esc} hours.`;
+    $("coach").textContent = c;
+  }
+  function apply(s) { Object.assign(st, { size: "big", style: "human", order: "line", list: "no" }, s); render(); }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); }));
+
+  const STEPS = [
+    { t: "As run: one big PR, line by line", d: "61 comments, 60 about style. 1 bug found, 0 architecture problems: 3 bugs and 4 design problems merge, 184 hours of fixes later. 4.5 hours of review.", s: {} },
+    { t: "Let tools own style", d: "A formatter and linter in CI: 0 style comments, 1.5 hours saved, and 1 more bug found. Architecture: still 0 of 4. 176 hours after merge.", s: { style: "auto" } },
+    { t: "Split into four PRs", d: "Interface, adapter, cache, UI: about 350 lines each. All 4 bugs and 1 design problem found: 120 hours after merge, 2.5 hours of review.", s: { size: "split", style: "auto" } },
+    { t: "Read outside in", d: "Interfaces, dependencies and hot paths first: the leaked vendor types and the per-entry allocation are found. 2 of 4: 80 hours after merge.", s: { size: "split", style: "auto", order: "arch" } },
+    { t: "Ask the five questions", d: "Boundaries, dependencies, hot paths, failure modes, load: the missing timeout and the per-frame polling are found too. 8 of 8, 0 hours after merge, 3.0 hours of review. Goal met.", s: { size: "split", style: "auto", order: "arch", list: "yes" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("qs").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("chart"));
+})();
+</script>

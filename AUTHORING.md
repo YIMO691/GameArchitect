@@ -103,6 +103,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `067-design-doc-lab` | 067 |
 | `068-decision-log-lab` | 068 |
 | `069-tradeoff-lab` | 069 |
+| `070-review-lab` | 070 |
 
 Lessons not in the map get a new lab when their main idea is something that changes on screen or in numbers. For lessons about process or communication (e.g. writing design docs, estimating risk), build a small interactive tool instead: a decision table, a budget calculator, a trade-off picker with the lesson's real numbers. When a new lab spans later lessons too, add its row to this map.
 
