@@ -265,4 +265,4 @@ One question for your journal: what's the smallest regression your players would
 
 ---
 
-**Tomorrow — Lesson 064: Crash analysis and stability engineering.** The Reef's crash rate is 1.8% of sessions, and the crash dashboard has 340 different crash signatures. We learn to read a crash report, group crashes by cause, and fix the few that matter most.
+**Tomorrow — Lesson 064: Crash analysis and stability engineering.** The Reef's crash rate is 1.8% of sessions, and the crash dashboard shows 276 different crash signatures, none bigger than 1.2%. We learn to read a crash report, group crashes by cause, and fix the few that matter most.
