@@ -113,7 +113,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 072 | Estimating technical risk: "six weeks", again | ✅ |
 | 073 | Leading a vertical slice: ten weeks and nothing to play | ✅ |
 | 074 | Directing AI coding tools as an architect: 2,000 lines in an afternoon | ✅ |
-| 075 | Case study: anatomy of a commercial engine runtime | ⬜ |
+| 075 | Case study: anatomy of a commercial engine runtime: the 22 ms frame where the GPU was waiting | ✅ |
 | 076 | Case study: optimizing an open world | ⬜ |
 | 077 | Interview prep: architecture questions | ⬜ |
 | 078 | Interview prep: optimization questions | ⬜ |
