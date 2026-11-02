@@ -1,0 +1,332 @@
+<title>Optimization Interview Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. frame above, controls beside */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Optimization Interview Lab additions. */
+.viz svg { display: block; width: 100%; height: auto; }
+.viz text { font-family: var(--f-mono); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/078-interview-prep-optimization-questions.md">Read Lesson 078 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 078 · Lesson 078 · simulation using the lesson's numbers</div>
+    <h1>Optimization Interview Lab</h1>
+    <p class="lede">"Our reef scene takes 40 ms a frame on the target. We need 60 fps. Walk me through it." The interviewer has a capture and will hand it over if you ask. Choose each move, and see where the frame ends up and how the answer is scored.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>One frame, five moves.</strong> Goal: reach <strong>16.7 ms</strong> or less and a <strong>strong hire</strong>, 18 of 20 or more.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Frame, scorecard and controls">
+    <div class="panel">
+      <h2>The frame, and the scorecard</h2>
+      <div class="viz" id="chart"></div>
+      <div class="legend" id="legend"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Frame time</span><span class="v" id="sFt">0</span><span class="s" id="sFtS">ms</span></div>
+        <div class="stat"><span class="k">Slowest stage</span><span class="v" id="sBn">–</span><span class="s">after your moves</span></div>
+        <div class="stat"><span class="k">Score</span><span class="v" id="sSc">0</span><span class="s">of 20</span></div>
+        <div class="stat"><span class="k">Verdict</span><span class="v" id="sVd">–</span><span class="s">hire at 14, strong at 18</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>First move</span></span>
+          <div class="seg-ctl" role="group" aria-label="First move">
+            <button type="button" data-k="open" data-v="tricks">List tricks<small>pools, SIMD, LOD…</small></button>
+            <button type="button" data-k="open" data-v="cap">Ask for a capture<small>one row per stage</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Where to look</span></span>
+          <div class="seg-ctl" role="group" aria-label="Where to look">
+            <button type="button" data-k="look" data-v="known">Code you know<small>physics</small></button>
+            <button type="button" data-k="look" data-v="slow">The slowest stage<small>from the data</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Finding the cause</span></span>
+          <div class="seg-ctl" role="group" aria-label="Cause">
+            <button type="button" data-k="cause" data-v="guess">Guess<small>"probably animation"</small></button>
+            <button type="button" data-k="cause" data-v="hyp">Hypothesis + test<small>predict, then check</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>The fix</span></span>
+          <div class="seg-ctl" role="group" aria-label="Fix">
+            <button type="button" data-k="fix" data-v="micro">Micro-optimize<small>SIMD, data layout</small></button>
+            <button type="button" data-k="fix" data-v="algo">Better algorithm<small>do less work</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Then</span></span>
+          <div class="seg-ctl" role="group" aria-label="Then">
+            <button type="button" data-k="close" data-v="stop">Stop<small>"that should do it"</small></button>
+            <button type="button" data-k="close" data-v="again">Measure again<small>next stage, guard it</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 078: optimization interview questions</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Ask for data first</h3><p>A list of tricks says you've read about optimization. Asking for a capture says you've done it. Interviewers usually have one ready.</p></div>
+      <div class="note"><h3>Predict, then test</h3><p>"If the pair checks are quadratic, halving the fish should cut them to a quarter." A prediction you can check is worth more than a confident guess.</p></div>
+      <div class="note"><h3>The bottleneck moves</h3><p>Fix the slowest stage and another one becomes slowest. Saying "now I'd measure again" is part of the answer.</p></div>
+    </div>
+    <p class="fine">This lab is a model, not a real hiring rubric. It uses Lesson 078's numbers for one reef frame on the target: game thread 40 ms (fish proximity checks 25, physics 5, animation 4, other 6), render thread 14, GPU 18. The frame is the slowest stage (Lesson 075). Micro-optimizing cuts proximity 25 → 9, physics 5 → 3, animation 4 → 2; a better algorithm cuts proximity 25 → 1 (a grid), physics 5 → 2 (sleeping bodies), animation 4 → 1 (lower update rate far away). Without a capture, "the slowest stage" is a guess: the GPU, 18 → 14. Measuring again after a fix moves on to the new slowest stage once: the GPU, 18 → 16 (water particle overdraw). Scorecard: five parts, 0 to 4 each.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const DEF = { open: "tricks", look: "known", cause: "guess", fix: "micro", close: "stop" };
+  const st = { ...DEF };
+  function model(s) {
+    const cap = s.open === "cap";
+    const g = { prox: 25, phys: 5, anim: 4, other: 6 };
+    let rt = 14, gpu = 18, target;
+    if (s.look === "known") target = "phys";
+    else if (!cap) target = "gpu";
+    else target = s.cause === "hyp" ? "prox" : "anim";
+    const micro = { prox: 9, phys: 3, anim: 2, gpu: 14 }, algo = { prox: 1, phys: 2, anim: 1, gpu: 14 };
+    const nv = (s.fix === "algo" ? algo : micro)[target];
+    if (target === "gpu") gpu = nv; else g[target] = nv;
+    let gt = g.prox + g.phys + g.anim + g.other;
+    let ft = Math.max(gt, rt, gpu), next = false;
+    if (s.close === "again" && ft === gpu && target !== "gpu") { gpu = 16; next = true; ft = Math.max(gt, rt, gpu); }
+    const bn = [["Game", gt], ["Render", rt], ["GPU", gpu]].filter(([, v]) => v === ft).map(([n]) => n).join(" = ");
+    const sc = {
+      M: cap ? 4 : 0,
+      B: s.look === "slow" ? (cap ? 4 : 1) : 0,
+      H: s.cause === "hyp" ? (cap && s.look === "slow" ? 4 : 2) : 0,
+      F: s.fix === "algo" ? 4 : 2,
+      V: s.close === "again" ? 4 : 0,
+    };
+    const tot = sc.M + sc.B + sc.H + sc.F + sc.V;
+    const vd = tot >= 18 ? "Strong" : tot >= 14 ? "Hire" : "No hire";
+    return { g, gt, rt, gpu, ft, bn, target, next, sc, tot, vd, cap };
+  }
+  function chart(m) {
+    const box = $("chart").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box))), narrow = W < 460;
+    const L = narrow ? 106 : 150, R = W - 34, MAX = 42;
+    const X = (v) => L + v / MAX * (R - L);
+    let g = "";
+    const T = 14;
+    g += `<text x="${L - 8}" y="${T + 13}" text-anchor="end" style="fill:var(--ink)">Game</text>`;
+    let acc = 0;
+    [["prox", "--p2"], ["phys", "--p1"], ["anim", "--p3"], ["other", "--p7"]].forEach(([k, c]) => {
+      const v = m.g[k], x = X(acc), w = X(acc + v) - x - 1;
+      g += `<rect x="${x}" y="${T}" width="${Math.max(1, w)}" height="18" rx="2" style="fill:var(${c});opacity:${m.gt === m.ft ? 1 : 0.5}"/>`;
+      if (w > 20) g += `<text x="${x + w / 2}" y="${T + 13}" text-anchor="middle" style="fill:#fff;font-weight:700">${v}</text>`;
+      acc += v;
+    });
+    g += `<text x="${X(m.gt) + 6}" y="${T + 13}" style="fill:var(--ink);font-weight:700">${m.gt}</text>`;
+    [["Render", m.rt, "--p4"], ["GPU", m.gpu, "--p5"]].forEach(([n, v, c], i) => {
+      const y = T + 24 * (i + 1);
+      g += `<text x="${L - 8}" y="${y + 13}" text-anchor="end" style="fill:var(--ink)">${n}</text><rect x="${L}" y="${y}" width="${X(v) - L - 1}" height="18" rx="2" style="fill:var(${c});opacity:${v === m.ft ? 1 : 0.5}"/><text x="${X(v) + 6}" y="${y + 13}" style="fill:var(--ink);font-weight:${v === m.ft ? 700 : 400}">${v}</text>`;
+    });
+    g += `<line x1="${X(16.7)}" x2="${X(16.7)}" y1="${T - 6}" y2="${T + 70}" style="stroke:var(--bad);stroke-width:2;stroke-dasharray:4 3"/><text x="${X(16.7)}" y="${T + 84}" text-anchor="middle" style="fill:var(--bad)">16.7 ms</text>`;
+    const rows = [["Measure first", "M"], ["Bottleneck", "B"], ["Hypothesis", "H"], ["Fix the cause", "F"], ["Verify", "V"]];
+    const X4 = (v) => L + v / 4 * (R - L), Y0 = T + 104;
+    rows.forEach(([n, k], i) => {
+      const y = Y0 + i * 28, v = m.sc[k];
+      g += `<text x="${L - 8}" y="${y + 13}" text-anchor="end" style="fill:var(--ink)">${narrow ? n.split(" ")[0] : n}</text><rect x="${L}" y="${y}" width="${R - L}" height="18" rx="3" style="fill:var(--field);stroke:var(--line)"/>`;
+      if (v) g += `<rect x="${L}" y="${y}" width="${X4(v) - L}" height="18" rx="3" style="fill:var(${v >= 4 ? "--good" : v >= 2 ? "--gold" : "--bad"})"/>`;
+      g += `<text x="${R + 6}" y="${y + 13}" style="fill:var(--ink);font-weight:700">${v}/4</text>`;
+    });
+    $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${Y0 + 5 * 28 + 4}" role="img" aria-label="Frame stages and five-part scorecard">${g}</svg>`;
+    $("legend").innerHTML = `<span><i style="background:var(--p2)"></i>fish proximity</span><span><i style="background:var(--p1)"></i>physics</span><span><i style="background:var(--p3)"></i>animation</span><span><i style="background:var(--p7)"></i>other</span><span><i style="background:var(--p4)"></i>render thread</span><span><i style="background:var(--p5)"></i>GPU</span>`;
+  }
+  function render() {
+    const m = model(st);
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
+    chart(m);
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("sFt", m.ft > 16.7, m.ft); $("sFtS").textContent = `ms, ${Math.round(1000 / m.ft)} fps`;
+    set("sBn", m.ft > 16.7, m.bn);
+    set("sSc", m.tot < 14, m.tot);
+    set("sVd", m.tot < 14, m.vd);
+    const ok = m.ft <= 16.7 && m.tot >= 18;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    let c;
+    const fx = st.fix === "algo" ? "a better algorithm" : "micro-optimization";
+    if (m.target === "phys") c = `${m.cap ? "You have the capture, but you" : "A list of tricks, then you"} go to the code you know: physics, ${fx} takes it 5 → ${m.g.phys} ms. The game thread is ${m.gt} ms, the frame ${m.ft}. Physics was never the problem. ${m.tot} of 20.`;
+    else if (m.target === "gpu") c = `Without a capture, "the slowest stage" is a guess, and the usual guess is the GPU: 18 → ${m.gpu} ms. The frame is still ${m.ft} ms, because the game thread takes ${m.gt}. ${m.tot} of 20.`;
+    else if (m.target === "anim") c = `The capture says the game thread is slowest (40 ms). You guess animation, because it's the name you recognise: 4 → ${m.g.anim} ms, frame ${m.ft}. The 25 ms proximity block was right there. ${m.tot} of 20.`;
+    else if (st.fix === "micro") c = `Hypothesis: 1,500 fish check every other fish, 1.1 million pairs, so the cost is quadratic. Test: halve the fish, and the block should drop to a quarter. It does. SIMD and SoA make each check faster: 25 → 9 ms, frame ${m.ft}. Still over: the algorithm does the same 1.1 million checks. ${m.tot} of 20.`;
+    else if (!m.next) c = `A grid: each fish checks only its neighbours, about 30,000 pairs instead of 1.1 million. 25 → 1 ms, game thread ${m.gt}. But the frame is ${m.ft} ms: the GPU is now the slowest stage, and you stopped. ${m.tot} of 20.`;
+    else c = `Measure again: the GPU is now slowest at 18 ms. The capture shows water particles painting the screen 6 times (overdraw, Lesson 025): 18 → 16 ms. Frame ${m.ft} ms (${Math.round(1000 / m.ft)} fps), and a perf test so it stays there. ${m.tot} of 20${m.tot >= 18 ? ": strong hire." : "."}`;
+    $("coach").textContent = c;
+  }
+  function apply(s) { Object.assign(st, DEF, s); render(); }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); }));
+
+  const STEPS = [
+    { t: "As answered: a list of tricks", d: "Pools, SIMD, LODs, threads… then the physics code you know, made faster: 5 → 3 ms. Frame 38 ms. 2 of 20.", s: {} },
+    { t: "Ask for a capture", d: "Game thread 40, render 14, GPU 18. Measure first: 4 of 4. But still physics: frame 38, 6 of 20.", s: { open: "cap" } },
+    { t: "Go to the slowest stage", d: "The game thread. Guess animation, 4 → 2 ms: frame 38. Bottleneck 4 of 4: 10 of 20.", s: { open: "cap", look: "slow" } },
+    { t: "Hypothesis, then a test", d: "Proximity is 25 ms; predict quadratic, halve the fish, it drops to a quarter. Micro-optimize: 25 → 9, frame 24. 14 of 20, hire.", s: { open: "cap", look: "slow", cause: "hyp" } },
+    { t: "Fix the algorithm", d: "A uniform grid: 1.1 million pairs → about 30,000. 25 → 1 ms, game thread 16. Frame 18: the GPU is now slowest. 16 of 20.", s: { open: "cap", look: "slow", cause: "hyp", fix: "algo" } },
+    { t: "Measure again, guard it", d: "GPU 18 → 16 ms (water particle overdraw). Frame 16 ms, 63 fps, and a perf test to keep it. 20 of 20, strong hire.", s: { open: "cap", look: "slow", cause: "hyp", fix: "algo", close: "again" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("chart").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("chart"));
+})();
+</script>
