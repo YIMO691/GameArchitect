@@ -210,6 +210,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 064: crash analysis</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 066 · Challenge: predict first, then tap Set up and check</p>
+    <ol class="steps" id="steps066" style="counter-reset: step 6"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -334,6 +336,39 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("chart").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  const STEPS066 = [
+    {
+      "t": "Symbols, but whole-stack groups",
+      "d": "Predict first: symbols uploaded and picks sorted by sessions, but crashes grouped by the whole stack. Then tap Set up: 92 rows, 5 of the 8 picks are duplicates, and the crash rate stays at 1.35%. Group by the first frame in your own code.",
+      "s": {
+        "sym": "yes",
+        "group": "full",
+        "ctx": "no",
+        "order": "count"
+      }
+    },
+    {
+      "t": "One row per cause, no context",
+      "d": "Predict first: symbols, top-game-frame groups, sorted by sessions, but no device or memory context. Then tap Set up: 46 rows and the right picks, but 3 can't be reproduced: 5 fixes, 1.21%. The stack says where, not why.",
+      "s": {
+        "sym": "yes",
+        "group": "top",
+        "ctx": "no",
+        "order": "count"
+      }
+    }
+  ];
+  const steps066El = $("steps066");
+  STEPS066.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + 6}">Set up</button>`;
+    steps066El.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active"); apply(s.s);

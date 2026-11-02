@@ -216,6 +216,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 062: budgets as a team process</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 066 · Challenge: predict first, then tap Set up and check</p>
+    <ol class="steps" id="steps066" style="counter-reset: step 5"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -363,6 +365,37 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("chart").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  const STEPS066 = [
+    {
+      "t": "Owners, found monthly",
+      "d": "Predict first: every system has a budget and an owner, but regressions are still found at a monthly pass. Then tap Set up: 60 hours, 0 left open, but 1 release still ships over budget at 16.1 ms. Owners fix it; the check finds it too late.",
+      "s": {
+        "own": "owners",
+        "det": "monthly",
+        "gate": "alert"
+      }
+    },
+    {
+      "t": "Block everything, own nothing",
+      "d": "Predict first: one shared budget, a CI check on every build, and every over-budget merge blocked. Then tap Set up: 0 releases over budget, 14.3 ms, but 36 feature-days delayed. Safe and slow; nobody owns a trade.",
+      "s": {
+        "own": "opt",
+        "det": "ci",
+        "gate": "block"
+      }
+    }
+  ];
+  const steps066El = $("steps066");
+  STEPS066.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + 5}">Set up</button>`;
+    steps066El.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active"); apply(s.s);

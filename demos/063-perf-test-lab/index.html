@@ -208,6 +208,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 063: automated performance testing</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 066 · Challenge: predict first, then tap Set up and check</p>
+    <ol class="steps" id="steps066" style="counter-reset: step 6"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -324,6 +326,39 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("chart").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  const STEPS066 = [
+    {
+      "t": "Statistics on a noisy test",
+      "d": "Predict first: shared agent, free play, no warm-up, but the median of 5 runs against a rolling baseline. Then tap Set up: 3 false alarms and the 0.4 ms regression is never flagged. The alarm line has to sit above the noise.",
+      "s": {
+        "mach": "shared",
+        "scene": "free",
+        "warm": "no",
+        "rule": "stats"
+      }
+    },
+    {
+      "t": "A quiet test, one run",
+      "d": "Predict first: dedicated machine, fixed path, 10 s warm-up, but one run compared with the last build. Then tap Set up: 1 false alarm, and the regression is only flagged on build 17, three builds late. Quiet isn't enough; compare against more than one number.",
+      "s": {
+        "mach": "dedicated",
+        "scene": "fixed",
+        "warm": "yes",
+        "rule": "one"
+      }
+    }
+  ];
+  const steps066El = $("steps066");
+  STEPS066.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + 6}">Set up</button>`;
+    steps066El.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active"); apply(s.s);

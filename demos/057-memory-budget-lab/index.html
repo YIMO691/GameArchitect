@@ -211,6 +211,8 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
     <p class="group-title">Lesson 057: memory budgets per platform</p>
     <ol class="steps" id="steps"></ol>
+    <p class="group-title">Lesson 066 · Challenge: predict first, then tap Set up and check</p>
+    <ol class="steps" id="steps066" style="counter-reset: step 6"></ol>
   </section>
 
   <section class="panel" aria-labelledby="whatH">
@@ -301,6 +303,39 @@ input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
     const li = document.createElement("li");
     li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
     stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("bars").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  const STEPS066 = [
+    {
+      "t": "The harbour that loads too early",
+      "d": "Predict first: tiers, render scale and budgets in CI, but the new scene streams in while the old one is still loaded. Then tap Set up: Android 1,386 MB (107%) and iPhone 1,931 MB (102%), both killed. Every budget is right; the peak was never planned.",
+      "s": {
+        "trans": "overlap",
+        "tier": "tiers",
+        "res": "scale",
+        "u21": "budget"
+      }
+    },
+    {
+      "t": "Tiers, but full resolution",
+      "d": "Predict first: unload first and texture tiers, but every phone renders at its native screen size. Then tap Set up: Android 1,175 MB (90%), iPhone 1,630 MB (86%). Nothing is killed, but Android has no room for a spike or the next update.",
+      "s": {
+        "trans": "unload",
+        "tier": "tiers",
+        "res": "native",
+        "u21": "none"
+      }
+    }
+  ];
+  const steps066El = $("steps066");
+  STEPS066.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k + 6}">Set up</button>`;
+    steps066El.appendChild(li);
     li.querySelector("button").addEventListener("click", () => {
       document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
       li.classList.add("active"); apply(s.s);

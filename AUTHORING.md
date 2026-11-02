@@ -93,12 +93,12 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `052-audio-lab` | 052, 056 (challenge) |
 | `054-tools-lab` | 054 |
 | `055-liveops-lab` | 055, 056 (challenge) |
-| `057-memory-budget-lab` | 057 |
+| `057-memory-budget-lab` | 057, 066 (challenge) |
 | `058-thermal-lab` | 058 |
 | `061-cert-lab` | 061 |
-| `062-budget-board-lab` | 062 |
-| `063-perf-test-lab` | 063 |
-| `064-crash-triage-lab` | 064 |
+| `062-budget-board-lab` | 062, 066 (challenge) |
+| `063-perf-test-lab` | 063, 066 (challenge) |
+| `064-crash-triage-lab` | 064, 066 (challenge) |
 | `065-debt-lab` | 065 |
 
 Lessons not in the map get a new lab when their main idea is something that changes on screen or in numbers. For lessons about process or communication (e.g. writing design docs, estimating risk), build a small interactive tool instead: a decision table, a budget calculator, a trade-off picker with the lesson's real numbers. When a new lab spans later lessons too, add its row to this map.
