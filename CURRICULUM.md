@@ -105,7 +105,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 ## Module 7 — The architect's craft
 | # | Title | Status |
 |---|-------|--------|
-| 067 | Writing technical design documents | ⬜ |
+| 067 | Writing technical design documents: two lines in chat, three different harbours | ✅ |
 | 068 | Architecture decision records | ⬜ |
 | 069 | A framework for evaluating trade-offs | ⬜ |
 | 070 | Reviewing code as an architect | ⬜ |

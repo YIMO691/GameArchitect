@@ -100,6 +100,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `063-perf-test-lab` | 063, 066 (challenge) |
 | `064-crash-triage-lab` | 064, 066 (challenge) |
 | `065-debt-lab` | 065 |
+| `067-design-doc-lab` | 067 |
 
 Lessons not in the map get a new lab when their main idea is something that changes on screen or in numbers. For lessons about process or communication (e.g. writing design docs, estimating risk), build a small interactive tool instead: a decision table, a budget calculator, a trade-off picker with the lesson's real numbers. When a new lab spans later lessons too, add its row to this map.
 

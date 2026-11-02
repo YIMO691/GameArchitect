@@ -1,0 +1,365 @@
+<title>Design Doc Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. decisions grid left, readouts and controls right */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Design Doc Lab additions. */
+.viz svg { display: block; width: 100%; height: auto; }
+.viz text { font-family: var(--f-mono); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.seg-ctl.three { grid-template-columns: repeat(3, 1fr); }
+.qs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 4px; }
+.qgrp { font-size: 12px; color: var(--muted); margin: 8px 0 4px; font-weight: 600; }
+.q { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font-size: 12px; display: grid; gap: 2px; min-height: 52px; }
+.q b { font-size: 12px; line-height: 1.25; }
+.q span { font-family: var(--f-mono); font-size: 11px; }
+.q.ok { border-color: var(--good); box-shadow: inset 3px 0 0 var(--good); }
+.q.ok span { color: var(--good); }
+.q.fixed { border-color: var(--p2); box-shadow: inset 3px 0 0 var(--p2); }
+.q.fixed span { color: var(--p2); }
+.q.bad { border-color: var(--bad); box-shadow: inset 3px 0 0 var(--bad); }
+.q.bad span { color: var(--bad); }
+.q.lost { border-style: dashed; }
+.q.lost span { color: var(--bad); }
+@media (max-width: 520px) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/067-writing-technical-design-documents.md">Read Lesson 067 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 067 · Lesson 067 · simulation using the lesson's numbers</div>
+    <h1>Design Doc Lab</h1>
+    <p class="lede">The harbour needs 12 decisions before three teams (gameplay, online, UI) can build it. Choose what kind of document they get, what goes in it, and who reviews it, then see which decisions are settled on paper and which turn into surprises when the parts meet in week 4.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>One harbour, three teams.</strong> Goal: <strong>0 surprises</strong> at integration and at most <strong>20 hours</strong> spent on the document, its review and rework together.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Decisions and controls">
+    <div class="panel">
+      <h2>The harbour's 12 decisions</h2>
+      <div id="qs"></div>
+      <div class="legend" id="legendQ"></div>
+      <p class="coach" id="coach"></p>
+      <h3>Where the hours go</h3>
+      <div class="viz" id="chart"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Surprises at integration</span><span class="v" id="sSur">0</span><span class="s">of 12 decisions</span></div>
+        <div class="stat"><span class="k">Rework</span><span class="v" id="sRw">0</span><span class="s">hours, 12 per surprise</span></div>
+        <div class="stat"><span class="k">Document cost</span><span class="v" id="sDoc">0</span><span class="s">hours: write + review + fixes</span></div>
+        <div class="stat"><span class="k">Days before coding</span><span class="v" id="sDays">0</span><span class="s">waiting for the document</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>Document</span></span>
+          <div class="seg-ctl three" role="group" aria-label="Document">
+            <button type="button" data-k="doc" data-v="none">None<small>two lines in chat</small></button>
+            <button type="button" data-k="doc" data-v="long">40-page spec<small>everything</small></button>
+            <button type="button" data-k="doc" data-v="short">5-page doc<small>decisions only</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Goals and non-goals (5-page doc)</span></span>
+          <div class="seg-ctl" role="group" aria-label="Goals and non-goals">
+            <button type="button" data-k="goals" data-v="no">Left out<small>just the feature</small></button>
+            <button type="button" data-k="goals" data-v="yes">Written<small>what's in and out</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Interfaces and numbers (5-page doc)</span></span>
+          <div class="seg-ctl" role="group" aria-label="Interfaces and numbers">
+            <button type="button" data-k="iface" data-v="no">Left out<small>teams work it out</small></button>
+            <button type="button" data-k="iface" data-v="yes">Written<small>owners, budgets</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Review</span></span>
+          <div class="seg-ctl" role="group" aria-label="Review">
+            <button type="button" data-k="rev" data-v="no">None<small>publish and start</small></button>
+            <button type="button" data-k="rev" data-v="yes">Owners review<small>each team lead</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 067: technical design documents</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>A decision not written is made three times</h3><p>Each team fills the gap with its own guess. The guesses only meet at integration, where every mismatch is rework.</p></div>
+      <div class="note"><h3>Longer isn't clearer</h3><p>A 40-page spec has every answer, but readers find only half, and its review takes two weeks. Short, decision-first documents get read.</p></div>
+      <div class="note"><h3>Owners catch the wrong guesses</h3><p>The author can't know every system. A one-hour review by each owner turns wrong interface guesses into 2-hour fixes on paper instead of 12-hour fixes in code.</p></div>
+    </div>
+    <p class="fine">This lab is a model, not a measurement. It uses Lesson 067's numbers: 12 decisions (4 about the feature, 3 goals and non-goals, 5 interfaces and numbers). An undecided or unread decision becomes a surprise at integration costing 12 hours of rework. Three interface decisions the author writes alone are wrong; owners' review fixes each for 2 hours. The 5-page doc takes 6 hours to write and 4 hours (one meeting, 1 day) to review; the 40-page spec takes 32 hours and 4 days to write, 16 hours and 10 days to review, and its readers find only 6 of its 12 decisions.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const RW = 12, FIX = 2;
+  // g: 0 feature, 1 goals/non-goals, 2 interfaces/numbers. wrong: author's guess is wrong. buried: unread in 40 pages.
+  const Q = [
+    { n: "Where is the harbour?", a: "east shore, own scene", g: 0 },
+    { n: "How many berths?", a: "24 berths", g: 0, buried: 1 },
+    { n: "What can players do there?", a: "dock, shop, show boats", g: 0 },
+    { n: "When does it open?", a: "update 3.0", g: 0, buried: 1 },
+    { n: "Combat in the harbour?", a: "no, safe zone", g: 1 },
+    { n: "Trading between players?", a: "no, not in 3.0", g: 1, buried: 1 },
+    { n: "Handheld in scope?", a: "yes, same content", g: 1, buried: 1 },
+    { n: "Who decides docking?", a: "server (author: client)", g: 2, wrong: 1 },
+    { n: "Boats on screen?", a: "24 (author: 40)", g: 2, wrong: 1 },
+    { n: "Memory budget?", a: "300 MB, unload first", g: 2, buried: 1 },
+    { n: "Frame budget?", a: "0.4 ms (author: none)", g: 2, wrong: 1 },
+    { n: "Shop screen?", a: "reuse the tackle shop", g: 2, buried: 1 },
+  ];
+  const GN = ["The feature", "Goals and non-goals", "Interfaces and numbers"];
+  const st = { doc: "none", goals: "no", iface: "no", rev: "no" };
+  function model(s) {
+    const rev = s.rev === "yes";
+    const out = Q.map((q) => {
+      let written;
+      if (s.doc === "none") written = false;
+      else if (s.doc === "long") written = true;
+      else written = q.g === 0 || (q.g === 1 && s.goals === "yes") || (q.g === 2 && s.iface === "yes");
+      if (!written) return { q, k: "bad", why: "not decided" };
+      if (s.doc === "long" && q.buried) return { q, k: "lost", why: "in the spec, not read" };
+      if (q.wrong) return rev ? { q, k: "fixed", why: "fixed in review" } : { q, k: "bad", why: "wrong guess" };
+      return { q, k: "ok", why: "settled" };
+    });
+    const sur = out.filter((o) => o.k === "bad" || o.k === "lost").length;
+    const fixed = out.filter((o) => o.k === "fixed").length;
+    let write = 0, review = 0, days = 0;
+    if (s.doc === "long") { write = 32; days = 4; if (rev) { review = 16; days += 10; } }
+    if (s.doc === "short") { write = 6; days = 1; if (rev) { review = 4; days += 1; } }
+    if (s.doc === "none" && rev) { review = 0; }
+    const fixH = fixed * FIX, rework = sur * RW, doc = write + review + fixH;
+    return { out, sur, rework, write, review, fixH, doc, total: doc + rework, days };
+  }
+
+  function grid(m) {
+    let h = "";
+    for (let g = 0; g < 3; g++) {
+      h += `<div class="qgrp">${GN[g]}</div><div class="qs">`;
+      m.out.filter((o) => o.q.g === g).forEach((o) => {
+        h += `<div class="q ${o.k}"><b>${o.q.n}</b><span>${o.k === "ok" || o.k === "fixed" ? o.q.a.replace(/ \(author.*\)/, "") : o.why}</span></div>`;
+      });
+      h += `</div>`;
+    }
+    $("qs").innerHTML = h;
+    $("legendQ").innerHTML = `<span><i style="background:var(--good)"></i>settled on paper</span><span><i style="background:var(--p2)"></i>wrong guess, fixed in review</span><span><i style="background:var(--bad)"></i>surprise at integration</span><span>dashed: written but not read</span>`;
+  }
+
+  function chart(m) {
+    const box = $("chart").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box))), narrow = W < 460;
+    const L = 8, R = W - 8, MAX = 150, X = (h) => L + (h / MAX) * (R - L);
+    let g = "", x = 0;
+    const seg = (h, col, lab) => {
+      if (h <= 0) return;
+      g += `<rect x="${X(x)}" y="18" width="${Math.max(1, X(x + h) - X(x) - 1)}" height="26" rx="3" style="fill:var(${col})"/>`;
+      if (X(x + h) - X(x) > 36) g += `<text x="${(X(x) + X(x + h)) / 2}" y="35" text-anchor="middle" style="fill:#fff;font-weight:700">${lab}</text>`;
+      x += h;
+    };
+    seg(m.write, "--p1", m.write + "h"); seg(m.review + m.fixH, "--p2", (m.review + m.fixH) + "h"); seg(m.rework, "--bad", m.rework + "h");
+    g += `<line x1="${X(20)}" x2="${X(20)}" y1="10" y2="52" style="stroke:var(--accent);stroke-width:2;stroke-dasharray:4 3"/><text x="${X(20) + 4}" y="12" style="fill:var(--accent)">20 h goal</text>`;
+    g += `<text x="${Math.min(X(m.total) + 6, R - 2)}" y="64" text-anchor="${X(m.total) > R - 120 ? "end" : "start"}" style="fill:var(--ink);font-weight:700">${m.total} h total</text>`;
+    for (const v of (narrow ? [0, 50, 100, 150] : [0, 25, 50, 75, 100, 125, 150])) g += `<text x="${X(v)}" y="84" text-anchor="${v === 0 ? "start" : v === MAX ? "end" : "middle"}" style="fill:var(--muted)">${v}</text>`;
+    $("chart").innerHTML = `<svg viewBox="0 0 ${W} 90" role="img" aria-label="Hours spent on the document, its review and rework">${g}</svg>`;
+    $("legend").innerHTML = `<span><i style="background:var(--p1)"></i>writing</span><span><i style="background:var(--p2)"></i>review and fixes on paper</span><span><i style="background:var(--bad)"></i>rework at integration</span><span>hours →</span>`;
+  }
+
+  function render() {
+    const m = model(st);
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
+    const shortOnly = st.doc === "short";
+    document.querySelectorAll('button[data-k="goals"],button[data-k="iface"]').forEach((b) => { b.disabled = !shortOnly; b.style.opacity = shortOnly ? 1 : 0.45; });
+    document.querySelectorAll('button[data-k="rev"]').forEach((b) => { b.disabled = st.doc === "none"; b.style.opacity = st.doc === "none" ? 0.45 : 1; });
+    grid(m); chart(m);
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("sSur", m.sur > 0, m.sur);
+    set("sRw", m.rework > 0, m.rework);
+    set("sDoc", m.doc > 20, m.doc);
+    set("sDays", m.days > 2, m.days);
+    const ok = m.sur === 0 && m.total <= 20;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    let c;
+    const rev = st.rev === "yes";
+    if (st.doc === "none") c = `Two lines in chat. Each team answers all 12 questions its own way, and nobody finds out until the parts meet in week 4: 12 surprises, 144 hours of rework.`;
+    else if (st.doc === "long" && !rev) c = `The 40-page spec answers everything, but nobody reads 40 pages closely. Teams find 6 of the 12 decisions, and 3 of those the author guessed wrong: 9 surprises, ${m.total} hours in all, and 4 days before anyone codes.`;
+    else if (st.doc === "long") c = `Owners review the 40 pages: 16 hours and 10 days to find time. They fix the 3 wrong guesses, but the 6 buried decisions still go unread: 6 surprises, ${m.total} hours, and 14 days before coding starts.`;
+    else if (st.goals === "no" && st.iface === "no") c = `Five pages about the feature itself: where, how many berths, what players do, when. Everyone reads it. But it never says what's out of scope or how the teams connect: ${m.sur} surprises, ${m.total} hours.`;
+    else if (st.iface === "no") c = `Goals and non-goals settle scope: no combat, no trading in 3.0, handheld included. ${m.sur} surprises left, all in how the parts connect: ${m.total} hours.`;
+    else if (st.goals === "no") c = `Interfaces and numbers are in, but scope isn't: teams still guess whether there's combat, trading and a handheld version. ${m.sur} surprises, ${m.total} hours.`;
+    else if (!rev) c = `Every decision is on paper. But the author guessed three things outside their own system: who decides docking, how many boats fit on the handheld, the frame budget. 3 surprises, ${m.total} hours.`;
+    else c = `Each team lead reads the 5 pages and comments; one 1-hour meeting. The 3 wrong guesses become 2-hour fixes on paper: docking on the server, 24 boats, a 0.4 ms line. 0 surprises, ${m.total} hours, 2 days before coding. Goal met.`;
+    $("coach").textContent = c;
+  }
+  function apply(s) { Object.assign(st, { doc: "none", goals: "no", iface: "no", rev: "no" }, s); render(); }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { if (b.disabled) return; st[b.dataset.k] = b.dataset.v; render(); }));
+
+  const STEPS = [
+    { t: "As run: two lines in chat", d: "\"Add a harbour where players dock, shop and show off boats. Handheld too.\" Three teams fill 12 gaps three ways: 12 surprises at integration, 144 hours of rework.", s: {} },
+    { t: "Write a 40-page spec", d: "It answers all 12, but readers find only 6, and 3 answers are the author's wrong guesses: 9 surprises. 32 hours of writing, 108 of rework: 140 hours, 4 days before coding.", s: { doc: "long" } },
+    { t: "Review the 40 pages", d: "Owners fix the 3 wrong guesses, but the 6 buried decisions stay unread: 6 surprises, 126 hours, and coding waits 14 days.", s: { doc: "long", rev: "yes" } },
+    { t: "Five pages: the feature", d: "Where, how many berths, what players do, when. Everyone reads it. 8 surprises left: 102 hours.", s: { doc: "short" } },
+    { t: "Add goals and non-goals", d: "No combat, no trading in 3.0, handheld included. 5 surprises: 66 hours.", s: { doc: "short", goals: "yes" } },
+    { t: "Add interfaces and numbers", d: "Who owns docking, boats on screen, memory and frame budgets, which shop screen. All 12 on paper, but 3 are wrong guesses: 3 surprises, 42 hours.", s: { doc: "short", goals: "yes", iface: "yes" } },
+    { t: "Owners review it", d: "One meeting, 4 hours; the 3 wrong guesses cost 2 hours each on paper. 0 surprises, 16 hours in all, 2 days before coding. Goal met.", s: { doc: "short", goals: "yes", iface: "yes", rev: "yes" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("qs").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("chart"));
+})();
+</script>
