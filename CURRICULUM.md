@@ -118,7 +118,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 077 | Interview prep: architecture questions: thirty minutes of class fields | ✅ |
 | 078 | Interview prep: optimization questions: the list of tricks | ✅ |
 | 079 | Building a portfolio that proves architect-level skill: the best work was number nine | ✅ |
-| 080 | Capstone: plan your own architecture + optimization project | ⬜ |
+| 080 | Capstone: plan your own architecture + optimization project: 386 hours in six weeks | ✅ |
 
 ## After Lesson 080 — Deep-dive series
 When every lesson above is ✅, the daily job appends a new "Deep dive" module of 10 lessons that goes deeper into the area the learner most needs (default rotation: rendering → memory → multithreading → netcode → tools), adds it to this file, and continues.
