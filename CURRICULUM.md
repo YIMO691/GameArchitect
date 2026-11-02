@@ -117,7 +117,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 076 | Case study: optimizing an open world: the archipelago that needed 11 GB | ✅ |
 | 077 | Interview prep: architecture questions: thirty minutes of class fields | ✅ |
 | 078 | Interview prep: optimization questions: the list of tricks | ✅ |
-| 079 | Building a portfolio that proves architect-level skill | ⬜ |
+| 079 | Building a portfolio that proves architect-level skill: the best work was number nine | ✅ |
 | 080 | Capstone: plan your own architecture + optimization project | ⬜ |
 
 ## After Lesson 080 — Deep-dive series

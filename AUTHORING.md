@@ -112,6 +112,7 @@ Use this map. If the lesson is listed under an existing lab, **extend that lab**
 | `076-open-world-lab` | 076 |
 | `077-interview-lab` | 077 |
 | `078-optimization-interview-lab` | 078 |
+| `079-portfolio-lab` | 079 |
 
 Lessons not in the map get a new lab when their main idea is something that changes on screen or in numbers. For lessons about process or communication (e.g. writing design docs, estimating risk), build a small interactive tool instead: a decision table, a budget calculator, a trade-off picker with the lesson's real numbers. When a new lab spans later lessons too, add its row to this map.
 
