@@ -111,7 +111,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 070 | Reviewing code as an architect: 61 comments and nothing that mattered | ✅ |
 | 071 | Working with designers and artists: the budget nobody could see | ✅ |
 | 072 | Estimating technical risk: "six weeks", again | ✅ |
-| 073 | Leading a vertical slice | ⬜ |
+| 073 | Leading a vertical slice: ten weeks and nothing to play | ✅ |
 | 074 | Directing AI coding tools as an architect | ⬜ |
 | 075 | Case study: anatomy of a commercial engine runtime | ⬜ |
 | 076 | Case study: optimizing an open world | ⬜ |
