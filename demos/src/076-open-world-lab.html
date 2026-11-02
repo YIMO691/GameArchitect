@@ -1,0 +1,331 @@
+<title>Open World Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. map above, controls beside */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Open World Lab additions. */
+.viz svg { display: block; width: 100%; height: auto; }
+.viz text { font-family: var(--f-mono); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/076-case-study-optimizing-an-open-world.md">Read Lesson 076 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 076 · Lesson 076 · simulation using the lesson's numbers</div>
+    <h1>Open World Lab</h1>
+    <p class="lede">The Reef's archipelago has 12 islands, and the first build loads all of them and simulates every fish, boat and villager. On the dev kit it runs at 44 ms and uses 11.0 GB; the handheld has 3.5 GB for the game. Choose what is loaded, how it streams, how distant islands are drawn and how far the world is simulated in full.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>A free camera over 12 islands, on the handheld.</strong> Goal: <strong>3.5 GB</strong> or less, <strong>30 fps</strong> (33.3 ms or less), no frame over <strong>50 ms</strong> while you sail, loading in <strong>20 s</strong> or less, and every island still on the horizon.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Map and controls">
+    <div class="panel">
+      <h2>The archipelago from above</h2>
+      <div class="viz" id="chart"></div>
+      <div class="legend" id="legend"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Memory</span><span class="v" id="sMem">0</span><span class="s">GB of 3.5</span></div>
+        <div class="stat"><span class="k">Frame time</span><span class="v" id="sFt">0</span><span class="s" id="sFtS">ms</span></div>
+        <div class="stat"><span class="k">Worst frame</span><span class="v" id="sWf">0</span><span class="s">ms while sailing</span></div>
+        <div class="stat"><span class="k">Loading</span><span class="v" id="sLd">0</span><span class="s">seconds</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>What is loaded</span></span>
+          <div class="seg-ctl three" role="group" aria-label="Loading">
+            <button type="button" data-k="load" data-v="all">Everything<small>12 islands</small></button>
+            <button type="button" data-k="load" data-v="block">Stream, blocking<small>cells near you</small></button>
+            <button type="button" data-k="load" data-v="async">Stream, async<small>spread over frames</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Textures</span></span>
+          <div class="seg-ctl" role="group" aria-label="Textures">
+            <button type="button" data-k="tex" data-v="full">Every mip resident<small>0.5 GB per island</small></button>
+            <button type="button" data-k="tex" data-v="mip">Mip streaming<small>0.2 GB per island</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Distant islands</span></span>
+          <div class="seg-ctl" role="group" aria-label="Distant islands">
+            <button type="button" data-k="far" data-v="full">Full detail<small>or nothing if unloaded</small></button>
+            <button type="button" data-k="far" data-v="hlod">HLOD proxies<small>one mesh per island</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Simulation</span></span>
+          <div class="seg-ctl" role="group" aria-label="Simulation">
+            <button type="button" data-k="sim" data-v="all">Everything, full<small>6,000 agents</small></button>
+            <button type="button" data-k="sim" data-v="near">Full near, coarse far<small>AI LOD, 300 m</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 076: optimizing an open world</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Memory is about what's loaded</h3><p>Smaller textures shrink every island; streaming decides how many islands exist in memory at all. An open world needs the second first.</p></div>
+      <div class="note"><h3>Streaming must not block</h3><p>Loading near the player is right; doing it on the game thread turns every cell boundary into a hitch. Load in the background, activate a little each frame.</p></div>
+      <div class="note"><h3>Far away needs a cheap stand-in</h3><p>Unloaded islands still belong on the horizon. One HLOD mesh per island keeps them there for a few draws, and the simulation far away can be coarse too.</p></div>
+    </div>
+    <p class="fine">This lab is a model, not a measurement. It uses Lesson 076's numbers for the archipelago on the handheld. Memory: 1.4 GB for engine, code, audio and UI, plus 0.3 GB of geometry and 0.5 GB of textures per loaded island (0.2 GB with mip streaming), plus 0.2 GB for all HLOD proxies. Streaming keeps the 3 islands within 1 km loaded. Game thread: 44 ms simulating all 6,000 agents in full, 18 ms with full simulation within 300 m and coarse simulation beyond. Render thread and GPU: 41 and 38 ms with every island in full detail, 16 and 26 ms with HLOD proxies, 12 and 22 ms if distant islands aren't drawn at all. The frame is the slowest stage (Lesson 075). A blocking cell load costs a 240 ms frame; async loading adds about 4 ms to a frame. Loading: 95 s for everything, 70 s with mip streaming, 12 s when streaming.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const DEF = { load: "all", tex: "full", far: "full", sim: "all" };
+  const st = { ...DEF };
+  const ISL = [[22,52,1],[36,40,1],[30,70,1],[52,24,0],[60,56,0],[70,80,0],[80,34,0],[88,62,0],[46,86,0],[7,14,0],[94,14,0],[66,8,0]];
+  function model(s) {
+    const stream = s.load !== "all";
+    const n = stream ? 3 : 12;
+    const mem = (14 + 3 * n + (s.tex === "mip" ? 2 : 5) * n + (s.far === "hlod" ? 2 : 0)) / 10;
+    const g = s.sim === "near" ? 18 : 44;
+    let rt, gpu;
+    if (s.far === "hlod") { rt = 16; gpu = 26; } else if (stream) { rt = 12; gpu = 22; } else { rt = 41; gpu = 38; }
+    const ft = Math.max(g, rt, gpu);
+    const bn = ft === g ? "game thread" : ft === rt ? "render thread" : "GPU";
+    const wf = s.load === "block" ? 240 : s.load === "async" ? ft + 4 : ft;
+    const ld = stream ? 12 : (s.tex === "mip" ? 70 : 95);
+    const horizon = !stream || s.far === "hlod";
+    return { stream, n, mem, g, rt, gpu, ft, bn, wf, ld, horizon };
+  }
+  function chart(m) {
+    const box = $("chart").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box))), narrow = W < 460;
+    const MH = Math.round(W * 0.42), P = 10;
+    const mx = (x) => P + x / 100 * (W - 2 * P), my = (y) => P + y / 100 * (MH - 2 * P);
+    let g = `<rect x="${P}" y="${P}" width="${W - 2 * P}" height="${MH - 2 * P}" rx="8" style="fill:var(--sea1);stroke:var(--line)"/>`;
+    const px = mx(ISL[0][0] + 6), py = my(ISL[0][1] - 2), rad = (W - 2 * P) * 0.15;
+    g += `<defs><clipPath id="mapclip"><rect x="${P}" y="${P}" width="${W - 2 * P}" height="${MH - 2 * P}" rx="8"/></clipPath></defs><g clip-path="url(#mapclip)">`;
+    if (m.stream) g += `<circle cx="${px}" cy="${py}" r="${rad}" style="fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:6 5"/>`;
+    if (st.sim === "near") g += `<circle cx="${px}" cy="${py}" r="${rad * 0.32}" style="fill:var(--p3);opacity:.18;stroke:var(--p3);stroke-width:1.5"/>`;
+    const IR = Math.max(9, W * 0.032);
+    ISL.forEach(([x, y, near], i) => {
+      const cx = mx(x), cy = my(y);
+      let style, lab = "";
+      if (!m.stream || near) style = "fill:var(--p2);stroke:var(--ink);stroke-width:1";
+      else if (st.far === "hlod") style = "fill:var(--p4);opacity:.75;stroke:var(--ink);stroke-dasharray:3 3";
+      else { style = "fill:none;stroke:var(--bad);stroke-width:1.5;stroke-dasharray:3 3"; lab = "?"; }
+      g += `<ellipse cx="${cx}" cy="${cy}" rx="${IR * 1.3}" ry="${IR}" style="${style}"/>`;
+      if (lab) g += `<text x="${cx}" y="${cy + 4}" text-anchor="middle" style="fill:var(--bad);font-weight:700">${lab}</text>`;
+    });
+    if (m.stream) g += `<text x="${px + rad + 4}" y="${py + 4}" style="fill:var(--accent);font-weight:700;paint-order:stroke;stroke:var(--sea1);stroke-width:3px">1 km</text>`;
+    g += `</g>`;
+    g += `<polygon points="${px},${py - 7} ${px + 6},${py + 5} ${px - 6},${py + 5}" style="fill:var(--accent)"/>`;
+    // bars
+    let y = MH + 16; const L = narrow ? 66 : 96, R = W - 10;
+    const memMax = 11.5, XM = (v) => L + v / memMax * (R - L);
+    g += `<text x="${L - 8}" y="${y + 13}" text-anchor="end" style="fill:var(--ink)">Memory</text>`;
+    const parts = [[1.4, "--p1"], [0.3 * m.n, "--p3"], [(st.tex === "mip" ? 0.2 : 0.5) * m.n, "--p2"], [st.far === "hlod" ? 0.2 : 0, "--p4"]];
+    let acc = 0; parts.forEach(([v, c]) => { if (v > 0) { g += `<rect x="${XM(acc)}" y="${y}" width="${Math.max(1, XM(acc + v) - XM(acc) - 1)}" height="18" rx="2" style="fill:var(${c})"/>`; acc += v; } });
+    const memTxt = `${m.mem.toFixed(1)} GB`, mxT = Math.max(XM(m.mem), XM(3.5)) + 6;
+    g += mxT > R - 50 ? `<text x="${XM(m.mem) - 4}" y="${y + 13}" text-anchor="end" style="fill:#fff;font-weight:700">${memTxt}</text>` : `<text x="${mxT}" y="${y + 13}" style="fill:var(--ink);font-weight:700">${memTxt}</text>`;
+    g += `<line x1="${XM(3.5)}" x2="${XM(3.5)}" y1="${y - 4}" y2="${y + 22}" style="stroke:var(--bad);stroke-width:2"/>`;
+    y += 30;
+    const msMax = 46, XF = (v) => L + v / msMax * (R - L);
+    const rows = [["Game", m.g, "--p3"], ["Render", m.rt, "--p4"], ["GPU", m.gpu, "--p2"]];
+    rows.forEach(([n, v, c], i) => {
+      const yy = y + i * 22;
+      g += `<text x="${L - 8}" y="${yy + 12}" text-anchor="end" style="fill:var(--ink)">${n}</text><rect x="${L}" y="${yy}" width="${XF(v) - L}" height="16" rx="2" style="fill:var(${c});opacity:${v === m.ft ? 1 : 0.45}"/>`;
+      const tx = XF(v) + 6;
+      g += tx > R - 30 ? `<text x="${XF(v) - 4}" y="${yy + 12}" text-anchor="end" style="fill:#fff;font-weight:700">${v}</text>` : `<text x="${Math.max(tx, v < 33.3 && XF(33.3) - XF(v) < 26 ? XF(33.3) + 4 : tx)}" y="${yy + 12}" style="fill:var(--ink);font-weight:${v === m.ft ? 700 : 400}">${v}</text>`;
+    });
+    g += `<line x1="${XF(33.3)}" x2="${XF(33.3)}" y1="${y - 4}" y2="${y + 66}" style="stroke:var(--bad);stroke-width:2;stroke-dasharray:4 3"/><text x="${XF(33.3)}" y="${y + 80}" text-anchor="middle" style="fill:var(--bad)">33.3 ms</text>`;
+    $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${y + 88}" role="img" aria-label="Map of 12 islands with what is loaded, plus memory and frame time bars">${g}</svg>`;
+    $("legend").innerHTML = `<span><i style="background:var(--p2)"></i>loaded island · textures</span><span><i style="background:var(--p4)"></i>HLOD proxy</span><span><i style="border:1.5px dashed var(--bad);background:none"></i>missing from horizon</span><span><i style="background:var(--p3)"></i>full simulation · geometry</span><span><i style="background:var(--p1)"></i>engine, code, audio, UI</span><span><i style="background:var(--accent)"></i>you</span>`;
+  }
+  function render() {
+    const m = model(st);
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
+    chart(m);
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("sMem", m.mem > 3.5, m.mem.toFixed(1));
+    set("sFt", m.ft > 33.3, m.ft); $("sFtS").textContent = `ms, ${Math.round(1000 / m.ft)} fps, ${m.bn}`;
+    set("sWf", m.wf > 50, m.wf);
+    set("sLd", m.ld > 20, m.ld);
+    const ok = m.mem <= 3.5 && m.ft <= 33.3 && m.wf <= 50 && m.ld <= 20 && m.horizon;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    let c;
+    if (!m.stream) c = st.tex === "mip"
+      ? `Mip streaming shrinks every island's textures, but all 12 islands are still in memory: ${m.mem.toFixed(1)} GB of 3.5. Per-asset savings can't fix a world that is loaded all at once. Loading takes ${m.ld} s.`
+      : `As built: all 12 islands loaded and every agent simulated. ${m.mem.toFixed(1)} GB (the handheld has 3.5), ${m.ft} ms a frame (the ${m.bn} is slowest), ${m.ld} s to load. It only runs on the dev kit.`;
+    else if (!m.horizon) c = `${st.load === "async" ? `Cells load in the background and activate a little per frame: the worst frame is ${m.wf} ms, not 240. ` : ""}Only the 3 islands within 1 km are loaded: ${m.mem.toFixed(1)} GB, ${m.ld} s to load. But the other 9 have vanished from the horizon${st.load === "block" ? `, and every cell load blocks the game thread: a ${m.wf} ms frame each time you cross a boundary` : ""}.`;
+    else if (st.load === "block") c = `Islands are back on the horizon as HLOD proxies, but loading still blocks the game thread: a ${m.wf} ms frame at every cell boundary. Load in the background.`;
+    else if (m.ft > 33.3) c = `Memory ${m.mem.toFixed(1)} GB, loading ${m.ld} s, no hitches, a full horizon. The frame is still ${m.ft} ms: the ${m.bn} is simulating all 6,000 agents in full, including those on islands nobody can see.`;
+    else c = `Full simulation only within 300 m, coarse beyond: game thread ${m.g} ms. The frame is ${m.ft} ms (${Math.round(1000 / m.ft)} fps, the ${m.bn} is slowest), worst frame ${m.wf} ms, ${m.mem.toFixed(1)} GB, ${m.ld} s to load.${m.mem <= 3.5 && m.ld <= 20 && m.horizon && m.wf <= 50 ? " Goal met." : ""}`;
+    $("coach").textContent = c;
+  }
+  function apply(s) { Object.assign(st, DEF, s); render(); }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); }));
+
+  const STEPS = [
+    { t: "As built: 11.0 GB, 44 ms", d: "All 12 islands loaded, all 6,000 agents simulated in full. 11.0 GB against 3.5, 44 ms a frame, 95 s to load. It only runs on the dev kit.", s: {} },
+    { t: "The first guess: smaller textures", d: "Mip streaming cuts textures from 0.5 to 0.2 GB per island. Still 7.4 GB: the problem is how much is loaded, not how big each piece is.", s: { tex: "mip" } },
+    { t: "Stream cells near the player", d: "Only the 3 islands within 1 km stay loaded: 2.9 GB, 12 s to load. But 9 islands vanish, and each cell load blocks: a 240 ms frame.", s: { tex: "mip", load: "block" } },
+    { t: "Load in the background", d: "Async loading, activated a little per frame: the worst frame is 48 ms instead of 240. Still 44 ms a frame, and an empty horizon.", s: { tex: "mip", load: "async" } },
+    { t: "HLOD proxies for distant islands", d: "One merged mesh per distant island: the horizon is back for 0.2 GB (3.1 GB total). Render thread 16 ms, GPU 26. The frame is still 44 ms: game-thread-bound.", s: { tex: "mip", load: "async", far: "hlod" } },
+    { t: "Full simulation near, coarse far", d: "AI LOD: full within 300 m, coarse beyond. Game thread 44 → 18 ms. Frame 26 ms (38 fps, GPU-bound), worst 30 ms, 3.1 GB, 12 s. Goal met.", s: { tex: "mip", load: "async", far: "hlod", sim: "near" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("chart").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("chart"));
+})();
+</script>
