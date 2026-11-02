@@ -1,0 +1,329 @@
+<title>Architecture Interview Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. timeline above, controls beside */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Architecture Interview Lab additions. */
+.viz svg { display: block; width: 100%; height: auto; }
+.viz text { font-family: var(--f-mono); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/077-interview-prep-architecture-questions.md">Read Lesson 077 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 077 · Lesson 077 · simulation using the lesson's numbers</div>
+    <h1>Architecture Interview Lab</h1>
+    <p class="lede">"Design the save system for the Reef's online mode. You have 30 minutes." Choose how the answer is shaped, and see how the time is spent and how an interviewer would score it on five things they listen for.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>One question, 30 minutes.</strong> Goal: a <strong>strong hire</strong>, 18 of 20 or more on the rubric, finished inside the 30 minutes.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Timeline, rubric and controls">
+    <div class="panel">
+      <h2>The 30 minutes, and the scorecard</h2>
+      <div class="viz" id="chart"></div>
+      <div class="legend" id="legend"></div>
+      <p class="coach" id="coach"></p>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Score</span><span class="v" id="sSc">0</span><span class="s">of 20</span></div>
+        <div class="stat"><span class="k">Verdict</span><span class="v" id="sVd">–</span><span class="s">hire at 14, strong at 18</span></div>
+        <div class="stat"><span class="k">Time used</span><span class="v" id="sTm">0</span><span class="s">of 30 minutes</span></div>
+        <div class="stat"><span class="k">Parts not reached</span><span class="v" id="sNr">0</span><span class="s">when time ran out</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>Opening</span></span>
+          <div class="seg-ctl" role="group" aria-label="Opening">
+            <button type="button" data-k="ask" data-v="no">Start drawing<small>assume the problem</small></button>
+            <button type="button" data-k="ask" data-v="yes">Ask first<small>5 min of questions</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Numbers</span></span>
+          <div class="seg-ctl" role="group" aria-label="Numbers">
+            <button type="button" data-k="est" data-v="no">Skip<small>"it should scale"</small></button>
+            <button type="button" data-k="est" data-v="yes">Estimate<small>3 min, on the board</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Design order</span></span>
+          <div class="seg-ctl" role="group" aria-label="Design order">
+            <button type="button" data-k="shape" data-v="detail">Details first<small>classes and fields</small></button>
+            <button type="button" data-k="shape" data-v="boxes">Boxes, then zoom<small>12 min</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Trade-offs</span></span>
+          <div class="seg-ctl" role="group" aria-label="Trade-offs">
+            <button type="button" data-k="trade" data-v="no">One answer<small>as if it's obvious</small></button>
+            <button type="button" data-k="trade" data-v="yes">Two options, pick one<small>5 min, say why</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Closing</span></span>
+          <div class="seg-ctl" role="group" aria-label="Closing">
+            <button type="button" data-k="close" data-v="no">Stop at the design<small>"that's it"</small></button>
+            <button type="button" data-k="close" data-v="yes">Failures and metrics<small>5 min</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 077: architecture interview questions</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Questions are part of the answer</h3><p>A design question is vague on purpose. The interviewer is listening for whether you find the real problem before solving one.</p></div>
+      <div class="note"><h3>Details first eats the clock</h3><p>Start with the classes and you never reach the parts that show architecture: trade-offs, failures and how you'd know it works.</p></div>
+      <div class="note"><h3>Say the trade-off out loud</h3><p>Two options, one choice and the reason is the most architect-like sentence you can say in an interview.</p></div>
+    </div>
+    <p class="fine">This lab is a model, not a real hiring rubric. It uses Lesson 077's scorecard: five things scored 0 to 4. Requirements: 4 if you ask first. Numbers: 4 if you estimate after asking, 2 if you estimate without asking (the numbers describe the wrong game). Design: 4 for boxes then zoom, 2 for details first. Trade-offs: 4 for two options and a reason, 1 for boxes without them. Failures and measurement: 4 if you reach them. Time: questions 5 min, numbers 3, boxes and zoom 12, trade-offs 5, closing 5. Details first takes all the time that's left, so anything after it isn't reached. Real interviews vary; the shape of a good answer doesn't.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const DEF = { ask: "no", est: "no", shape: "detail", trade: "no", close: "no" };
+  const st = { ...DEF };
+  function model(s) {
+    const ph = [];
+    let t = 0;
+    if (s.ask === "yes") { ph.push(["Questions", 5, "--p1"]); t += 5; }
+    if (s.est === "yes") { ph.push(["Numbers", 3, "--p3"]); t += 3; }
+    let nr = 0, tradeR = false, closeR = false;
+    if (s.shape === "detail") {
+      ph.push(["Classes and fields", 30 - t, "--p5"]); t = 30;
+      nr = (s.trade === "yes" ? 1 : 0) + (s.close === "yes" ? 1 : 0);
+    } else {
+      ph.push(["Boxes, then zoom", 12, "--p2"]); t += 12;
+      if (s.trade === "yes") { ph.push(["Trade-offs", 5, "--p4"]); t += 5; tradeR = true; }
+      if (s.close === "yes") { ph.push(["Failures, metrics", 5, "--p7"]); t += 5; closeR = true; }
+    }
+    const sc = {
+      R: s.ask === "yes" ? 4 : 0,
+      N: s.est === "yes" ? (s.ask === "yes" ? 4 : 2) : 0,
+      D: s.shape === "boxes" ? 4 : 2,
+      T: tradeR ? 4 : s.shape === "boxes" ? 1 : 0,
+      F: closeR ? 4 : 0,
+    };
+    const tot = sc.R + sc.N + sc.D + sc.T + sc.F;
+    const vd = tot >= 18 ? "Strong" : tot >= 14 ? "Hire" : "No hire";
+    return { ph, t, nr, sc, tot, vd };
+  }
+  function chart(m) {
+    const box = $("chart").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box))), narrow = W < 460;
+    const L = narrow ? 106 : 150, R = W - 34;
+    const X = (v) => L + v / 30 * (R - L);
+    let g = `<text x="${L - 8}" y="34" text-anchor="end" style="fill:var(--ink);font-weight:700">Minutes</text>`;
+    let t = 0;
+    m.ph.forEach(([n, d, c]) => {
+      const x = X(t), w = X(t + d) - x - 1;
+      g += `<rect x="${x}" y="20" width="${w}" height="22" rx="3" style="fill:var(${c})"/>`;
+      if (w > 30) g += `<text x="${x + w / 2}" y="35" text-anchor="middle" style="fill:#fff;font-weight:700">${d}</text>`;
+      t += d;
+    });
+    if (t < 30) g += `<rect x="${X(t)}" y="20" width="${X(30) - X(t) - 1}" height="22" rx="3" style="fill:none;stroke:var(--line);stroke-dasharray:4 3"/><text x="${(X(t) + X(30)) / 2}" y="35" text-anchor="middle" style="fill:var(--muted)">${30 - t} left</text>`;
+    for (let k = 0; k <= 30; k += narrow ? 10 : 5) g += `<text x="${X(k)}" y="58" text-anchor="middle" style="fill:var(--muted)">${k}</text>`;
+    const rows = [["Requirements", "R"], ["Numbers", "N"], ["Design", "D"], ["Trade-offs", "T"], ["Failures, metrics", "F"]];
+    const X4 = (v) => L + v / 4 * (R - L);
+    rows.forEach(([n, k], i) => {
+      const y = 80 + i * 28, v = m.sc[k];
+      g += `<text x="${L - 8}" y="${y + 13}" text-anchor="end" style="fill:var(--ink)">${narrow ? n.replace("Failures, metrics", "Failures") : n}</text><rect x="${L}" y="${y}" width="${R - L}" height="18" rx="3" style="fill:var(--field);stroke:var(--line)"/>`;
+      if (v) g += `<rect x="${L}" y="${y}" width="${X4(v) - L}" height="18" rx="3" style="fill:var(${v >= 4 ? "--good" : v >= 2 ? "--gold" : "--bad"})"/>`;
+      g += `<text x="${R + 6}" y="${y + 13}" style="fill:var(--ink);font-weight:700">${v}/4</text>`;
+    });
+    $("chart").innerHTML = `<svg viewBox="0 0 ${W} ${80 + 5 * 28 + 4}" role="img" aria-label="Thirty-minute timeline and five-part scorecard">${g}</svg>`;
+    $("legend").innerHTML = m.ph.map(([n, , c]) => `<span><i style="background:var(${c})"></i>${n}</span>`).join("");
+  }
+  function render() {
+    const m = model(st);
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
+    chart(m);
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("sSc", m.tot < 14, m.tot);
+    set("sVd", m.tot < 14, m.vd);
+    set("sTm", m.t > 30, m.t);
+    set("sNr", m.nr > 0, m.nr);
+    const ok = m.tot >= 18 && m.t <= 30;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    let c;
+    if (st.shape === "detail") {
+      c = st.ask === "no"
+        ? `Straight to a SaveGame class with 40 fields. At minute 30 you're still naming fields, and the design assumes one player saving to a local file. ${m.tot} of 20.`
+        : st.est === "no"
+          ? `Five minutes of questions find the real problem: 200,000 players online, saves on a server, a catch must never be lost. Then details eat the rest of the clock. ${m.tot} of 20.`
+          : `Questions, then numbers: 5,000 saves a second, 100 MB/s. Still details first, so ${m.nr ? `the ${m.nr === 2 ? "trade-offs and failures you planned are" : "part you planned is"} never reached` : "the design never gets past one class"}. ${m.tot} of 20.`;
+    } else if (st.trade === "no" && st.close === "no") c = `Boxes first: client, save service, queue, database, then zoom into the write path and the format. Design 4 of 4, and ${30 - m.t} minutes left over that the interviewer fills with questions you didn't plan for. ${m.tot} of 20.`;
+    else if (st.close === "no") c = `Two options, one choice, one reason: full snapshots over an event log, because a save is small (20 KB) and restoring is simple. ${m.tot} of 20, ${m.vd.toLowerCase()}${m.tot >= 14 && m.tot < 18 ? ", but nothing on what breaks or how you'd know" : ""}.`;
+    else c = `${st.trade === "yes" ? "" : "Failures and metrics without trade-offs: half the architecture story. "}You close with what breaks (a crash mid-write, two devices, an old version) and what you'd measure (save p99, failed saves). ${m.tot} of 20 in ${m.t} minutes${m.tot >= 18 ? ": strong hire." : "."}`;
+    if (st.ask === "no" && st.shape === "boxes") c = "No questions first: the boxes may be good, but they solve the problem you assumed. " + c;
+    $("coach").textContent = c;
+  }
+  function apply(s) { Object.assign(st, DEF, s); render(); }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); }));
+
+  const STEPS = [
+    { t: "As answered: straight to classes", d: "No questions, no numbers, a SaveGame class and its fields until time runs out. Design 2 of 4, everything else 0: 2 of 20.", s: {} },
+    { t: "Ask first", d: "5 minutes of questions: online, 200,000 players at once, a catch must never be lost. Requirements 4 of 4: 6 of 20, still out of time.", s: { ask: "yes" } },
+    { t: "Put numbers on it", d: "3 minutes on the board: 5,000 saves a second, 100 MB/s, 300 GB stored. 10 of 20.", s: { ask: "yes", est: "yes" } },
+    { t: "Boxes first, then zoom", d: "Client, save service, queue, database; then the write path and the format. 12 minutes, design 4 of 4: 13 of 20, with 10 minutes unused.", s: { ask: "yes", est: "yes", shape: "boxes" } },
+    { t: "Two options, pick one, say why", d: "Snapshots vs an event log; snapshots, because a save is 20 KB and restores are simple. Trade-offs 4 of 4: 16 of 20, hire.", s: { ask: "yes", est: "yes", shape: "boxes", trade: "yes" } },
+    { t: "Close with failures and metrics", d: "Crash mid-write, two devices, an old client; measure save p99 and failed saves. 20 of 20 in 30 minutes: strong hire.", s: { ask: "yes", est: "yes", shape: "boxes", trade: "yes", close: "yes" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("chart").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("chart"));
+})();
+</script>

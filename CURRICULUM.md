@@ -115,7 +115,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 074 | Directing AI coding tools as an architect: 2,000 lines in an afternoon | ✅ |
 | 075 | Case study: anatomy of a commercial engine runtime: the 22 ms frame where the GPU was waiting | ✅ |
 | 076 | Case study: optimizing an open world: the archipelago that needed 11 GB | ✅ |
-| 077 | Interview prep: architecture questions | ⬜ |
+| 077 | Interview prep: architecture questions: thirty minutes of class fields | ✅ |
 | 078 | Interview prep: optimization questions | ⬜ |
 | 079 | Building a portfolio that proves architect-level skill | ⬜ |
 | 080 | Capstone: plan your own architecture + optimization project | ⬜ |
