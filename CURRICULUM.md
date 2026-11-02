@@ -109,7 +109,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 068 | Architecture decision records: the reason that left with the online lead | ✅ |
 | 069 | A framework for evaluating trade-offs: the cheapest option that failed at the final whistle | ✅ |
 | 070 | Reviewing code as an architect: 61 comments and nothing that mattered | ✅ |
-| 071 | Working with designers and artists | ⬜ |
+| 071 | Working with designers and artists: the budget nobody could see | ✅ |
 | 072 | Estimating technical risk | ⬜ |
 | 073 | Leading a vertical slice | ⬜ |
 | 074 | Directing AI coding tools as an architect | ⬜ |

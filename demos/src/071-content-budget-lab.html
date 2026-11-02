@@ -1,0 +1,317 @@
+<title>Content Budget Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. assets left, readouts and controls right */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* Content Budget Lab additions. */
+.viz svg { display: block; width: 100%; height: auto; }
+.viz text { font-family: var(--f-mono); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.tiles { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; }
+.tile { aspect-ratio: 1.6; border-radius: 4px; border: 1px solid var(--line); display: grid; place-items: center; font-family: var(--f-mono); font-size: 10px; color: var(--muted); }
+.tile.ok { background: color-mix(in srgb, var(--good) 16%, transparent); border-color: var(--good); }
+.tile.now { background: color-mix(in srgb, var(--p1) 22%, transparent); border-color: var(--p1); color: var(--ink); }
+.tile.late { background: color-mix(in srgb, var(--p2) 26%, transparent); border-color: var(--p2); color: var(--ink); }
+.tile.left { background: color-mix(in srgb, var(--bad) 26%, transparent); border-color: var(--bad); color: var(--ink); }
+.wx { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+.wx b { display: block; margin-bottom: 4px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/071-working-with-designers-and-artists.md">Read Lesson 071 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 071 · Lesson 071 · simulation using the lesson's numbers</div>
+    <h1>Content Budget Lab</h1>
+    <p class="lede">Six weeks to build the harbour's 40 art assets and a weather system, inside a 2.0 ms art budget on the handheld. Choose how the budget is told to artists, when they find out an asset is too expensive, and when a technical artist joins the design, then see what gets reworked and what gets cut.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>40 assets, one weather system, six weeks.</strong> Goal: harbour art within <strong>2.0 ms</strong>, at most <strong>2 artist-days</strong> of rework, and the weather <strong>ships</strong>.</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Assets and controls">
+    <div class="panel">
+      <h2>The harbour's 40 assets at week 6</h2>
+      <div class="tiles" id="tiles"></div>
+      <div class="legend" id="legendT"></div>
+      <p class="coach" id="coach"></p>
+      <h3>Harbour art on the handheld</h3>
+      <div class="viz" id="chart"></div>
+      <div class="wx" id="wx"></div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Assets over budget</span><span class="v" id="sOver">0</span><span class="s" id="sOverS">of 40</span></div>
+        <div class="stat"><span class="k">Rework</span><span class="v" id="sRw">0</span><span class="s">artist-days</span></div>
+        <div class="stat"><span class="k">Harbour art</span><span class="v" id="sMs">0</span><span class="s">ms at week 6, budget 2.0</span></div>
+        <div class="stat"><span class="k">Weather</span><span class="v" id="sWx">–</span><span class="s" id="sWxS">system</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>How the budget is told</span></span>
+          <div class="seg-ctl" role="group" aria-label="Budget language">
+            <button type="button" data-k="lang" data-v="eng">Engineering terms<small>2.0 ms, 300 MB</small></button>
+            <button type="button" data-k="lang" data-v="art">Creator terms<small>triangles, textures, particles</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>When they find out</span></span>
+          <div class="seg-ctl" role="group" aria-label="Feedback">
+            <button type="button" data-k="fb" data-v="weekly">Weekly profile<small>by programmers</small></button>
+            <button type="button" data-k="fb" data-v="live">Live in the editor<small>budget meter</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>When tech joins the design</span></span>
+          <div class="seg-ctl" role="group" aria-label="Involvement">
+            <button type="button" data-k="pair" data-v="hand">At hand-off<small>"send us the assets"</small></button>
+            <button type="button" data-k="pair" data-v="kick">At kickoff<small>tech artist in the room</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 071: working with designers and artists</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>Budgets in their own units</h3><p>"2.0 ms" means nothing in a modelling tool. "15,000 triangles and two 2K textures per boat" is something an artist can aim at.</p></div>
+      <div class="note"><h3>Feedback while creating</h3><p>An asset found too expensive weeks later has already been rigged, lit and placed. A meter in the editor catches it in minutes, when fixing is cheap.</p></div>
+      <div class="note"><h3>Tech in the first meeting</h3><p>A weather system designed without a frame budget gets cut. The same idea, shaped at kickoff by someone who knows the costs, ships.</p></div>
+    </div>
+    <p class="fine">This lab is a model, not a measurement. It uses Lesson 071's numbers: 40 assets, harbour art at 1.8 ms when every asset is in budget, each over-budget asset +0.05 ms. Budgets in engineering terms leave 18 assets over; in creator terms, 8. Found at the weekly profile, a fix costs 1.5 artist-days and half are still unfixed at week 6; found live in the editor, a fix costs 0.5 days with a meter in ms only and 0.1 days with creator terms. The designers' weather costs 1.8 ms and is cut when found at the weekly profile (10 designer-days lost) or in the editor (4 days lost); designed at kickoff with a technical artist, it ships at 0.5 ms in its own budget line.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const N = 40, BASE = 1.8, PER = 0.05, BUDGET = 2.0;
+  // a fixed scatter of which assets go over first
+  const ORDER = [3, 17, 26, 8, 34, 12, 21, 38, 5, 30, 14, 1, 24, 36, 10, 19, 28, 33, 7, 22, 15, 2, 39, 11, 27, 0, 18, 31, 9, 25, 37, 4, 20, 13, 35, 6, 29, 16, 23, 32];
+  const KIND = (i) => (i < 12 ? "B" : i < 30 ? "P" : "E"); // boats, props, effects
+  const st = { lang: "eng", fb: "weekly", pair: "hand" };
+  function model(s) {
+    const over = s.lang === "eng" ? 18 : 8;
+    const live = s.fb === "live";
+    const fix = live ? (s.lang === "eng" ? 0.5 : 0.1) : 1.5;
+    const left = live ? 0 : over / 2;
+    const rework = over * fix;
+    const ms = BASE + left * PER;
+    const wxShip = s.pair === "kick";
+    const wxLost = wxShip ? 0 : live ? 4 : 10;
+    return { over, left, rework, ms, wxShip, wxLost, live };
+  }
+  function tiles(m) {
+    const overSet = new Set(ORDER.slice(0, m.over)), leftSet = new Set(ORDER.slice(0, m.left));
+    let h = "";
+    for (let i = 0; i < N; i++) {
+      const k = !overSet.has(i) ? "ok" : m.live ? "now" : leftSet.has(i) ? "left" : "late";
+      h += `<div class="tile ${k}">${KIND(i)}</div>`;
+    }
+    $("tiles").innerHTML = h;
+    $("legendT").innerHTML = `<span><i style="background:var(--good)"></i>in budget</span><span><i style="background:var(--p1)"></i>over, fixed while creating</span><span><i style="background:var(--p2)"></i>over, reworked late</span><span><i style="background:var(--bad)"></i>over, still unfixed</span><span>B boat · P prop · E effect</span>`;
+  }
+  function chart(m) {
+    const box = $("chart").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box)));
+    const L = 8, R = W - 8, MAX = 3.0, X = (v) => L + (v / MAX) * (R - L);
+    let g = `<rect x="${L}" y="16" width="${X(BASE) - L}" height="24" rx="3" style="fill:var(--p1)"/>`;
+    if (m.ms > BASE) g += `<rect x="${X(BASE)}" y="16" width="${X(m.ms) - X(BASE)}" height="24" rx="3" style="fill:var(--bad)"/>`;
+    g += `<line x1="${X(BUDGET)}" x2="${X(BUDGET)}" y1="8" y2="48" style="stroke:var(--accent);stroke-width:2;stroke-dasharray:4 3"/><text x="${X(BUDGET) + 4}" y="58" style="fill:var(--accent)">budget 2.0</text>`;
+    g += `<text x="${Math.max(X(m.ms), X(BUDGET)) + 6}" y="33" style="fill:var(--ink);font-weight:700">${m.ms.toFixed(2)} ms</text>`;
+    for (const v of [0, 1, 2, 3]) g += `<text x="${X(v)}" y="74" text-anchor="${v === 0 ? "start" : v === 3 ? "end" : "middle"}" style="fill:var(--muted)">${v}</text>`;
+    $("chart").innerHTML = `<svg viewBox="0 0 ${W} 80" role="img" aria-label="Harbour art frame cost against the 2.0 ms budget">${g}</svg>`;
+  }
+  function wx(m) {
+    let h;
+    if (m.wxShip) h = `<b>Weather: shipped, 0.5 ms in its own line</b>A technical artist at the kickoff asks what the rain must feel like. Rain as a screen-space layer and fog in the post-processing pass instead of 4,000 particles and volumetric fog: 0.5 ms, agreed before anyone builds it.`;
+    else if (m.live) h = `<b>Weather: cut in week 2, 4 designer-days lost</b>The designers see 1.8 ms on the meter as soon as their test scene runs. They can make it cheaper only by making it uglier, and nobody knows another way. Cut.`;
+    else h = `<b>Weather: cut in week 5, 10 designer-days lost</b>4,000 rain particles and volumetric fog: 1.8 ms on its own. Nobody measures it until the weekly profile in week 5, when it's too late to redesign. Cut.`;
+    $("wx").innerHTML = h;
+  }
+  function render() {
+    const m = model(st);
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
+    tiles(m); chart(m); wx(m);
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("sOver", !m.live && m.over > 0, m.over);
+    $("sOverS").textContent = m.live ? "of 40, caught while creating" : "of 40, found at the weekly profile";
+    set("sRw", m.rework > 2, (+m.rework.toFixed(1)).toString());
+    set("sMs", m.ms > BUDGET, m.ms.toFixed(2));
+    set("sWx", !m.wxShip, m.wxShip ? "Ships" : "Cut");
+    $("sWxS").textContent = m.wxShip ? "0.5 ms, designed at kickoff" : `${m.wxLost} designer-days lost`;
+    const ok = m.ms <= BUDGET && m.rework <= 2 && m.wxShip;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    let c;
+    if (st.lang === "eng" && !m.live) c = `The budget is "2.0 ms and 300 MB" in an engineering document. Artists can't turn that into triangles, so they guess: 18 of 40 assets are over. Programmers find them at the weekly profile, after rigging and lighting: 27 artist-days of rework, and 9 still unfixed at week 6 (${m.ms.toFixed(2)} ms).`;
+    else if (!m.live) c = `Budgets in creator terms (boat 15,000 triangles and two 2K textures, effect 300 particles): only 8 assets go over. But they're still found weeks later: 12 days of rework, 4 unfixed, ${m.ms.toFixed(2)} ms.`;
+    else if (st.lang === "eng") c = `A live meter in the editor shows each asset's cost in ms. Artists see it's too expensive at once, but not which knob to turn: 18 assets, 0.5 days of trial and error each, 9 days. Art fits at ${m.ms.toFixed(2)} ms.`;
+    else if (!m.wxShip) c = `Creator terms plus a live meter that shows triangles, texture memory and particle counts against the boat's budget: 8 assets caught while being made, fixed in about an hour each (${(+m.rework.toFixed(1))} days). Art fits at ${m.ms.toFixed(2)} ms. The weather is still designed without anyone who knows its cost.`;
+    else c = `Creator terms, a live meter, and a technical artist at the weather kickoff: art at ${m.ms.toFixed(2)} ms, ${(+m.rework.toFixed(1))} days of rework, and the weather ships at 0.5 ms. Goal met.`;
+    $("coach").textContent = c;
+  }
+  function apply(s) { Object.assign(st, { lang: "eng", fb: "weekly", pair: "hand" }, s); render(); }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); }));
+
+  const STEPS = [
+    { t: "As run: ms in a document", d: "Artists get \"2.0 ms, 300 MB\". 18 of 40 assets go over, found at the weekly profile: 27 artist-days of rework, 2.25 ms at week 6, and the weather is cut in week 5 (10 designer-days lost).", s: {} },
+    { t: "Budgets in creator terms", d: "Boat: 15,000 triangles, two 2K textures. Effect: 300 particles. 8 over, still found late: 12 days, 2.00 ms. Weather still cut.", s: { lang: "art" } },
+    { t: "A meter in ms only", d: "Compare: live feedback in the wrong units. 18 caught at once but fixed by trial and error: 9 days, 1.80 ms.", s: { lang: "eng", fb: "live" } },
+    { t: "Live meter in creator terms", d: "Triangles, texture memory and particles against each asset's budget, live in the editor: 8 caught while being made, 0.8 days of rework, 1.80 ms. The weather is cut in week 2 (4 days lost).", s: { lang: "art", fb: "live" } },
+    { t: "Tech artist at the kickoff", d: "The weather is shaped in the first meeting: screen-space rain and post-process fog, 0.5 ms in its own line. Art 1.80 ms, 0.8 days of rework, weather ships. Goal met.", s: { lang: "art", fb: "live", pair: "kick" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("tiles").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("chart"));
+})();
+</script>
