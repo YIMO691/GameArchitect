@@ -94,3 +94,4 @@ AI tools write plausible code quickly. What they can't do on their own is make d
 | 071 | [Working with Designers and Artists: The Budget Nobody Could See](lessons/071-working-with-designers-and-artists.md) | [Content Budget Lab](https://yimo691.github.io/GameArchitect/demos/071-content-budget-lab/) | 2026-11-01 |
 | 072 | [Estimating Technical Risk: "Six Weeks", Again](lessons/072-estimating-technical-risk.md) | [Risk Estimate Lab](https://yimo691.github.io/GameArchitect/demos/072-risk-estimate-lab/) | 2026-11-01 |
 | 073 | [Leading a Vertical Slice: Ten Weeks and Nothing to Play](lessons/073-leading-a-vertical-slice.md) | [Slice Lab](https://yimo691.github.io/GameArchitect/demos/073-slice-lab/) | 2026-11-01 |
+| 074 | [Directing AI Coding Tools as an Architect: 2,000 Lines in an Afternoon](lessons/074-directing-ai-coding-tools-as-an-architect.md) | [AI Pairing Lab](https://yimo691.github.io/GameArchitect/demos/074-ai-pairing-lab/) | 2026-11-01 |

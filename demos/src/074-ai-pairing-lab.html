@@ -1,0 +1,327 @@
+<title>AI Pairing Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. problems left, readouts and controls right */
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --field: #f6f8fb;
+  --ink: #132030;
+  --muted: #586579;
+  --line: #d5dce5;
+  --accent: #a35f00;
+  --good: #137a43;
+  --bad: #c62f36;
+  --cpu: #6250d6;
+  --sea1: #d8ecf6; --sea2: #a9d1e6; --sand: #e9dcc0;
+  --p1: #2a78d6; --p2: #eb6834; --p3: #1baf7a; --p4: #eda100; --p5: #e87ba4; --p6: #008300; --p7: #9a6fd0;
+  --h0: #e4edf6; --h1: #9ec5e8; --h2: #59a14f; --h3: #edc948; --h4: #f28e2b; --h5: #e5534b; --h6: #8e1b1b; --foam: #ffffff; --gold: #d9a300;
+  --f-display: "Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+    --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+    --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+    --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+    --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1319; --panel: #161d26; --field: #10161e; --ink: #e4ebf3; --muted: #95a2b4; --line: #2a3441;
+  --accent: #f0a43a; --good: #3cbf78; --bad: #ff6168; --cpu: #9085e9;
+  --sea1: #0f2a3a; --sea2: #071824; --sand: #3a3226;
+  --p1: #3987e5; --p2: #d95926; --p3: #199e70; --p4: #c98500; --p5: #d55181; --p6: #008300; --p7: #a585e0; color-scheme: dark;
+  --h0: #16202b; --h1: #24507a; --h2: #3d8a3a; --h3: #c9a62c; --h4: #e07a1f; --h5: #ff6168; --h6: #ffb3b6; --foam: #dbe7f2; --gold: #f0c040;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 48px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+a { color: var(--p1); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 6px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 6vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 22px; line-height: 1.2; margin: 0; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; }
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.lab { display: grid; gap: 20px; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: minmax(0, 1fr); } }
+
+.goal { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.goal p { margin: 0; font-size: 14px; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pill.ok { color: var(--good); }
+.pill.over { color: var(--bad); }
+
+.head-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 10; background: var(--field); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stage-tag { position: absolute; left: 8px; top: 8px; font-family: var(--f-mono); font-size: 12px; padding: 3px 8px; border-radius: 4px; background: var(--panel); border: 1px solid var(--line); max-width: calc(100% - 16px); }
+.legend { font-size: 13px; color: var(--muted); margin: 0; }
+.threads svg { display: block; width: 100%; height: auto; }
+.threads text { font-family: var(--f-mono); font-size: 13px; }
+.coach { margin: 0; font-size: 14px; }
+.coach .warn { color: var(--bad); font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 12px; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.stat .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+.stat .s { font-size: 12px; color: var(--muted); }
+.v.bad { color: var(--bad); } .v.good { color: var(--good); }
+
+.controls { display: grid; gap: 14px; }
+.seg-ctl { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg-ctl button { font: inherit; font-size: 14px; font-weight: 600; padding: 8px 6px; min-height: 36px; border: 0; background: transparent; color: var(--muted); cursor: pointer; line-height: 1.25; }
+.seg-ctl button small { display: block; font-weight: 400; font-size: 11px; }
+.seg-ctl button[aria-pressed="true"] { background: var(--ink); color: var(--panel); }
+.seg-ctl.small button { min-height: 30px; padding: 4px 10px; font-size: 13px; }
+.field-row { display: grid; gap: 6px; }
+.field-row > label, .field-row > .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 500; }
+.field-row .hint { font-size: 12px; color: var(--muted); margin: 0; }
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+
+.capture { font-family: var(--f-mono); font-size: clamp(11px, 3vw, 13px); line-height: 1.6; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; overflow-x: auto; white-space: pre; }
+.capture .warn { color: var(--bad); font-weight: 600; }
+.capture .dim { color: var(--muted); }
+.capture .ok { color: var(--good); font-weight: 600; }
+
+.two-col { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th, .tbl td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl th { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.tbl td.num, .tbl th.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; }
+.tbl tr.cur td { font-weight: 600; }
+.tbl tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.tbl .bad { color: var(--bad); } .tbl .good { color: var(--good); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: step; }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 8px; }
+.steps li::before { content: counter(step); font-family: var(--f-mono); font-weight: 600; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 13px; }
+.steps li.active { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.steps li.active::before { background: var(--accent); color: var(--panel); border-color: var(--accent); }
+.steps .t { font-weight: 600; }
+.steps p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+@media (max-width: 520px) {
+  .steps li { grid-template-columns: 32px minmax(0, 1fr); }
+  .steps li .btn { grid-column: 2; justify-self: start; }
+}
+.group-title { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin: 4px 0 0; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.notes { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+.note { display: grid; gap: 4px; }
+.note p { margin: 0; color: var(--muted); font-size: 14px; }
+.fine { font-size: 13px; color: var(--muted); margin: 0; max-width: 72ch; }
+.threads rect.bar { transition: width 0.25s ease; }
+@media (prefers-reduced-motion: reduce) { .threads rect.bar { transition: none; } }
+.mode-ctl { max-width: 560px; }
+.sw { display: inline-block; width: 11px; height: 11px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; border: 1px solid var(--line); }
+/* AI Pairing Lab additions. */
+.viz svg { display: block; width: 100%; height: auto; }
+.viz text { font-family: var(--f-mono); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.qs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.qgrp { font-size: 12px; color: var(--muted); margin: 8px 0 4px; font-weight: 600; }
+.q { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font-size: 12px; display: grid; gap: 2px; min-height: 50px; }
+.q b { font-size: 12px; line-height: 1.25; }
+.q span { font-family: var(--f-mono); font-size: 11px; }
+.q.prev { border-color: var(--p1); box-shadow: inset 3px 0 0 var(--p1); } .q.prev span { color: var(--p1); }
+.q.ok { border-color: var(--good); box-shadow: inset 3px 0 0 var(--good); } .q.ok span { color: var(--good); }
+.q.bad { border-color: var(--bad); box-shadow: inset 3px 0 0 var(--bad); } .q.bad span { color: var(--bad); }
+@media (max-width: 520px) { .qs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="crumbs">
+      <a href="../index.html">← All labs</a>
+      <a href="https://github.com/YIMO691/GameArchitect/blob/main/lessons/074-directing-ai-coding-tools-as-an-architect.md">Read Lesson 074 ↗</a>
+    </div>
+    <div class="eyebrow">Lab 074 · Lesson 074 · simulation using the lesson's numbers</div>
+    <h1>AI Pairing Lab</h1>
+    <p class="lede">An AI coding assistant writes the deep-sea fish behaviour. Choose what it's told about the architecture, how big each request is, which checks its code must pass, and how it's reviewed, then see which of 7 problems reach the game and how your hours compare with writing it by hand.</p>
+  </header>
+
+  <div class="goal">
+    <p><strong>One feature, one assistant.</strong> Goal: <strong>no problem merged</strong>, fish AI within its <strong>0.5 ms</strong> budget, and at most <strong>6 hours</strong> of your time (by hand it's about 40).</p>
+    <span id="goalPill" class="pill over">Not yet</span>
+  </div>
+
+  <section class="lab" aria-label="Problems and controls">
+    <div class="panel">
+      <h2>What the generated code contains</h2>
+      <div id="qs"></div>
+      <div class="legend" id="legendQ"></div>
+      <p class="coach" id="coach"></p>
+      <h3>Hours: yours, and the fixes that come later</h3>
+      <div class="viz" id="chart"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="panel">
+      <div class="stats">
+        <div class="stat"><span class="k">Problems merged</span><span class="v" id="sMer">0</span><span class="s">of 7</span></div>
+        <div class="stat"><span class="k">Fixes later</span><span class="v" id="sFix">0</span><span class="s">hours after merge</span></div>
+        <div class="stat"><span class="k">Your time</span><span class="v" id="sYou">0</span><span class="s">hours: brief, prompts, review</span></div>
+        <div class="stat"><span class="k">Fish AI on handheld</span><span class="v" id="sMs">0</span><span class="s" id="sMsS">ms, budget 0.5</span></div>
+      </div>
+      <div class="controls">
+        <div class="field-row"><span class="lbl"><span>What the assistant is told</span></span>
+          <div class="seg-ctl" role="group" aria-label="Context">
+            <button type="button" data-k="brief" data-v="no">One line<small>"write deep-sea fish AI"</small></button>
+            <button type="button" data-k="brief" data-v="yes">Architecture brief<small>rules, budgets, utilities</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Size of each request</span></span>
+          <div class="seg-ctl" role="group" aria-label="Request size">
+            <button type="button" data-k="steps" data-v="no">Whole feature<small>2,000 lines at once</small></button>
+            <button type="button" data-k="steps" data-v="yes">Small steps<small>interface first, play each</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Checks its code must pass</span></span>
+          <div class="seg-ctl" role="group" aria-label="Checks">
+            <button type="button" data-k="checks" data-v="no">Its own tests<small>written with the code</small></button>
+            <button type="button" data-k="checks" data-v="yes">Our checks<small>perf test, architecture lint</small></button>
+          </div></div>
+        <div class="field-row"><span class="lbl"><span>Review</span></span>
+          <div class="seg-ctl" role="group" aria-label="Review">
+            <button type="button" data-k="rev" data-v="skim">Skim<small>it compiles, tests pass</small></button>
+            <button type="button" data-k="rev" data-v="full">Five questions<small>Lesson 070</small></button>
+          </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="tryH">
+    <h2 id="tryH">Try this</h2>
+    <p class="fine">Tap <strong>Set up</strong> on each step in order. This replays the lesson's story.</p>
+    <p class="group-title">Lesson 074: directing AI coding tools</p>
+    <ol class="steps" id="steps"></ol>
+  </section>
+
+  <section class="panel" aria-labelledby="whatH">
+    <h2 id="whatH">What this shows</h2>
+    <div class="notes">
+      <div class="note"><h3>It knows code, not your code</h3><p>An assistant follows rules it's given. Without the architecture, budgets and existing utilities, it writes plausible code that ignores all three.</p></div>
+      <div class="note"><h3>Small steps you can play</h3><p>An interface first, then one behaviour at a time, each run in the game. Bugs show up in the step that made them.</p></div>
+      <div class="note"><h3>Your checks, your review</h3><p>Its own tests check what it meant to write. Your performance test, architecture lint and five-question review check what the game needs.</p></div>
+    </div>
+    <p class="fine">This lab is a model, not a measurement. It uses Lesson 074's numbers: 7 problems. Five are architectural (12 hours each to fix after merge): allocation per update, no AI LOD, duplicated utilities, the client deciding catches, and input read directly. Two are bugs (6 hours each): fish slip through the seabed below 200 m, and fish keep moving while paused. An architecture brief (1 hour, reused) prevents the LOD, authority and input problems; small steps (+1 hour) catch both bugs; our checks catch the allocation, authority and input problems; a five-question review (3 hours for the whole feature, 2 in small steps; a skim is 0.5) catches all five architectural ones. A one-line prompt costs 0.2 hours. Fish AI: 0.4 ms with LOD, 2.4 ms without; allocation adds GC spikes.</p>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const P = [
+    { n: "Allocates in every update", g: "Architecture", c: 12, by: { checks: "perf test", rev: "review" } },
+    { n: "Ignores AI LOD (Lesson 053)", g: "Architecture", c: 12, by: { brief: 1, rev: "review" } },
+    { n: "Duplicates 3 existing utilities", g: "Architecture", c: 12, by: { rev: "review" } },
+    { n: "Client decides catches (Lesson 048)", g: "Architecture", c: 12, by: { brief: 1, checks: "architecture lint", rev: "review" } },
+    { n: "Reads input directly, not commands", g: "Architecture", c: 12, by: { brief: 1, checks: "architecture lint", rev: "review" } },
+    { n: "Fish slip through the seabed below 200 m", g: "Bugs", c: 6, by: { steps: "playing step 3" } },
+    { n: "Fish keep moving while paused", g: "Bugs", c: 6, by: { steps: "playing step 2" } },
+  ];
+  const st = { brief: "no", steps: "no", checks: "no", rev: "skim" };
+  function model(s) {
+    const out = P.map((p) => {
+      if (s.brief === "yes" && p.by.brief) return { p, k: "prev", why: "prevented by the brief" };
+      if (s.steps === "yes" && p.by.steps) return { p, k: "ok", why: "caught " + p.by.steps };
+      if (s.checks === "yes" && p.by.checks) return { p, k: "ok", why: "caught by " + p.by.checks };
+      if (s.rev === "full" && p.by.rev) return { p, k: "ok", why: "caught in review" };
+      return { p, k: "bad", why: `merged: ${p.c} h to fix` };
+    });
+    const merged = out.filter((o) => o.k === "bad");
+    const fix = merged.reduce((a, o) => a + o.p.c, 0);
+    const you = (s.brief === "yes" ? 1 : 0.2) + (s.steps === "yes" ? 1 : 0) + (s.rev === "full" ? (s.steps === "yes" ? 2 : 3) : 0.5);
+    const lodBad = out[1].k === "bad", gcBad = out[0].k === "bad";
+    const ms = lodBad ? 2.4 : 0.4;
+    return { out, merged: merged.length, fix, you, ms, gcBad };
+  }
+  function grid(m) {
+    let h = "";
+    for (const g of ["Architecture", "Bugs"]) {
+      h += `<div class="qgrp">${g} (${g === "Bugs" ? 2 : 5})</div><div class="qs">`;
+      m.out.filter((o) => o.p.g === g).forEach((o) => { h += `<div class="q ${o.k}"><b>${o.p.n}</b><span>${o.why}</span></div>`; });
+      h += `</div>`;
+    }
+    $("qs").innerHTML = h;
+    $("legendQ").innerHTML = `<span><i style="background:var(--p1)"></i>never written: prevented</span><span><i style="background:var(--good)"></i>caught before merge</span><span><i style="background:var(--bad)"></i>merged</span>`;
+  }
+  function chart(m) {
+    const box = $("chart").clientWidth || 600, W = Math.max(300, Math.min(680, Math.round(box)));
+    const L = 8, R = W - 8, MAX = 80, X = (v) => L + (v / MAX) * (R - L);
+    let g = `<rect x="${X(0)}" y="16" width="${Math.max(2, X(m.you) - X(0))}" height="24" rx="3" style="fill:var(--p1)"/>`;
+    if (m.fix) g += `<rect x="${X(m.you)}" y="16" width="${X(m.you + m.fix) - X(m.you)}" height="24" rx="3" style="fill:var(--bad)"/>`;
+    const tot = m.you + m.fix;
+    g += `<text x="${Math.min(X(tot) + 6, R - 2)}" y="33" text-anchor="${X(tot) > R - 90 ? "end" : "start"}" style="fill:${X(tot) > R - 90 ? "#fff" : "var(--ink)"};font-weight:700">${+tot.toFixed(1)} h</text>`;
+    g += `<line x1="${X(40)}" x2="${X(40)}" y1="8" y2="50" style="stroke:var(--accent);stroke-width:2;stroke-dasharray:4 3"/><text x="${X(40) + 4}" y="62" style="fill:var(--accent)">by hand ≈ 40 h</text>`;
+    for (const v of [0, 20, 40, 60, 80]) g += `<text x="${X(v)}" y="80" text-anchor="${v === 0 ? "start" : v === 80 ? "end" : "middle"}" style="fill:var(--muted)">${v}</text>`;
+    $("chart").innerHTML = `<svg viewBox="0 0 ${W} 86" role="img" aria-label="Your hours and later fix hours">${g}</svg>`;
+    $("legend").innerHTML = `<span><i style="background:var(--p1)"></i>your time</span><span><i style="background:var(--bad)"></i>fixes after merge</span><span>hours →</span>`;
+  }
+  function render() {
+    const m = model(st);
+    document.querySelectorAll("button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(st[b.dataset.k] === b.dataset.v)));
+    grid(m); chart(m);
+    const set = (id, bad, txt) => { $(id).textContent = txt; $(id).className = "v " + (bad ? "bad" : "good"); };
+    set("sMer", m.merged > 0, m.merged);
+    set("sFix", m.fix > 0, m.fix);
+    set("sYou", m.you > 6, m.you.toFixed(1));
+    set("sMs", m.ms > 0.5 || m.gcBad, m.ms.toFixed(1));
+    $("sMsS").textContent = m.gcBad ? "ms + a GC spike every few seconds" : "ms, budget 0.5";
+    const ok = m.merged === 0 && m.you <= 6 && m.ms <= 0.5;
+    $("goalPill").className = "pill " + (ok ? "ok" : "over"); $("goalPill").textContent = ok ? "Goal met" : "Not yet";
+    let c;
+    if (st.brief === "no" && st.steps === "no" && st.checks === "no" && st.rev === "skim") c = `"Write deep-sea fish AI." In one afternoon: 2,000 lines that compile and pass the tests it wrote. It knows how fish AI is usually written, not how the Reef is: all 7 problems merge, ${m.fix} hours of fixes, fish AI at 2.4 ms with GC spikes.`;
+    else if (st.steps === "no" && st.checks === "no" && st.rev === "skim") c = `A one-page brief: the layers, the authority rule, AI LOD, the budgets, the utilities that exist. Three problems are never written. The allocation, the duplicated helpers and two bugs still merge: ${m.fix} hours later.`;
+    else if (st.checks === "no" && st.rev === "skim") c = `Small steps: the interface first, then movement, then schooling, then depth, each run in the game. Both bugs show up in the step that made them. Still merged: ${m.out.filter((o) => o.k === "bad").map((o) => o.p.n.toLowerCase()).join(" and ")}: ${m.fix} hours.`;
+    else if (st.rev === "skim") c = `The same performance test and architecture lint every human change passes. The allocation fails the perf test. What's left needs a person: ${m.merged} problem${m.merged === 1 ? "" : "s"}, ${m.fix} hours.`;
+    else if (m.merged === 0) c = `The five questions from Lesson 070 on each small step: "dependencies" finds the duplicated helpers. 0 problems merged, ${m.you.toFixed(1)} hours of your time against about 40 by hand, fish AI at 0.4 ms. Goal met.`;
+    else c = `A careful review catches the architecture problems${st.brief === "no" ? " the assistant was never told about" : ""}, but ${m.merged} problem${m.merged === 1 ? "" : "s"} still merge: ${m.fix} hours later, ${m.you.toFixed(1)} hours of your time.`;
+    $("coach").textContent = c;
+  }
+  function apply(s) { Object.assign(st, { brief: "no", steps: "no", checks: "no", rev: "skim" }, s); render(); }
+  document.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", () => { st[b.dataset.k] = b.dataset.v; render(); }));
+
+  const STEPS = [
+    { t: "As run: one line, skim, merge", d: "2,000 lines in an afternoon. All 7 problems merge: 72 hours of fixes, fish AI at 2.4 ms with GC spikes. Writing it by hand would have taken about 40.", s: {} },
+    { t: "Give it the architecture brief", d: "One page, written once: layers, authority, AI LOD, budgets, existing utilities. 3 problems prevented; 4 merge: 36 hours later, 1.5 hours of your time.", s: { brief: "yes" } },
+    { t: "Ask in small steps", d: "Interface first, then one behaviour at a time, each played in the game. Both bugs caught: 24 hours later, 2.5 of yours.", s: { brief: "yes", steps: "yes" } },
+    { t: "Run our checks on it", d: "The same perf test and architecture lint as human code: the allocation is caught. 1 problem merges: 12 hours.", s: { brief: "yes", steps: "yes", checks: "yes" } },
+    { t: "Review it like a colleague's", d: "Five questions on each step: the duplicated utilities are found. 0 merged, 4.0 hours of your time, fish AI at 0.4 ms. Goal met.", s: { brief: "yes", steps: "yes", checks: "yes", rev: "full" } },
+  ];
+  const stepsEl = $("steps");
+  STEPS.forEach((s, k) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<div><div class="t">${s.t}</div><p>${s.d}</p></div><button type="button" class="btn" id="step${k}">Set up</button>`;
+    stepsEl.appendChild(li);
+    li.querySelector("button").addEventListener("click", () => {
+      document.querySelectorAll(".steps li").forEach((c) => c.classList.remove("active"));
+      li.classList.add("active"); apply(s.s);
+      $("qs").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "nearest" });
+    });
+  });
+  render();
+  let lastW = 0;
+  new ResizeObserver(() => { const w = $("chart").clientWidth; if (Math.abs(w - lastW) > 4) { lastW = w; render(); } }).observe($("chart"));
+})();
+</script>
