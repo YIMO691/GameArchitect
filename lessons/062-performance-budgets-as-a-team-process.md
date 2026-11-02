@@ -265,4 +265,4 @@ One question for your journal: if your game got 0.5 ms slower tomorrow, who woul
 
 ---
 
-**Tomorrow — Lesson 063: Automated performance testing.** The budget board needs numbers on every build. But the first CI performance test flags a "regression" on 4 builds out of 10 that turn out to be noise. We learn how to build performance tests that are repeatable enough to trust: fixed scenes, fixed hardware, warm-up, and statistics.
+**Tomorrow — Lesson 063: Automated performance testing.** The budget board needs numbers on every build. But the first CI performance test raises an alarm on 7 of 13 builds, and every one of them is noise. We learn how to build performance tests that are repeatable enough to trust: fixed scenes, fixed hardware, warm-up, and statistics.

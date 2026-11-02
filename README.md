@@ -83,3 +83,4 @@ AI tools write plausible code quickly. What they can't do on their own is make d
 | 060 | [Shader Compilation Stutter and PSO Caching](lessons/060-shader-compilation-stutter-and-pso-caching.md) | [Frame Pipeline Lab](https://yimo691.github.io/GameArchitect/demos/002-frame-pipeline/) | 2026-11-01 |
 | 061 | [Console and Store Certification](lessons/061-console-and-store-certification.md) | [Cert Lab](https://yimo691.github.io/GameArchitect/demos/061-cert-lab/) | 2026-11-01 |
 | 062 | [Performance Budgets as a Team Process](lessons/062-performance-budgets-as-a-team-process.md) | [Budget Board Lab](https://yimo691.github.io/GameArchitect/demos/062-budget-board-lab/) | 2026-11-01 |
+| 063 | [Automated Performance Testing](lessons/063-automated-performance-testing.md) | [Perf Test Lab](https://yimo691.github.io/GameArchitect/demos/063-perf-test-lab/) | 2026-11-01 |

@@ -97,7 +97,7 @@ The daily job writes the **first ⬜ lesson** in this list, then flips it to ✅
 | 060 | Shader compilation stutter and PSO caching | ✅ |
 | 061 | Console and store certification: what architects must plan for | ✅ |
 | 062 | Performance budgets as a team process | ✅ |
-| 063 | Automated performance testing | ⬜ |
+| 063 | Automated performance testing | ✅ |
 | 064 | Crash analysis and stability engineering | ⬜ |
 | 065 | Managing technical debt and refactoring legacy code | ⬜ |
 | 066 | Review: Module 6 | ⬜ |
